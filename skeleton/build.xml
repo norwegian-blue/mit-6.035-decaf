@@ -62,29 +62,7 @@
     </java>
   </target>
 
-  <target name="scanner" depends="init">
-    <antlr
-      target="${src}/decaf/Lexer.g"
-      outputdirectory="${java}/decaf"
-      >
-      <classpath>
-        <pathelement location="${lib}/antlr.jar" />
-      </classpath>
-    </antlr>
-  </target>
-
-  <target name="parser" depends="scanner">
-    <!-- set trace="yes" if you want to trace the praser actions -->
-    <antlr
-      target="${src}/decaf/Parser.g"
-      outputdirectory="${java}/decaf">
-      <classpath>
-        <pathelement location="${lib}/antlr.jar" />
-      </classpath>
-    </antlr>
-  </target>
-
-  <target name="compile" depends="parser">
+  <target name="compile" depends="grammar">
     <javac srcdir="${java}:${src}" destdir="${classes}" debug="on">
       <classpath refid="libraries"/>
     </javac>
