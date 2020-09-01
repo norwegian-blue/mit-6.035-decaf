@@ -2,6 +2,8 @@ package decaf;
 
 import java.io.*;
 import org.antlr.v4.runtime.Token;
+import org.antlr.v4.runtime.CharStreams;
+import org.antlr.v4.runtime.CharStream;
 import java6035.tools.CLI.*;
 
 class Main {
@@ -9,12 +11,12 @@ class Main {
         try {
         	CLI.parse (args, new String[0]);
         	
-        	InputStream inputStream = args.length == 0 ?
-                    System.in : new java.io.FileInputStream(CLI.infile);
+        	CharStream inputStream = args.length == 0 ?
+                    CharStreams.fromStream(System.in) : CharStreams.fromFileName(CLI.infile);
 
         	if (CLI.target == CLI.SCAN)
         	{
-        		GrammarLexer lexer = new GrammarLexer(new DataInputStream(inputStream));
+        		GrammarLexer lexer = new GrammarLexer(inputStream);
         		Token token;
         		boolean done = false;
         		while (!done)
@@ -44,7 +46,7 @@ class Main {
         	}
         	else if (CLI.target == CLI.PARSE || CLI.target == CLI.DEFAULT)
         	{
-        		GrammarLexer lexer = new GrammarLexer(new DataInputStream(inputStream));
+        		GrammarLexer lexer = new GrammarLexer(inputStream);
         		GrammarParser parser = new GrammarParser (lexer);
                 parser.program();
         	}
