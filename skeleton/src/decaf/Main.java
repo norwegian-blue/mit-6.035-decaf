@@ -1,7 +1,7 @@
 package decaf;
 
 import java.io.*;
-import antlr.Token;
+import org.antlr.v4.runtime.Token;
 import java6035.tools.CLI.*;
 
 class Main {
@@ -14,7 +14,7 @@ class Main {
 
         	if (CLI.target == CLI.SCAN)
         	{
-        		DecafScanner lexer = new DecafScanner(new DataInputStream(inputStream));
+        		GrammarLexer lexer = new GrammarLexer(new DataInputStream(inputStream));
         		Token token;
         		boolean done = false;
         		while (!done)
@@ -44,8 +44,8 @@ class Main {
         	}
         	else if (CLI.target == CLI.PARSE || CLI.target == CLI.DEFAULT)
         	{
-        		DecafScanner lexer = new DecafScanner(new DataInputStream(inputStream));
-        		DecafParser parser = new DecafParser (lexer);
+        		GrammarLexer lexer = new GrammarLexer(new DataInputStream(inputStream));
+        		GrammarParser parser = new GrammarParser (lexer);
                 parser.program();
         	}
         	
