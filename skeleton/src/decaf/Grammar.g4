@@ -4,5 +4,15 @@ grammar Grammar ;
 package decaf;
 }
 
-exp : NUM+ ;
-NUM : [0-9]+ ;
+tokens { TK_class }
+
+LCURLY : '{' ;
+RCURLY : '}' ;
+
+ID : [a-zA-Z]+ ;
+
+WS : [ \t\n]+ -> skip ;
+
+SL_COMMENT : '//' ~[\n]* '\n' -> skip ;
+
+program : TK_class ID LCURLY RCURLY EOF ;
