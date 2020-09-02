@@ -4,6 +4,8 @@ import java.io.*;
 import org.antlr.v4.runtime.Token;
 import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CharStream;
+import org.antlr.v4.runtime.RecognitionException;
+import org.antlr.v4.runtime.CommonTokenStream;
 import java6035.tools.CLI.*;
 
 class Main {
@@ -23,31 +25,32 @@ class Main {
         		{
         			try
         			{
-		        		for (token=lexer.nextToken(); token.getType()!=DecafParserTokenTypes.EOF; token=lexer.nextToken())
+		        		for (token=lexer.nextToken(); token.getType()!=GrammarParser.EOF; token=lexer.nextToken())
 		        		{
 		        			String type = "";
 		        			String text = token.getText();
 		
 		        			switch (token.getType())
 		        			{
-		        			case DecafScannerTokenTypes.ID:
+		        			case GrammarParser.ID:
 		        				type = " IDENTIFIER";
 		        				break;
 		        			}
 		        			System.out.println (token.getLine() + type + " " + text);
 		        		}
 		        		done = true;
-        			} catch(Exception e) {
+        			} catch(RecognitionException re) {
         	        	// print the error:
-        	            System.out.println(CLI.infile+" "+e);
-        	            lexer.consume ();
+        	            System.out.println(CLI.infile+" "+re);
+        	            lexer.recover (re);
         	        }
         		}
         	}
         	else if (CLI.target == CLI.PARSE || CLI.target == CLI.DEFAULT)
         	{
         		GrammarLexer lexer = new GrammarLexer(inputStream);
-        		GrammarParser parser = new GrammarParser (lexer);
+        		CommonTokenStream tokens = new CommonTokenStream(lexer);
+        		GrammarParser parser = new GrammarParser (tokens);
                 parser.program();
         	}
         	
