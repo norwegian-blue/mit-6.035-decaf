@@ -1,7 +1,11 @@
 package decaf;
 
 import java.io.*;
-import antlr.Token;
+import org.antlr.v4.runtime.Token;
+import org.antlr.v4.runtime.CharStreams;
+import org.antlr.v4.runtime.CharStream;
+import org.antlr.v4.runtime.RecognitionException;
+import org.antlr.v4.runtime.CommonTokenStream;
 import java6035.tools.CLI.*;
 
 class Main {
@@ -9,43 +13,44 @@ class Main {
         try {
         	CLI.parse (args, new String[0]);
         	
-        	InputStream inputStream = args.length == 0 ?
-                    System.in : new java.io.FileInputStream(CLI.infile);
+        	CharStream inputStream = args.length == 0 ?
+                    CharStreams.fromStream(System.in) : CharStreams.fromFileName(CLI.infile);
 
         	if (CLI.target == CLI.SCAN)
         	{
-        		DecafScanner lexer = new DecafScanner(new DataInputStream(inputStream));
+        		GrammarLexer lexer = new GrammarLexer(inputStream);
         		Token token;
         		boolean done = false;
         		while (!done)
         		{
         			try
         			{
-		        		for (token=lexer.nextToken(); token.getType()!=DecafParserTokenTypes.EOF; token=lexer.nextToken())
+		        		for (token=lexer.nextToken(); token.getType()!=GrammarParser.EOF; token=lexer.nextToken())
 		        		{
 		        			String type = "";
 		        			String text = token.getText();
 		
 		        			switch (token.getType())
 		        			{
-		        			case DecafScannerTokenTypes.ID:
+		        			case GrammarParser.ID:
 		        				type = " IDENTIFIER";
 		        				break;
 		        			}
 		        			System.out.println (token.getLine() + type + " " + text);
 		        		}
 		        		done = true;
-        			} catch(Exception e) {
+        			} catch(RecognitionException re) {
         	        	// print the error:
-        	            System.out.println(CLI.infile+" "+e);
-        	            lexer.consume ();
+        	            System.out.println(CLI.infile+" "+re);
+        	            lexer.recover (re);
         	        }
         		}
         	}
         	else if (CLI.target == CLI.PARSE || CLI.target == CLI.DEFAULT)
         	{
-        		DecafScanner lexer = new DecafScanner(new DataInputStream(inputStream));
-        		DecafParser parser = new DecafParser (lexer);
+        		GrammarLexer lexer = new GrammarLexer(inputStream);
+        		CommonTokenStream tokens = new CommonTokenStream(lexer);
+        		GrammarParser parser = new GrammarParser (tokens);
                 parser.program();
         	}
         	
