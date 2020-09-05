@@ -4,21 +4,22 @@ grammar Grammar ;
 package decaf;
 }
 
-tokens { TK_class }
-
-LCURLY : '{' ;
-RCURLY : '}' ;
-
-ID : [a-zA-Z]+ ;
-
 WS : [ \t\n]+ -> skip ;
-
 SL_COMMENT : '//' ~[\n]* '\n' -> skip ;
 
-CHAR : '\'' (ESC|~'\'') '\'' ;
-STRING : '"' (ESC|~'"')* '"' ;
+INT_LITERAL : DEC_LITERAL | HEX_LITERAL ;
+BOOL_LITERAL : 'true' | 'false' ;
+ID : ALPHA ;
+STRING : '"' ALPHA '"' ;
+CHAR : '"' DIGIT '"' ;
 
 fragment
-ESC : '\\' ('n'|'"') ;
+DEC_LITERAL : '-'? DIGIT (DIGIT)* ;
+HEX_LITERAL : '0x' HEX_DIGIT (HEX_DIGIT)* ;
+HEX_DIGIT : DIGIT | [a-fA-F] ;
+DIGIT : [0-9] ;
+ALPHA : [a-zA-Z_] ;
 
-program : TK_class ID LCURLY RCURLY EOF ;
+ESC : '\\' ('n'|'"'|'t'|'\\'|'\\\\') ;
+
+program : INT_LITERAL ;
