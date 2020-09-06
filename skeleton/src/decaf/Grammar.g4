@@ -4,22 +4,29 @@ grammar Grammar ;
 package decaf;
 }
 
-WS : [ \t\n]+ -> skip ;
-SL_COMMENT : '//' ~[\n]* '\n' -> skip ;
-
+// Integers
 INT_LITERAL : DEC_LITERAL | HEX_LITERAL ;
+
+fragment DEC_LITERAL : '-'? DIGIT+ ;
+fragment HEX_LITERAL : '0x' HEX_DIGIT+ ;
+fragment HEX_DIGIT : DIGIT | [a-fA-F] ;
+fragment DIGIT : [0-9] ;
+
+// Booleans
 BOOL_LITERAL : 'true' | 'false' ;
-ID : ALPHA ;
-STRING : '"' ALPHA '"' ;
-CHAR : '"' DIGIT '"' ;
 
-fragment
-DEC_LITERAL : '-'? DIGIT (DIGIT)* ;
-HEX_LITERAL : '0x' HEX_DIGIT (HEX_DIGIT)* ;
-HEX_DIGIT : DIGIT | [a-fA-F] ;
-DIGIT : [0-9] ;
-ALPHA : [a-zA-Z_] ;
+// Chars
+CHAR : '\'' CHARACTER '\'' ;
+fragment CHARACTER : (ESC|' '|'!'|('#'..'&')|'('..'['|']'..'~') ;
+fragment ESC : '\\' ('n'|'"'|'t'|'\\'|'\\\\') ;
 
-ESC : '\\' ('n'|'"'|'t'|'\\'|'\\\\') ;
+// Strings
+STRING : '"' CHARACTER* '"' ;
+
+// Identifier
+ID : 'todo1' ;
+
+SL_COMMENT : '//' ~[\n]* '\n' -> skip ;
+WS : [ \t\n]+ -> skip ;
 
 program : INT_LITERAL ;
