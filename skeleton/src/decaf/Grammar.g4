@@ -4,6 +4,9 @@ grammar Grammar ;
 package decaf;
 }
 
+// Keywords
+KEYWORDS: 'boolean'|'break'|'callout'|'class'|'continue'|'else'|'for'|'if'|'int'|'return'|'void' ; 
+
 // Integers
 INT_LITERAL : DEC_LITERAL | HEX_LITERAL ;
 
@@ -18,13 +21,13 @@ BOOL_LITERAL : 'true' | 'false' ;
 // Chars
 CHAR : '\'' CHARACTER '\'' ;
 fragment CHARACTER : (ESC|' '|'!'|('#'..'&')|'('..'['|']'..'~') ;
-fragment ESC : '\\' ('n'|'"'|'t'|'\\'|'\\\\') ;
+fragment ESC : '\\' ('n'|'"'|'t'|'\\'|'\'') ;
 
 // Strings
 STRING : '"' CHARACTER* '"' ;
 
 // Identifier
-ID : 'todo1' ;
+ID : [a-z]+ ;
 
 SL_COMMENT : '//' ~[\n]* '\n' -> skip ;
 WS : [ \t\n]+ -> skip ;
