@@ -86,7 +86,7 @@
 
   <target name="test_scanner" depends="jar">
     <exec executable="${tests}/scanner/test.sh"/>
-    <exec executable="${tests}/scanner_hidden/test.sh"/>
+    <exec executable="${tests}/scanner-hidden/test.sh"/>
   </target>
 
   <target name="integration_tests" 

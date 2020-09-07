@@ -3,14 +3,14 @@
 runscanner() {
 	curdir=$PWD
 	cd `dirname $1`
-	$(git rev-parse --show-toplevel)/skeleton/run.sh scan `basename $1`
+	$(git rev-parse --show-toplevel)/skeleton/run.sh -target scan `basename $1`
 	cd $curdir
 }
 
 fail=0
 
 for file in `dirname $0`/input/*; do
-	output=`tempfile`
+	output=`tempfile`;
 	runscanner $file > $output 2>&1;
 	if ! diff -u $output `dirname $0`/output/`basename $file`.out; then
 		echo "File $file scanner mismatch.";
@@ -19,4 +19,4 @@ for file in `dirname $0`/input/*; do
 	rm $output;
 done
 
-exit fail
+exit $fail
