@@ -5,11 +5,11 @@
 4 IDENTIFIER meep
 4 IDENTIFIER peem
 5 IDENTIFIER whaah
-ws1 line 5:6: unexpected char: 0xC
+line 5:5 token recognition error at: ''
 5 IDENTIFIER boom
 6 IDENTIFIER doom
-ws1 line 9:1: unexpected char: 0xC
-ws1 line 9:17: unexpected char: 0xC
+line 9:0 token recognition error at: ''
+line 9:3 token recognition error at: ''
 10 IDENTIFIER gloom
 10 IDENTIFIER loom
 10 IDENTIFIER weave

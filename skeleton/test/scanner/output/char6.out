@@ -1,2 +1,2 @@
-char6 line 2:2: unexpected char: '"'
-char6 line 2:4: unexpected char: 0xA
+line 2:0 token recognition error at: ''"'
+line 2:2 token recognition error at: ''\n'

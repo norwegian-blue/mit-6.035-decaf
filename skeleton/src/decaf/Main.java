@@ -35,6 +35,18 @@ class Main {
 		        			case GrammarParser.ID:
 		        				type = " IDENTIFIER";
 		        				break;
+		        			case GrammarParser.BOOL_LITERAL:
+		        			    type = " BOOLEANLITERAL";
+		        			    break;
+		        			case GrammarParser.INT_LITERAL:
+		        			    type = " INTLITERAL";
+		        			    break;
+		        			case GrammarParser.CHAR:
+		        			    type = " CHARLITERAL";
+		        			    break;
+		        			case GrammarParser.STRING:
+		        			    type = " STRINGLITERAL";
+		        			    break;
 		        			}
 		        			System.out.println (token.getLine() + type + " " + text);
 		        		}

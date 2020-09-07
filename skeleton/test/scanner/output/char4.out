@@ -1,2 +1,2 @@
-char4 line 2:3: unexpected char: 'p'
-char4 line 2:5: unexpected char: 0xA
+line 2:0 token recognition error at: ''\p'
+line 2:3 token recognition error at: ''\n'
