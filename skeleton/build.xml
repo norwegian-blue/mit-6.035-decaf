@@ -89,8 +89,13 @@
     <exec executable="${tests}/scanner-hidden/test.sh"/>
   </target>
 
+  <target name="test_parser" depends="jar">
+    <exec executable="${tests}/parser/test.sh"/>
+    <exec executable="${tests}/parser-hidden/test.sh"/>
+  </target>
+
   <target name="integration_tests" 
-	  depends="test_scanner">
+	  depends="test_scanner, test_parser">
   </target>
   
  <!-- to clean, delete everything in the java, classes, and dist
