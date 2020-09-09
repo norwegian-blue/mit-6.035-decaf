@@ -15,11 +15,9 @@ TK_CALLOUT : 'callout' ;
 TK_CLASS : 'class' ;
 TK_CONTINUE : 'continue' ;
 TK_ELSE : 'else' ;
-TK_FALSE : 'false' ;
 TK_FOR : 'for' ;
 TK_IF : 'if' ;
 TK_INT : 'int' ;
-TK_TRUE : 'true' ;
 TK_RETURN : 'return' ;
 TK_VOID : 'void' ;
 
@@ -32,7 +30,7 @@ fragment HEX_DIGIT : DIGIT | [a-fA-F] ;
 fragment DIGIT : [0-9] ;
 
 // Booleans
-BOOL_LITERAL : TK_TRUE | TK_FALSE ; 
+BOOL_LITERAL : 'true' | 'false' ; 
 
 // Chars
 CHAR : '\'' CHARACTER '\'' ;
@@ -83,7 +81,7 @@ WS : [ \t\n]+ -> skip ;
 // Syntax rules
 /////////////////////////////////
 
-program : TK_CLASS 'Program' LCURLY field_decl* method_decl* RCURLY  ;
+program : TK_CLASS 'Program' LCURLY field_decl* method_decl* RCURLY EOF ;
 
 field_decl : type field (COMMA field)* SEMI ;
 field : ID (LBRACKET INT_LITERAL RBRACKET)? ;
