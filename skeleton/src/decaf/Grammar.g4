@@ -100,23 +100,22 @@ var_decl : (type ID) (COMMA type ID)* SEMI ;
 statement : location assign_op expr SEMI
 	  | method_call SEMI
 	  | TK_IF LPAR expr RPAR block (TK_ELSE block)?
-	  | TK_FOR ID EQ expr COMMA expr block
+	  | TK_FOR ID ASSIGN expr COMMA expr block
 	  | TK_RETURN expr? SEMI
 	  | TK_CONTINUE SEMI
+	  | TK_BREAK SEMI
 	  | block ;
 
 assign_op : (ASSIGN | INC | DEC) ;
 
 method_call : method_name LPAR (expr (COMMA expr)*)? RPAR 
-	    | TK_CALLOUT LPAR STRING callout_arg* RPAR ;
+	    | TK_CALLOUT LPAR STRING (COMMA callout_arg)* RPAR ;
 
 method_name : ID ;
 
 location : ID (LBRACKET expr RBRACKET)? ;
 
-expr : location
-     | method_call
-     | or_exp ;
+expr : or_exp ;
 
 callout_arg : expr | STRING ;
 
@@ -144,6 +143,6 @@ minus_exp : MINUS minus_exp
 not_exp : NOT not_exp
 	| atom ;
 
-atom : literal | (LPAR expr RPAR) ;
+atom : literal | (LPAR expr RPAR) | location | method_call ;
 
 literal : INT_LITERAL | CHAR | BOOL_LITERAL ;
