@@ -1,4 +1,6 @@
+class Program {
 void main ( ) {
 }
 }
 // extra closing brace
+}

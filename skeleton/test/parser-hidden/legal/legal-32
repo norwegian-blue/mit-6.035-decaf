@@ -1,3 +1,4 @@
+class Program {
 void main() {
   boolean b;
   int i;
@@ -7,3 +8,4 @@ void main() {
   // Mad dash!
 }
 
+}

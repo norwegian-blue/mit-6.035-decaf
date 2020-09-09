@@ -1,4 +1,6 @@
+class Program {
 void main ( ) {
   void a;
   // invalid type
+}
 }
