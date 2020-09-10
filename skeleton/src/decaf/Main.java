@@ -63,7 +63,16 @@ class Main {
         		GrammarLexer lexer = new GrammarLexer(inputStream);
         		CommonTokenStream tokens = new CommonTokenStream(lexer);
         		GrammarParser parser = new GrammarParser (tokens);
+        		
+        		if (CLI.debug) {
+        		    parser.setTrace(true);
+        		}
+        		
                 parser.program();
+                
+                if (parser.getNumberOfSyntaxErrors() > 0) {
+                    System.exit(1);
+                }
         	}
         	
         } catch(Exception e) {
