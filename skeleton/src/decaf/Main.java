@@ -67,7 +67,12 @@ class Main {
         		if (CLI.debug) {
         		    parser.setTrace(true);
         		}
+        		
                 parser.program();
+                
+                if (parser.getNumberOfSyntaxErrors() > 0) {
+                    System.exit(1);
+                }
         	}
         	
         } catch(Exception e) {

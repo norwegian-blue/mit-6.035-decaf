@@ -7,21 +7,17 @@ runparser() {
 fail=0
 
 for file in `dirname $0`/illegal/*; do
-  runparser > tmp 2>&1 $file
-  if ! [ -s tmp ]; then
+  if runparser > /dev/null 2>&1 $file; then
     echo "Illegal file $file parsed successfully.";
     fail=1
   fi
-  rm tmp
 done
 
 for file in `dirname $0`/legal/*; do
-  runparser 2>&1 $file | tee -a tmp
-  if [ -s tmp ]; then
+  if ! runparser $file; then
     echo "Legal file $file failed to parse.";
     fail=1
   fi
-  rm tmp
 done
 
 exit $fail;
