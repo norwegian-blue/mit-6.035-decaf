@@ -59,8 +59,8 @@
   <target name="grammar" depends="init">
     <java jar="${lib}/antlr.jar" fork="true">
       <arg value="-o"/>
-      <arg value="${java}/decaf"/>
-      <arg value="${src}/decaf/Grammar.g4"/>
+      <arg value="${java}/grammar"/>
+      <arg value="${src}/grammar/Grammar.g4"/>
     </java>
   </target>
 
@@ -73,7 +73,7 @@
   <target name="jar" depends="compile">
     <jar jarfile="${dist}/Compiler.jar" basedir="${classes}">
      <manifest>
-       <attribute name="Main-Class" value="decaf.Main" />
+       <attribute name="Main-Class" value="Main" />
        <!-- ANTLR runtime is needed for parsing! -->
        <attribute name="Class-Path" value="antlr.jar" />
      </manifest>

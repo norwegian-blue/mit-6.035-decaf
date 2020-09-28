@@ -1,5 +1,3 @@
-package decaf;
-
 import java.io.*;
 import org.antlr.v4.runtime.Token;
 import org.antlr.v4.runtime.CharStreams;
