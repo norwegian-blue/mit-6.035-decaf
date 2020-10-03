@@ -5,6 +5,6 @@ import ir.Ir;
 /**
  * @author Nicola
  */
-public abstract class IrMemberDeclaration extends Ir{
+public abstract class IrMemberDeclaration extends Ir {
 
 }

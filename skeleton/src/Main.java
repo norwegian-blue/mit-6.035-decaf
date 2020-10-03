@@ -1,10 +1,14 @@
-import java.io.*;
 import org.antlr.v4.runtime.Token;
+import org.antlr.v4.runtime.tree.ParseTreeWalker;
 import org.antlr.v4.runtime.CharStreams;
+import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.CharStream;
 import org.antlr.v4.runtime.RecognitionException;
 import org.antlr.v4.runtime.CommonTokenStream;
 import java6035.tools.CLI.*;
+import decaf.GrammarLexer;
+import decaf.GrammarParser;
+import ir.GrammarLoader;
 
 class Main {
     public static void main(String[] args) {
@@ -14,8 +18,8 @@ class Main {
         	CharStream inputStream = args.length == 0 ?
                     CharStreams.fromStream(System.in) : CharStreams.fromFileName(CLI.infile);
 
-        	if (CLI.target == CLI.SCAN)
-        	{
+        	if (CLI.target == CLI.SCAN) {
+        	    
         		GrammarLexer lexer = new GrammarLexer(inputStream);
         		Token token;
         		boolean done = false;
@@ -55,9 +59,9 @@ class Main {
         	            lexer.recover (re);
         	        }
         		}
-        	}
-        	else if (CLI.target == CLI.PARSE || CLI.target == CLI.DEFAULT)
-        	{
+        		
+        	} else if (CLI.target == CLI.PARSE || CLI.target == CLI.DEFAULT) {
+        	    
         		GrammarLexer lexer = new GrammarLexer(inputStream);
         		CommonTokenStream tokens = new CommonTokenStream(lexer);
         		GrammarParser parser = new GrammarParser (tokens);
@@ -71,6 +75,19 @@ class Main {
                 if (parser.getNumberOfSyntaxErrors() > 0) {
                     System.exit(1);
                 }
+                
+        	} else if (CLI.target == CLI.INTER) {
+        	    
+        	    GrammarLexer lexer = new GrammarLexer(inputStream);
+        	    CommonTokenStream tokens = new CommonTokenStream(lexer);
+                GrammarParser parser = new GrammarParser (tokens);                               
+                
+                ParseTreeWalker walker = new ParseTreeWalker();
+                GrammarLoader loader = new GrammarLoader();
+                
+                ParseTree tree = parser.program();
+                walker.walk(loader, tree);
+                       	    
         	}
         	
         } catch(Exception e) {

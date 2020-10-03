@@ -2,7 +2,7 @@ package ir.Declaration;
 
 import java.util.List;
 import ir.Statement.IrBlock;
-import semantic.Type;
+import semantic.TypeDescriptor;
 
 /**
  * @author Nicola
@@ -10,11 +10,11 @@ import semantic.Type;
 public class IrMethodDeclaration extends IrMemberDeclaration{
 
         private final String name;
-        private final Type type;
+        private final TypeDescriptor type;
         private final List<IrVariableDeclaration> arguments;
         private final IrBlock body;
         
-        public IrMethodDeclaration(String name, Type type, List<IrVariableDeclaration> arguments, IrBlock body) {
+        public IrMethodDeclaration(String name, TypeDescriptor type, List<IrVariableDeclaration> arguments, IrBlock body) {
             this.name = name;
             this.type = type;
             this.arguments = arguments;

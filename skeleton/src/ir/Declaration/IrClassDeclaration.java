@@ -2,7 +2,6 @@ package ir.Declaration;
 
 import ir.Ir;
 import java.util.List;
-import java.util.ArrayList;
 
 /**
  * @author Nicola
