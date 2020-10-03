@@ -59,7 +59,7 @@
   <target name="grammar" depends="init">
     <java jar="${lib}/antlr.jar" fork="true">
       <arg value="-o"/>
-      <arg value="${java}/grammar"/>
+      <arg value="${java}/decaf"/>
       <arg value="${src}/grammar/Grammar.g4"/>
     </java>
   </target>
