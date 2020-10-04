@@ -17,4 +17,9 @@ public class IrClassDeclaration extends Ir {
         this.fieldDecl = fieldDecl;
         this.methodDecl = methodDecl;
     }
+    
+    @Override
+    public String toString() {
+        return "class " + this.name + "%nfield declarations:%n" + "method declarations:%n";
+    }
 }

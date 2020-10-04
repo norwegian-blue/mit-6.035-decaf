@@ -5,7 +5,23 @@ package ir;
  */
 public abstract class Ir {
     
-    int line_number;
-    int column_number;
+    private int line_number;
+    private int column_number;
 
+    public int getLineNum() {
+        return line_number;
+    }
+    
+    public int getColNum() {
+        return column_number;
+    }
+    
+    public void setLineNum(int line_number) {
+        this.line_number = line_number;
+    }
+    
+    public void setColNum(int column_number) {
+        this.column_number = column_number;
+    }
+    
 }

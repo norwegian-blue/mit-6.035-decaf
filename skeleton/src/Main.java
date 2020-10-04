@@ -8,7 +8,7 @@ import org.antlr.v4.runtime.CommonTokenStream;
 import java6035.tools.CLI.*;
 import decaf.GrammarLexer;
 import decaf.GrammarParser;
-import ir.GrammarLoader;
+import ir.*;
 
 class Main {
     public static void main(String[] args) {
@@ -87,6 +87,12 @@ class Main {
                 
                 ParseTree tree = parser.program();
                 walker.walk(loader, tree);
+                
+                Ir program = loader.getAbstractSyntaxTree();
+                
+                if (CLI.debug) {
+                    System.out.printf(program.toString());
+                }
                        	    
         	}
         	

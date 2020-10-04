@@ -5,6 +5,7 @@ package ir.Expression;
  */
 public class IrIntLiteral extends IrLiteral {
     
-    public void IntLiteral(String intValue) {
+    public IrIntLiteral(String value) {
+        super("IntLiteral");
     }
 }
