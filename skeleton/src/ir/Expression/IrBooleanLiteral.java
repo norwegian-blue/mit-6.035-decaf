@@ -6,6 +6,6 @@ package ir.Expression;
 public class IrBooleanLiteral extends IrLiteral {
     
     public IrBooleanLiteral(String value) {
-        super("IntLiteral");
+        super(value);
     }
 }
