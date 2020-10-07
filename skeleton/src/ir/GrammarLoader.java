@@ -1,8 +1,13 @@
 package ir;
 
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Stack;
+
+import org.antlr.v4.runtime.tree.ParseTree;
+
 import ir.Expression.*;
 import ir.Declaration.*;
 import decaf.*;
@@ -21,8 +26,43 @@ public class GrammarLoader extends GrammarBaseListener {
      * @return Ir with AST of the parsed program
      */
     public Ir getAbstractSyntaxTree() {
-        System.out.printf(stack.get(3).toString());
         return stack.pop();
+    }
+    
+    @Override
+    public void exitMethod_call(GrammarParser.Method_callContext ctx) {
+        IrExpression callout;
+        String calloutName;
+        List<String> stringArgs = new ArrayList<String>();
+        List<IrExpression> exprArgs = new ArrayList<IrExpression>();
+                        
+        if (ctx.TK_CALLOUT() == null) {
+            // Method call
+            calloutName = ctx.method_name().getText();
+            for (int i = 0; i < ctx.expr().size(); i++) {
+                exprArgs.add((IrExpression) stack.pop());
+            }
+            Collections.reverse(exprArgs);
+            callout = new IrMethodCallExpression(calloutName, exprArgs); 
+            
+        } else {
+            // Callout
+            calloutName = ctx.STRING().getText();
+            for (Callout_argContext arg : ctx.callout_arg()) {
+                if (arg.STRING() != null) {
+                    stringArgs.add(arg.getText());
+                } else {
+                    exprArgs.add((IrExpression) stack.pop());
+                }
+            }
+            Collections.reverse(exprArgs);
+            callout = new IrCalloutExpression(calloutName, exprArgs, stringArgs);
+        }
+        
+        callout.setLineNum(ctx.getStart().getLine());
+        callout.setColNum(ctx.getStart().getCharPositionInLine());
+        stack.push(callout);
+            
     }
     
     @Override
@@ -46,13 +86,49 @@ public class GrammarLoader extends GrammarBaseListener {
     
     @Override
     public void exitLocation(GrammarParser.LocationContext ctx) {
-        IrIdentifier var;
+        String varName;
+        IrLocation location;
         
-        var = new IrIdentifier(ctx.ID().getText());
-        var.setLineNum(ctx.getStart().getLine());
-        var.setColNum(ctx.getStart().getCharPositionInLine());
+        varName = ctx.ID().getText();
+        if (ctx.LBRACKET() == null) {
+            location = new IrLocation(varName);
+        } else {
+            location = new IrLocation(varName, (IrExpression) stack.pop());
+        }
         
-        stack.push(var);
+        location.setLineNum(ctx.getStart().getLine());
+        location.setColNum(ctx.getStart().getCharPositionInLine());        
+        stack.push(location);
+    }
+    
+    @Override
+    public void exitNot_exp(GrammarParser.Not_expContext ctx) {
+        IrExpression exp, unExp;
+        
+        if (ctx.NOT() == null) {
+            return;
+        }
+        
+        exp = (IrExpression) stack.pop();
+        unExp = new IrUnaryExpression(IrUnaryExpression.UnaryOperator.NOT, exp);
+        unExp.setLineNum(ctx.getStart().getLine());
+        unExp.setColNum(ctx.getStart().getCharPositionInLine());
+        stack.push(unExp);
+    }
+    
+    @Override
+    public void exitMinus_exp(GrammarParser.Minus_expContext ctx) {
+        IrExpression exp, unExp;
+        
+        if (ctx.MINUS() == null) {
+            return;
+        }
+        
+        exp = (IrExpression) stack.pop();
+        unExp = new IrUnaryExpression(IrUnaryExpression.UnaryOperator.MINUS, exp);
+        unExp.setLineNum(ctx.getStart().getLine());
+        unExp.setColNum(ctx.getStart().getCharPositionInLine());
+        stack.push(unExp);
     }
     
     @Override
@@ -194,15 +270,6 @@ public class GrammarLoader extends GrammarBaseListener {
         List<IrMethodDeclaration> methodDeclarations = new ArrayList<IrMethodDeclaration>();
         
         stack.push(new IrClassDeclaration(ctx.getTokens(1).toString(), fieldDeclarations, methodDeclarations));
-    }
-    
-    @Override
-    public void exitField_decl(GrammarParser.Field_declContext ctx) {
-    }
-    
-    @Override
-    public void exitMethod_decl(GrammarParser.Method_declContext ctx) {
-    }
-    
+    }   
     
 }
