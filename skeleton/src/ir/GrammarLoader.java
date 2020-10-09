@@ -1,14 +1,12 @@
 package ir;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Stack;
 
-import org.antlr.v4.runtime.tree.ParseTree;
-
 import ir.Expression.*;
+import ir.Statement.*;
 import ir.Declaration.*;
 import decaf.*;
 import decaf.GrammarParser.*;
@@ -27,6 +25,134 @@ public class GrammarLoader extends GrammarBaseListener {
      */
     public Ir getAbstractSyntaxTree() {
         return stack.pop();
+    }
+        
+    @Override
+    public void exitBlock(GrammarParser.BlockContext ctx) {
+        List<IrStatement> stats = new ArrayList<>();
+        
+        for (int i = 0; i < ctx.statement().size(); i++) {
+            stats.add((IrStatement) stack.pop());
+        }
+        
+        Collections.reverse(stats);
+        IrBlock block = new IrBlock(stats);
+        block.setLineNum(ctx.getStart().getLine());
+        block.setColNum(ctx.getStart().getCharPositionInLine());
+        stack.push(block);        
+    }
+    
+    @Override
+    public void exitStatement(GrammarParser.StatementContext ctx) {
+        if (ctx.assign_op() != null) {
+            // Assignment
+            exitAssignment(ctx);
+            
+        } else if (ctx.TK_CONTINUE() != null) {
+            // Continue
+            IrContinueStatement stat = new IrContinueStatement();
+            stat.setLineNum(ctx.getStart().getLine());
+            stat.setColNum(ctx.getStart().getCharPositionInLine());
+            stack.push(stat);
+            
+        } else if (ctx.TK_BREAK() != null) {
+            // Break
+            IrBreakStatement stat = new IrBreakStatement();
+            stat.setLineNum(ctx.getStart().getLine());
+            stat.setColNum(ctx.getStart().getCharPositionInLine());
+            stack.push(stat);
+            
+        } else if (ctx.TK_FOR() != null) {
+            // For loop
+            exitForLoop(ctx);
+        
+        } else if (ctx.TK_IF() != null) {
+            // If then (else)
+            exitIfStatement(ctx);
+        
+        } else if (ctx.TK_RETURN() != null) {
+            // Return
+            exitReturnStatement(ctx);
+        
+        } else {
+            // Method call
+            IrCallExpression callExpr = (IrCallExpression) stack.pop();
+            IrInvokeStatement invStat = new IrInvokeStatement(callExpr);
+            invStat.setLineNum(ctx.getStart().getLine());
+            invStat.setColNum(ctx.getStart().getCharPositionInLine());
+            stack.push(invStat);
+        }      
+    }
+    
+    private void exitReturnStatement(GrammarParser.StatementContext ctx) {
+        IrReturnStatement retStat;
+        
+        if (ctx.expr().size() == 1) {
+            retStat = new IrReturnStatement((IrExpression) stack.pop());
+        } else {
+            retStat = new IrReturnStatement();
+        }
+        
+        retStat.setLineNum(ctx.getStart().getLine());
+        retStat.setColNum(ctx.getStart().getCharPositionInLine());
+        stack.push(retStat);
+    }
+    
+    private void exitIfStatement(GrammarParser.StatementContext ctx) {
+        IrBlock thenBlock;
+        IrBlock elseBlock;
+        IrExpression ifCondition;
+        
+        if (ctx.TK_ELSE() != null) {
+            elseBlock = (IrBlock) stack.pop();
+        } else {
+            elseBlock = null;
+        }
+        
+        thenBlock = (IrBlock) stack.pop();
+        ifCondition = (IrExpression) stack.pop();
+        
+        IrIfStatement ifStatement;
+        if (ctx.TK_ELSE() != null) {
+            ifStatement = new IrIfStatement(ifCondition, thenBlock, elseBlock);
+        } else {
+            ifStatement = new IrIfStatement(ifCondition, thenBlock);
+        }        
+        
+        ifStatement.setLineNum(ctx.getStart().getLine());
+        ifStatement.setColNum(ctx.getStart().getCharPositionInLine());
+        stack.push(ifStatement);
+    }
+    
+    private void exitForLoop(GrammarParser.StatementContext ctx) {
+        IrBlock loopBlock = (IrBlock) stack.pop();
+        IrExpression loopExpr = (IrExpression) stack.pop();
+        IrLocation loopVar = (IrLocation) stack.pop();
+        
+        IrForStatement forLoop = new IrForStatement(loopVar, loopExpr, loopBlock);
+        forLoop.setLineNum(ctx.getStart().getLine());
+        forLoop.setColNum(ctx.getStart().getCharPositionInLine());
+        stack.push(forLoop);
+    }
+    
+    private void exitAssignment(GrammarParser.StatementContext ctx) {
+        IrExpression expr = (IrExpression) stack.pop();
+        IrLocation location = (IrLocation) stack.pop();
+        IrAssignment.IrAssignmentOp assignOp;
+        GrammarParser.Assign_opContext subCtx = ctx.assign_op();
+      
+        if (subCtx.ASSIGN() != null) {
+            assignOp = IrAssignment.IrAssignmentOp.ASSIGN;
+        } else if (subCtx.INC() != null) {
+            assignOp = IrAssignment.IrAssignmentOp.INC;
+        } else {
+            assignOp = IrAssignment.IrAssignmentOp.DEC;
+        }        
+      
+        IrAssignment assign = new IrAssignment(location, assignOp, expr);
+        assign.setLineNum(ctx.getStart().getLine());
+        assign.setColNum(ctx.getStart().getCharPositionInLine());
+        stack.push(assign);
     }
     
     @Override
@@ -262,10 +388,7 @@ public class GrammarLoader extends GrammarBaseListener {
     }
     
     @Override
-    public void exitProgram(GrammarParser.ProgramContext ctx) {
-        List<Field_declContext> fieldDeclaration_ctx = ctx.field_decl();
-        List<Method_declContext> methodDeclaration_ctx = ctx.method_decl();
-        
+    public void exitProgram(GrammarParser.ProgramContext ctx) {        
         List<IrFieldDeclaration> fieldDeclarations = new ArrayList<IrFieldDeclaration>();
         List<IrMethodDeclaration> methodDeclarations = new ArrayList<IrMethodDeclaration>();
         
