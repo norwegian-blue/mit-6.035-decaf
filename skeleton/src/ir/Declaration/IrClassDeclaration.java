@@ -8,18 +8,27 @@ import java.util.List;
  */
 public class IrClassDeclaration extends Ir {
     
-    private final String name;
+    private final String className;
     private final List<IrFieldDeclaration> fieldDecl;
     private final List<IrMethodDeclaration> methodDecl;
     
-    public IrClassDeclaration (String name, List<IrFieldDeclaration> fieldDecl, List<IrMethodDeclaration> methodDecl) {
-        this.name = name;
+    public IrClassDeclaration (String className, List<IrFieldDeclaration> fieldDecl, List<IrMethodDeclaration> methodDecl) {
+        this.className = className;
         this.fieldDecl = fieldDecl;
         this.methodDecl = methodDecl;
     }
     
     @Override
     public String toString() {
-        return "class " + this.name + "%nfield declarations:%n" + "method declarations:%n";
+        String str;
+        str = "CLASS " + className + "\nfields:";
+        for (IrFieldDeclaration fieldDecl : this.fieldDecl) {
+            str += "\n" + Ir.indent(fieldDecl.toString());
+        }
+        str += "\nmethdos:";
+        for (IrMethodDeclaration methodDecl : this.methodDecl) {
+            str += "\n" + Ir.indent(methodDecl.toString());
+        }
+        return str;
     }
 }

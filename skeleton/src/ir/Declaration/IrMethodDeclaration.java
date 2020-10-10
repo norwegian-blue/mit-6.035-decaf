@@ -1,6 +1,8 @@
 package ir.Declaration;
 
 import java.util.List;
+
+import ir.Ir;
 import ir.Statement.IrBlock;
 import semantic.TypeDescriptor;
 
@@ -9,16 +11,22 @@ import semantic.TypeDescriptor;
  */
 public class IrMethodDeclaration extends IrMemberDeclaration{
 
-        private final String name;
-        private final TypeDescriptor type;
-        private final List<IrVariableDeclaration> arguments;
-        private final IrBlock body;
+    private final List<IrParameterDeclaration> methodParams;
+    private final IrBlock methodBody;
         
-        public IrMethodDeclaration(String name, TypeDescriptor type, List<IrVariableDeclaration> arguments, IrBlock body) {
-            this.name = name;
-            this.type = type;
-            this.arguments = arguments;
-            this.body = body;
+    public IrMethodDeclaration(String methodName, TypeDescriptor methodType, List<IrParameterDeclaration> methodParams, IrBlock methodBody) {
+        super(methodType, methodName);
+        this.methodParams = methodParams;
+        this.methodBody = methodBody;
+    }
+       
+    public String toString() {
+        String str;
+        str = "METHOD " + super.toString() + "(";
+        for (IrParameterDeclaration methodArg : this.methodParams) {
+            str += "\n" + Ir.indent(methodArg.toString());
         }
-        
+        str = "\n)\n" + Ir.indent(methodBody.toString());
+        return str;
+    }
 }

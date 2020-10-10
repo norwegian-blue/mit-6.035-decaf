@@ -30,13 +30,24 @@ public class GrammarLoader extends GrammarBaseListener {
     @Override
     public void exitBlock(GrammarParser.BlockContext ctx) {
         List<IrStatement> stats = new ArrayList<>();
+        List<IrVariableDeclaration> vars = new ArrayList<>();
         
         for (int i = 0; i < ctx.statement().size(); i++) {
             stats.add((IrStatement) stack.pop());
         }
         
+        for (int i = 0; i < ctx.var_decl().size(); i++) {
+            vars.add((IrVariableDeclaration) stack.pop());
+        }
+                   
         Collections.reverse(stats);
-        IrBlock block = new IrBlock(stats);
+        Collections.reverse(vars);
+        IrBlock block;
+        if (vars.isEmpty()) {
+            block = new IrBlock(stats);
+        } else {
+            block = new IrBlock(vars, stats);
+        }
         block.setLineNum(ctx.getStart().getLine());
         block.setColNum(ctx.getStart().getCharPositionInLine());
         stack.push(block);        

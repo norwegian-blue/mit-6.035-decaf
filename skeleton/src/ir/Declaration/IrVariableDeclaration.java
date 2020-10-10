@@ -1,23 +1,13 @@
 package ir.Declaration;
 
-import ir.Ir;
 import semantic.TypeDescriptor;
 
 /**
  * @author Nicola
  */
-public class IrVariableDeclaration extends Ir {
+public class IrVariableDeclaration extends IrMemberDeclaration {
     
-    private final TypeDescriptor type;
-    private final String identifier;
-    
-    public IrVariableDeclaration (TypeDescriptor type, String identifier) {
-        this.type = type;
-        this.identifier = identifier;
-    }
-    
-    @Override
-    public String toString() {
-        return this.type + " " + this.identifier;
+    public IrVariableDeclaration(TypeDescriptor type, String identifier) {
+        super(type, identifier);
     }
 }
