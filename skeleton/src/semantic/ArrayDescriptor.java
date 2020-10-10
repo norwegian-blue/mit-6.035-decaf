@@ -3,15 +3,17 @@ package semantic;
 public class ArrayDescriptor extends TypeDescriptor {
     
     private final TypeDescriptor elementType;
+    private final int length;
     
-    public ArrayDescriptor(TypeDescriptor elementType) {
+    public ArrayDescriptor(TypeDescriptor elementType, int length) {
         super("array");
         this.elementType = elementType;
+        this.length = length;
     }
     
     @Override
     public String toString() {
-        return elementType.toString() + "[]";
+        return elementType.toString() + "[" + length + "]";
     }
     
     @Override

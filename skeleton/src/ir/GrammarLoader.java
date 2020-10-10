@@ -7,6 +7,7 @@ import java.util.Stack;
 
 import ir.Expression.*;
 import ir.Statement.*;
+import semantic.*;
 import ir.Declaration.*;
 import decaf.*;
 import decaf.GrammarParser.*;
@@ -26,6 +27,112 @@ public class GrammarLoader extends GrammarBaseListener {
     public Ir getAbstractSyntaxTree() {
         return stack.pop();
     }
+    
+    @Override 
+    public void exitField_decl(GrammarParser.Field_declContext ctx) {
+        TypeDescriptor baseFieldType;
+        List<IrFieldDeclaration> fieldDeclList = new ArrayList<>();
+        
+        if (ctx.type().TK_BOOL() != null) {
+            baseFieldType = TypeDescriptor.BOOL;
+        } else if (ctx.type().TK_INT() != null) {
+            baseFieldType = TypeDescriptor.INT;
+        } else {
+            throw new RuntimeException("cannot identify type");
+        }
+        
+        for (int i = 0; i < ctx.field().size(); i++) {
+            TypeDescriptor fieldType;
+            IrFieldDeclaration fieldDecl;
+            String fieldName = ctx.field(i).getText();
+            
+            if (ctx.field(i).INT_LITERAL() == null) {
+                fieldType = baseFieldType;
+            } else {
+                fieldType = new ArrayDescriptor(baseFieldType, Integer.parseInt(ctx.field(i).INT_LITERAL().getText()));
+            }
+            
+            fieldDecl = new IrFieldDeclaration(fieldType, fieldName);
+            fieldDecl.setLineNum(ctx.getStart().getLine());
+            fieldDecl.setColNum(ctx.getStart().getCharPositionInLine());
+            fieldDeclList.add(fieldDecl);
+        }
+        
+        Collections.reverse(fieldDeclList);
+        for (IrFieldDeclaration field : fieldDeclList) {
+            stack.push(field);
+        }
+        
+    }
+    
+    @Override
+    public void exitMethod_decl(GrammarParser.Method_declContext ctx) {
+        List<IrParameterDeclaration> methodPars = new ArrayList<>();
+        String methodName;
+        IrBlock methodBody;
+        TypeDescriptor methodType;
+        
+        methodName = ctx.ID().getText();
+        methodBody = (IrBlock) stack.pop();
+        
+        if (ctx.TK_VOID() != null) {
+            methodType = TypeDescriptor.VOID;
+        } else if (ctx.type().TK_BOOL() != null) {
+            methodType = TypeDescriptor.BOOL;
+        } else if (ctx.type().TK_INT() != null){
+            methodType = TypeDescriptor.INT;
+        } else {
+            throw new RuntimeException("cannot identify type");
+        }
+        
+        for (int i = 0; i < ctx.method_par().type().size(); i++) {
+            methodPars.add((IrParameterDeclaration) stack.pop());
+        }
+        Collections.reverse(methodPars);
+        
+        IrMethodDeclaration method = new IrMethodDeclaration(methodName, methodType, methodPars, methodBody);
+        method.setLineNum(ctx.getStart().getLine());
+        method.setColNum(ctx.getStart().getCharPositionInLine());
+        stack.push(method);
+    }
+    
+    @Override 
+    public void exitMethod_par(GrammarParser.Method_parContext ctx) {
+        for (int i = 0; i < ctx.ID().size(); i++) {
+            String parName = ctx.ID(i).getText();
+            TypeDescriptor parType;
+            if (ctx.type(i).TK_BOOL() != null) {
+                parType = TypeDescriptor.BOOL;
+            } else if (ctx.type(i).TK_INT() != null) {
+                parType = TypeDescriptor.INT;
+            } else {
+                throw new RuntimeException("cannot identify type");
+            }
+            IrParameterDeclaration par = new IrParameterDeclaration(parType, parName);
+            par.setLineNum(ctx.getStart().getLine());
+            par.setColNum(ctx.getStart().getCharPositionInLine());
+            stack.push(par);
+        }        
+    }
+    
+    @Override
+    public void exitVar_decl(GrammarParser.Var_declContext ctx) {
+        for (int i = 0; i < ctx.ID().size(); i++) {
+            String varName = ctx.ID(i).getText();
+            TypeDescriptor varType;
+            if (ctx.type(i).TK_BOOL() != null) {
+                varType = TypeDescriptor.BOOL;
+            } else if (ctx.type(i).TK_INT() != null) {
+                varType = TypeDescriptor.INT;
+            } else {
+                throw new RuntimeException("cannot identify type");
+            }
+            IrVariableDeclaration var = new IrVariableDeclaration(varType, varName);
+            var.setLineNum(ctx.getStart().getLine());
+            var.setColNum(ctx.getStart().getCharPositionInLine());
+            stack.push(var);
+        }
+    }     
         
     @Override
     public void exitBlock(GrammarParser.BlockContext ctx) {
@@ -37,7 +144,9 @@ public class GrammarLoader extends GrammarBaseListener {
         }
         
         for (int i = 0; i < ctx.var_decl().size(); i++) {
-            vars.add((IrVariableDeclaration) stack.pop());
+            for (int j = 0; j < ctx.var_decl(i).ID().size(); j++) {
+                vars.add((IrVariableDeclaration) stack.pop());
+            }
         }
                    
         Collections.reverse(stats);
@@ -85,13 +194,15 @@ public class GrammarLoader extends GrammarBaseListener {
             // Return
             exitReturnStatement(ctx);
         
-        } else {
+        } else if (ctx.method_call() != null) {
             // Method call
             IrCallExpression callExpr = (IrCallExpression) stack.pop();
             IrInvokeStatement invStat = new IrInvokeStatement(callExpr);
             invStat.setLineNum(ctx.getStart().getLine());
             invStat.setColNum(ctx.getStart().getCharPositionInLine());
             stack.push(invStat);
+        } else {
+            throw new RuntimeException("cannot identify method type");
         }      
     }
     
@@ -156,8 +267,10 @@ public class GrammarLoader extends GrammarBaseListener {
             assignOp = IrAssignment.IrAssignmentOp.ASSIGN;
         } else if (subCtx.INC() != null) {
             assignOp = IrAssignment.IrAssignmentOp.INC;
-        } else {
+        } else if (subCtx.DEC() != null) {
             assignOp = IrAssignment.IrAssignmentOp.DEC;
+        } else {
+            throw new RuntimeException("cannot identify assignment type");
         }        
       
         IrAssignment assign = new IrAssignment(location, assignOp, expr);
@@ -402,8 +515,27 @@ public class GrammarLoader extends GrammarBaseListener {
     public void exitProgram(GrammarParser.ProgramContext ctx) {        
         List<IrFieldDeclaration> fieldDeclarations = new ArrayList<IrFieldDeclaration>();
         List<IrMethodDeclaration> methodDeclarations = new ArrayList<IrMethodDeclaration>();
+        IrClassDeclaration classVar;
+        String className = "Program";
         
-        stack.push(new IrClassDeclaration(ctx.getTokens(1).toString(), fieldDeclarations, methodDeclarations));
+        for (int i = 0; i < ctx.method_decl().size(); i++) {
+            methodDeclarations.add((IrMethodDeclaration) stack.pop());
+        }
+        
+        for (int i = 0; i < ctx.field_decl().size(); i++) {
+            for (int j = 0; j < ctx.field_decl(i).field().size(); j++) {
+                fieldDeclarations.add((IrFieldDeclaration) stack.pop());
+            }
+        }
+        
+        Collections.reverse(fieldDeclarations);
+        Collections.reverse(methodDeclarations);
+        
+        classVar = new IrClassDeclaration(className, fieldDeclarations, methodDeclarations);
+        classVar.setLineNum(ctx.getStart().getLine());
+        classVar.setColNum(ctx.getStart().getCharPositionInLine());
+        stack.push(classVar);
+        
     }   
     
 }

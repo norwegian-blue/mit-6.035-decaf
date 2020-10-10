@@ -26,7 +26,7 @@ public class IrMethodDeclaration extends IrMemberDeclaration{
         for (IrParameterDeclaration methodArg : this.methodParams) {
             str += "\n" + Ir.indent(methodArg.toString());
         }
-        str = "\n)\n" + Ir.indent(methodBody.toString());
+        str += "\n)\n" + Ir.indent(methodBody.toString());
         return str;
     }
 }

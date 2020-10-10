@@ -36,11 +36,15 @@ public class IrBlock extends IrStatement {
     @Override 
     public String toString() {
         String str = "{";
-        for (IrVariableDeclaration var : this.variableDec) {
-            str += "\n" + var.toString();
+        if (variableDec != null) {
+            for (IrVariableDeclaration var : this.variableDec) {
+                str += "\n" + var.toString();
+            }
         }
-        for (IrStatement stat : this.statements) {
-            str += "\n" + stat.toString();
+        if (!isempty) {
+            for (IrStatement stat : this.statements) {
+                str += "\n" + stat.toString();
+            }
         }
         str += "\n}";
         return str;

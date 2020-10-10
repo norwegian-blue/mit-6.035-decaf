@@ -16,8 +16,8 @@ public class TypeDescriptor {
     public static TypeDescriptor VOID = new TypeDescriptor("void");
     public static TypeDescriptor STRING = new TypeDescriptor("string");
     
-    public static TypeDescriptor array(TypeDescriptor elementType) {
-        return new ArrayDescriptor(elementType);
+    public static TypeDescriptor array(TypeDescriptor elementType, int lenght) {
+        return new ArrayDescriptor(elementType, lenght);
     }
     
     @Override

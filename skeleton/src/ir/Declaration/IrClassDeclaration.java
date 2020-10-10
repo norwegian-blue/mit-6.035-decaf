@@ -25,7 +25,7 @@ public class IrClassDeclaration extends Ir {
         for (IrFieldDeclaration fieldDecl : this.fieldDecl) {
             str += "\n" + Ir.indent(fieldDecl.toString());
         }
-        str += "\nmethdos:";
+        str += "\nmethods:";
         for (IrMethodDeclaration methodDecl : this.methodDecl) {
             str += "\n" + Ir.indent(methodDecl.toString());
         }
