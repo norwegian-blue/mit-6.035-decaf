@@ -248,10 +248,11 @@ public class GrammarLoader extends GrammarBaseListener {
     
     private void exitForLoop(GrammarParser.StatementContext ctx) {
         IrBlock loopBlock = (IrBlock) stack.pop();
-        IrExpression loopExpr = (IrExpression) stack.pop();
-        IrIdentifier loopVar = (IrIdentifier) stack.pop();
+        IrExpression endExpr = (IrExpression) stack.pop();
+        IrExpression startExpr = (IrExpression) stack.pop();
+        IrIdentifier loopVar = new IrIdentifier(ctx.ID().getText());
         
-        IrForStatement forLoop = new IrForStatement(loopVar, loopExpr, loopBlock);
+        IrForStatement forLoop = new IrForStatement(loopVar, startExpr, endExpr, loopBlock);
         forLoop.setLineNum(ctx.getStart().getLine());
         forLoop.setColNum(ctx.getStart().getCharPositionInLine());
         stack.push(forLoop);
