@@ -27,7 +27,7 @@ public class IrClassDeclaration extends Ir {
         }
         str += "\nmethods:";
         for (IrMethodDeclaration methodDecl : this.methodDecl) {
-            str += "\n" + Ir.indent(methodDecl.toString());
+            str += "\n" + Ir.indent(methodDecl.toString()) + "\n";
         }
         return str;
     }

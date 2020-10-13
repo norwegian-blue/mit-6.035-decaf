@@ -20,6 +20,7 @@ public class IrIfStatement extends IrStatement {
         this.elseBlock = new IrBlock();
     }
     
+    @Override
     public String toString() {
         String str;
         str = "IF (\n" + Ir.indent(condition.toString()) + "\n)\n";

@@ -14,6 +14,7 @@ public class IrInvokeStatement extends IrStatement {
         this.methodCall = methodCall;
     }
     
+    @Override
     public String toString() {
         return "CALL:\n" + Ir.indent(methodCall.toString());
     }

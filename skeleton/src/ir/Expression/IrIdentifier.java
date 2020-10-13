@@ -5,17 +5,17 @@ import ir.Ir;
 /**
  * @author Nicola
  */
-public class IrLocation extends IrExpression {
-    private final String varName;
+public class IrIdentifier extends IrExpression {
+    private final String idName;
     private final IrExpression arrayInd;
     
-    public IrLocation(String varName) {
-        this.varName = varName;
+    public IrIdentifier(String varName) {
+        this.idName = varName;
         this.arrayInd = null;
     }
     
-    public IrLocation(String varName, IrExpression arrayInd) {
-        this.varName = varName;
+    public IrIdentifier(String idName, IrExpression arrayInd) {
+        this.idName = idName;
         this.arrayInd = arrayInd;
     }
     
@@ -25,7 +25,7 @@ public class IrLocation extends IrExpression {
     
     @Override
     public String toString() {
-        String str = varName;
+        String str = idName;
         if (this.isArray()) {
             str += "[\n" + Ir.indent(arrayInd.toString()) + "\n]";
         }

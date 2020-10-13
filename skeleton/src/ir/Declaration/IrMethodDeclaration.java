@@ -19,7 +19,8 @@ public class IrMethodDeclaration extends IrMemberDeclaration{
         this.methodParams = methodParams;
         this.methodBody = methodBody;
     }
-       
+     
+    @Override
     public String toString() {
         String str;
         str = "METHOD " + super.toString() + "(";

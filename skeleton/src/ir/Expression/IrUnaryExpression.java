@@ -19,6 +19,7 @@ public class IrUnaryExpression extends IrExpression {
         this.op = op;
     }
     
+    @Override
     public String toString() {
         return op.name() + "\n" + Ir.indent(expr.toString());
     }

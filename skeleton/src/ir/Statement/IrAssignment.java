@@ -7,7 +7,7 @@ import ir.Expression.*;
  * @author Nicola
  */
 public class IrAssignment extends IrStatement {
-    private final IrLocation location;
+    private final IrIdentifier location;
     private final IrAssignmentOp assignOp;
     private final IrExpression expr;
     
@@ -17,7 +17,7 @@ public class IrAssignment extends IrStatement {
         DEC
     }
     
-    public IrAssignment(IrLocation location, IrAssignmentOp assignOp, IrExpression expr) {
+    public IrAssignment(IrIdentifier location, IrAssignmentOp assignOp, IrExpression expr) {
         this.location = location;
         this.assignOp = assignOp;
         this.expr = expr;

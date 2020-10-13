@@ -249,7 +249,7 @@ public class GrammarLoader extends GrammarBaseListener {
     private void exitForLoop(GrammarParser.StatementContext ctx) {
         IrBlock loopBlock = (IrBlock) stack.pop();
         IrExpression loopExpr = (IrExpression) stack.pop();
-        IrLocation loopVar = (IrLocation) stack.pop();
+        IrIdentifier loopVar = (IrIdentifier) stack.pop();
         
         IrForStatement forLoop = new IrForStatement(loopVar, loopExpr, loopBlock);
         forLoop.setLineNum(ctx.getStart().getLine());
@@ -259,7 +259,7 @@ public class GrammarLoader extends GrammarBaseListener {
     
     private void exitAssignment(GrammarParser.StatementContext ctx) {
         IrExpression expr = (IrExpression) stack.pop();
-        IrLocation location = (IrLocation) stack.pop();
+        IrIdentifier location = (IrIdentifier) stack.pop();
         IrAssignment.IrAssignmentOp assignOp;
         GrammarParser.Assign_opContext subCtx = ctx.assign_op();
       
@@ -337,13 +337,13 @@ public class GrammarLoader extends GrammarBaseListener {
     @Override
     public void exitLocation(GrammarParser.LocationContext ctx) {
         String varName;
-        IrLocation location;
+        IrIdentifier location;
         
         varName = ctx.ID().getText();
         if (ctx.LBRACKET() == null) {
-            location = new IrLocation(varName);
+            location = new IrIdentifier(varName);
         } else {
-            location = new IrLocation(varName, (IrExpression) stack.pop());
+            location = new IrIdentifier(varName, (IrExpression) stack.pop());
         }
         
         location.setLineNum(ctx.getStart().getLine());

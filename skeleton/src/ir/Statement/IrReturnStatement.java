@@ -20,6 +20,7 @@ public class IrReturnStatement extends IrStatement {
         this.returnVoid = true;
     }
     
+    @Override
     public String toString() {
         String str;
         str = "RETURN";
