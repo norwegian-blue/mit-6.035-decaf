@@ -2,10 +2,10 @@ package semantic;
 
 public class ArrayDescriptor extends TypeDescriptor {
     
-    private final TypeDescriptor elementType;
+    private final BaseTypeDescriptor elementType;
     private final int length;
     
-    public ArrayDescriptor(TypeDescriptor elementType, int length) {
+    public ArrayDescriptor(BaseTypeDescriptor elementType, int length) {
         super("array");
         this.elementType = elementType;
         this.length = length;

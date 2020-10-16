@@ -10,6 +10,7 @@ import java.util.Stack;
 public class SymbolTable {
     
     private Stack<String> stack;
+    //private Stack<Descriptor> scopeStack;
     private Map<String, Bucket> table;
     
     public SymbolTable(){
@@ -71,24 +72,47 @@ public class SymbolTable {
         String symbol = stack.pop();
         while (!symbol.equals("#")) {
             pop(symbol);
+            symbol = stack.pop();
         }
     }
     
     /**
+     * Push a scope on the stack, to recover it later
+     *
+    public void pushScope() {
+        String symbol = stack.pop();
+        while (!symbol.contentEquals("#")) {
+            scopeStack.push(pop(symbol));
+            symbol = stack.pop();
+        }
+    }/
+    
+    /**
+     * Pop a scope from the stack, recovering discarded bindings
+     *
+    public void popScope() {
+    }/
+    
+    /**
      * Removes latest binding for symbol (if present) or directly removes it from table
      */
-    private void pop(String symbol) {
+    private Descriptor pop(String symbol) {
         
-        if (table.containsKey(symbol)) {
+        Descriptor desc;
+        
+        try {
+            desc = this.get(symbol);
             Bucket current = table.get(symbol);
             
             if (current.hasNext()) {
                 table.replace(symbol, current.getNext());
             } else {
                 table.remove(symbol);
-            }                 
-        } else {
+            } 
+        } catch (KeyNotFoundException e) { 
             throw new Error("Identifier " + symbol + " is not defined");
         }
+        
+        return desc;
     }
 }

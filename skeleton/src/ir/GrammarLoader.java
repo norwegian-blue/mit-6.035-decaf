@@ -30,13 +30,13 @@ public class GrammarLoader extends GrammarBaseListener {
     
     @Override 
     public void exitField_decl(GrammarParser.Field_declContext ctx) {
-        TypeDescriptor baseFieldType;
+        BaseTypeDescriptor baseFieldType;
         List<IrFieldDeclaration> fieldDeclList = new ArrayList<>();
         
         if (ctx.type().TK_BOOL() != null) {
-            baseFieldType = TypeDescriptor.BOOL;
+            baseFieldType = BaseTypeDescriptor.BOOL;
         } else if (ctx.type().TK_INT() != null) {
-            baseFieldType = TypeDescriptor.INT;
+            baseFieldType = BaseTypeDescriptor.INT;
         } else {
             throw new RuntimeException("cannot identify type");
         }
@@ -70,17 +70,17 @@ public class GrammarLoader extends GrammarBaseListener {
         List<IrParameterDeclaration> methodPars = new ArrayList<>();
         String methodName;
         IrBlock methodBody;
-        TypeDescriptor methodType;
+        BaseTypeDescriptor methodType;
         
         methodName = ctx.ID().getText();
         methodBody = (IrBlock) stack.pop();
         
         if (ctx.TK_VOID() != null) {
-            methodType = TypeDescriptor.VOID;
+            methodType = BaseTypeDescriptor.VOID;
         } else if (ctx.type().TK_BOOL() != null) {
-            methodType = TypeDescriptor.BOOL;
+            methodType = BaseTypeDescriptor.BOOL;
         } else if (ctx.type().TK_INT() != null){
-            methodType = TypeDescriptor.INT;
+            methodType = BaseTypeDescriptor.INT;
         } else {
             throw new RuntimeException("cannot identify type");
         }
@@ -100,11 +100,11 @@ public class GrammarLoader extends GrammarBaseListener {
     public void exitMethod_par(GrammarParser.Method_parContext ctx) {
         for (int i = 0; i < ctx.ID().size(); i++) {
             String parName = ctx.ID(i).getText();
-            TypeDescriptor parType;
+            BaseTypeDescriptor parType;
             if (ctx.type(i).TK_BOOL() != null) {
-                parType = TypeDescriptor.BOOL;
+                parType = BaseTypeDescriptor.BOOL;
             } else if (ctx.type(i).TK_INT() != null) {
-                parType = TypeDescriptor.INT;
+                parType = BaseTypeDescriptor.INT;
             } else {
                 throw new RuntimeException("cannot identify type");
             }
@@ -119,11 +119,11 @@ public class GrammarLoader extends GrammarBaseListener {
     public void exitVar_decl(GrammarParser.Var_declContext ctx) {
         for (int i = 0; i < ctx.ID().size(); i++) {
             String varName = ctx.ID(i).getText();
-            TypeDescriptor varType;
+            BaseTypeDescriptor varType;
             if (ctx.type(i).TK_BOOL() != null) {
-                varType = TypeDescriptor.BOOL;
+                varType = BaseTypeDescriptor.BOOL;
             } else if (ctx.type(i).TK_INT() != null) {
-                varType = TypeDescriptor.INT;
+                varType = BaseTypeDescriptor.INT;
             } else {
                 throw new RuntimeException("cannot identify type");
             }
