@@ -1,6 +1,8 @@
 package ir.Declaration;
 
 import ir.Ir;
+import ir.IrVisitor;
+
 import java.util.List;
 
 /**
@@ -18,6 +20,19 @@ public class IrClassDeclaration extends Ir {
         this.methodDecl = methodDecl;
     }
     
+    public List<IrFieldDeclaration> getFields() {
+        return fieldDecl;
+    }
+    
+    public List<IrMethodDeclaration> getMethods() {
+        return methodDecl;
+    }
+    
+    @Override
+    public boolean isClass() {
+        return true;
+    }
+    
     @Override
     public String toString() {
         String str;
@@ -30,5 +45,10 @@ public class IrClassDeclaration extends Ir {
             str += "\n" + Ir.indent(methodDecl.toString()) + "\n";
         }
         return str;
+    }
+    
+    @Override
+    public <T> T accept(IrVisitor<T> v) {
+        return v.visit(this);
     }
 }

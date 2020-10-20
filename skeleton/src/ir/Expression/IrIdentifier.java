@@ -1,6 +1,7 @@
 package ir.Expression;
 
 import ir.Ir;
+import ir.IrVisitor;
 
 /**
  * @author Nicola
@@ -30,5 +31,10 @@ public class IrIdentifier extends IrExpression {
             str += "[\n" + Ir.indent(arrayInd.toString()) + "\n]";
         }
         return str;
+    }
+    
+    @Override
+    public <T> T accept(IrVisitor<T> v) {
+        return v.visit(this);
     }
 }

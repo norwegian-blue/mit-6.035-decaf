@@ -1,6 +1,7 @@
 package ir.Expression;
 
 import ir.Ir;
+import ir.IrVisitor;
 
 /**
  * @author Nicola
@@ -22,5 +23,10 @@ public class IrUnaryExpression extends IrExpression {
     @Override
     public String toString() {
         return op.name() + "\n" + Ir.indent(expr.toString());
+    }
+    
+    @Override
+    public <T> T accept(IrVisitor<T> v) {
+        return v.visit(this);
     }
 }

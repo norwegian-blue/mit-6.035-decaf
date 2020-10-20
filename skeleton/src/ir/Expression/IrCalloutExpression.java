@@ -3,6 +3,7 @@ package ir.Expression;
 import java.util.List;
 
 import ir.Ir;
+import ir.IrVisitor;
 
 /** 
  * @author Nicola
@@ -35,5 +36,10 @@ public class IrCalloutExpression extends IrCallExpression {
         }
         
         return str;
+    }
+    
+    @Override
+    public <T> T accept(IrVisitor<T> v) {
+        return v.visit(this);
     }
 }

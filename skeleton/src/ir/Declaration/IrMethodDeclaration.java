@@ -3,6 +3,7 @@ package ir.Declaration;
 import java.util.List;
 
 import ir.Ir;
+import ir.IrVisitor;
 import ir.Statement.IrBlock;
 import semantic.TypeDescriptor;
 
@@ -29,5 +30,10 @@ public class IrMethodDeclaration extends IrMemberDeclaration{
         }
         str += "\n)\n" + Ir.indent(methodBody.toString());
         return str;
+    }
+    
+    @Override
+    public <T> T accept(IrVisitor<T> v) {
+        return v.visit(this);
     }
 }

@@ -3,6 +3,7 @@ package ir.Expression;
 import java.util.List;
 
 import ir.Ir;
+import ir.IrVisitor;
 
 /**
  * @author Nicola
@@ -23,5 +24,10 @@ public class IrMethodCallExpression extends IrCallExpression{
             args += arg.toString() + "\n";
         }
         return "function " + methodName + "(\n" + Ir.indent(args) + ")";
+    }
+    
+    @Override
+    public <T> T accept(IrVisitor<T> v) {
+        return v.visit(this);
     }
 }

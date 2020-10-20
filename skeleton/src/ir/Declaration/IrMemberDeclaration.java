@@ -16,6 +16,14 @@ public abstract class IrMemberDeclaration extends Ir {
         this.identifier = identifier;
     }
     
+    public TypeDescriptor getType() {
+        return type;
+    }
+    
+    public String getId() {
+        return identifier;
+    }
+    
     @Override
     public String toString() {
         return "(" + this.type + ") " + this.identifier;

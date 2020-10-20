@@ -22,4 +22,14 @@ public class ArrayDescriptor extends TypeDescriptor {
         ArrayDescriptor thatArray = (ArrayDescriptor) thatObject;
         return thatArray.elementType.equals(this.elementType);
     }
+    
+    @Override
+    public boolean isArray() {
+        return true;
+    }
+    
+    @Override
+    public int getLength() {
+        return length;
+    }
 }

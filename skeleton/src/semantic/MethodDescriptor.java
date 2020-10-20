@@ -15,5 +15,18 @@ public class MethodDescriptor extends Descriptor {
         this.parameters = parameters;
         this.locals = locals;
     }
-
+    
+    @Override
+    public String toString() {
+        String str = "[METHOD] " + returnType.toString() + " (";
+        for (ParameterDescriptor par : parameters) {
+            str += par.toString();
+        }
+        str += ") {";
+        for (LocalDescriptor local : locals) {
+            str += local.toString();
+        }
+        str += "}";
+        return str;
+    }       
 }

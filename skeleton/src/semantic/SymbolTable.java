@@ -115,4 +115,15 @@ public class SymbolTable {
         
         return desc;
     }
+    
+    @Override
+    public String toString() {
+        String str = "";
+        for (String entry : table.keySet()) {
+            try {
+                str += entry + " : " + this.get(entry).toString() + "\n";
+            } catch (KeyNotFoundException e) {};
+        }
+        return str;
+    }
 }

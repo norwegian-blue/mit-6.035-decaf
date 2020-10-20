@@ -1,6 +1,7 @@
 package ir.Expression;
 
 import ir.Ir;
+import ir.IrVisitor;
 
 /**
  * @author Nicola
@@ -36,5 +37,10 @@ public class IrBinaryExpression extends IrExpression {
     public String toString() {        
         return operator.name() + "\n" + Ir.indent(leftHandSide.toString()) 
                                + "\n" + Ir.indent(rightHandSide.toString());
+    }
+    
+    @Override
+    public <T> T accept(IrVisitor<T> v) {
+        return v.visit(this);
     }
 }

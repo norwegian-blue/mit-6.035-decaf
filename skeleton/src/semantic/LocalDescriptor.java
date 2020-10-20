@@ -11,5 +11,9 @@ public class LocalDescriptor extends Descriptor {
         super(name);
         this.type = type;
     }
-        
+    
+    @Override
+    public String toString() {
+        return "[LOCAL] " + type.toString();
+    }   
 }

@@ -1,6 +1,7 @@
 package ir.Statement;
 
 import ir.Ir;
+import ir.IrVisitor;
 import ir.Expression.*;
 
 /**
@@ -28,5 +29,9 @@ public class IrAssignment extends IrStatement {
         return assignOp.toString() + "\n" + Ir.indent(location.toString()) + Ir.indent("\n<--\n") + Ir.indent(expr.toString());
     }
     
+    @Override
+    public <T> T accept(IrVisitor<T> v) {
+        return v.visit(this);
+    }
     
 }

@@ -1,6 +1,7 @@
 package ir.Statement;
 
 import ir.Ir;
+import ir.IrVisitor;
 import ir.Expression.IrExpression;
 
 /**
@@ -28,5 +29,10 @@ public class IrReturnStatement extends IrStatement {
             str += "\n" + Ir.indent(returnExpr.toString());
         }
         return str;
+    }
+    
+    @Override
+    public <T> T accept(IrVisitor<T> v) {
+        return v.visit(this);
     }
 }

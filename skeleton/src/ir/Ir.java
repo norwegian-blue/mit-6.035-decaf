@@ -28,8 +28,9 @@ public abstract class Ir {
         this.column_number = column_number;
     }
     
-    public<T> T accept(IrVisitor<T> v) {
-        return v.visit(this);
-    }
+    public abstract <T> T accept(IrVisitor<T> v);
     
+    public boolean isClass() {
+        return false;
+    }    
 }

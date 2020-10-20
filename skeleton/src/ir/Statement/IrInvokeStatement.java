@@ -1,6 +1,7 @@
 package ir.Statement;
 
 import ir.Ir;
+import ir.IrVisitor;
 import ir.Expression.IrCallExpression;
 
 /**
@@ -17,5 +18,10 @@ public class IrInvokeStatement extends IrStatement {
     @Override
     public String toString() {
         return "CALL:\n" + Ir.indent(methodCall.toString());
+    }
+    
+    @Override
+    public <T> T accept(IrVisitor<T> v) {
+        return v.visit(this);
     }
 }

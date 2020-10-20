@@ -16,4 +16,11 @@ public abstract class TypeDescriptor {
         return typeName;
     }
 
+    public boolean isArray() {
+        return false;
+    }
+    
+    public int getLength() {
+        return 1;
+    }
 }

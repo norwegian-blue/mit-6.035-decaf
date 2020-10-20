@@ -1,6 +1,8 @@
 package ir.Statement;
 
 import java.util.List;
+
+import ir.IrVisitor;
 import ir.Declaration.*;
 
 /**
@@ -48,5 +50,10 @@ public class IrBlock extends IrStatement {
         }
         str += "\n}";
         return str;
+    }
+    
+    @Override
+    public <T> T accept(IrVisitor<T> v) {
+        return v.visit(this);
     }
 }

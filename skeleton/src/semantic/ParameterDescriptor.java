@@ -11,5 +11,10 @@ public class ParameterDescriptor extends Descriptor {
         super(name);
         this.type = type;
     }
+    
+    @Override
+    public String toString() {
+        return "[PAR] " + type.toString();
+    }
        
 }

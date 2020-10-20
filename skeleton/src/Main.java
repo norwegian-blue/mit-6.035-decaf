@@ -6,9 +6,11 @@ import org.antlr.v4.runtime.CharStream;
 import org.antlr.v4.runtime.RecognitionException;
 import org.antlr.v4.runtime.CommonTokenStream;
 import java6035.tools.CLI.*;
+import semantic.Checker.SemanticChecker;
 import decaf.GrammarLexer;
 import decaf.GrammarParser;
 import ir.*;
+import ir.Declaration.IrClassDeclaration;
 
 class Main {
     public static void main(String[] args) {
@@ -73,7 +75,7 @@ class Main {
                 parser.program();
                 
                 if (parser.getNumberOfSyntaxErrors() > 0) {
-                    System.exit(1);
+                    throw new Error("Syntax error");
                 }
                 
         	} else if (CLI.target == CLI.INTER) {
@@ -93,12 +95,21 @@ class Main {
                 if (CLI.debug) {
                     System.out.printf(program.toString());
                 }
+                
+                if (program.isClass()) {
+                    ((IrClassDeclaration)program).accept(new SemanticChecker());
+                } else {
+                    throw new Error("Could not get a valid AST for the program");
+                }
+                
+                System.out.println("succesfully checked");
                        	    
         	}
         	
         } catch(Exception e) {
         	// print the error:
             System.out.println(CLI.infile+" "+e);
+            System.exit(1);
         }
     }
 }
