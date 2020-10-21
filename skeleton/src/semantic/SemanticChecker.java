@@ -34,6 +34,7 @@ public class SemanticChecker implements IrVisitor<Boolean> {
     public Boolean visit(IrClassDeclaration rootClass) {
         
         boolean check = true;
+        boolean checkMain = false;
         
         // Check all fields
         env.beginScope();
@@ -44,7 +45,17 @@ public class SemanticChecker implements IrVisitor<Boolean> {
         // Check all methods
         for (IrMethodDeclaration methodDecl : rootClass.getMethods()) {
             check &= methodDecl.accept(this);
+            if (methodDecl.getId().equals("main")) {
+                checkMain = true;
+            }
         }
+        
+        // Check if main method is defined
+        if (!checkMain) {
+            errors.add(new SemanticError(rootClass.getLineNum(), rootClass.getColNum(),
+                       "A main method must be defined"));
+            check = false;
+        }            
         
         return check;
     }
@@ -66,6 +77,13 @@ public class SemanticChecker implements IrVisitor<Boolean> {
             check = false;
         }
         
+        // If array, check size > 0
+        if (fieldType.isArray() && fieldType.getLength() < 1) {
+            errors.add(new SemanticError(fieldDecl.getLineNum(), fieldDecl.getColNum(),
+                      "Array " + fieldName + "[] size must be higher than zero"));
+            check = false;
+        }
+        
         return check;
     }
     
@@ -74,7 +92,7 @@ public class SemanticChecker implements IrVisitor<Boolean> {
     public Boolean visit(IrMethodDeclaration methodDecl) {
         boolean check = true;
         
-        // Get inside variables
+        // Get method fields
         String methodName = methodDecl.getId();
         TypeDescriptor methodType = methodDecl.getType();
         List<IrParameterDeclaration> pars = methodDecl.getParameters();
@@ -84,8 +102,7 @@ public class SemanticChecker implements IrVisitor<Boolean> {
         List<ParameterDescriptor> methodPars = new ArrayList<>();
         for (IrParameterDeclaration par : pars) {
             methodPars.add(new ParameterDescriptor(par.getId(), par.getType()));
-        }
-            
+        }            
         try {
             env.put(methodName, new MethodDescriptor(methodName, methodType, methodPars));
         } catch (DuplicateKeyException e) {

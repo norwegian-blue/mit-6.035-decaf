@@ -1,0 +1,12 @@
+class Program {
+void foo ( int x ) {
+  boolean b;
+  b = true;
+  if (b) {
+    int x;
+  }
+}
+void main ( ) {
+  foo ( 10 );
+}
+}

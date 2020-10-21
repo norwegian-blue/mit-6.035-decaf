@@ -1,0 +1,7 @@
+class Program {
+int foo;
+void foo ( ) {
+}
+void main ( ) {
+}
+}

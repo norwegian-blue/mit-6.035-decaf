@@ -1,0 +1,11 @@
+// OK
+class Program {
+void main ( ) {
+  boolean b;
+  if (b) {
+    int b;
+    b = 0;
+  }
+  b = true;
+}
+}

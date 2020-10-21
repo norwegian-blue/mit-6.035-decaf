@@ -110,8 +110,6 @@ class Main {
                 } else {
                     throw new Error("Could not get a valid AST for the program");
                 }
-                
-                System.out.println("succesfully checked");
                        	    
         	}
         	

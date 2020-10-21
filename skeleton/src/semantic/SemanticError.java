@@ -28,7 +28,7 @@ public class SemanticError {
         if (errMsg.isEmpty()) {
             return "no error";
         } else {
-            return "ERROR (line " + String.format("%2d", line) + ", col " + String.format("%2d", col) + ") : " + errMsg;
+            return "ERROR (line " + String.format("%2d", line) + ", col " + String.format("%2d", col) + "): " + errMsg;
         }
     }
 }
