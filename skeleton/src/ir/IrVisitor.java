@@ -7,117 +7,51 @@ import ir.Statement.*;
 /**
  * @author Nicola
  */
-public abstract class IrVisitor<T> {
-    
-    public abstract T visit(Ir exp);
+public interface IrVisitor<T> {
     
     // Declarations
-    public T visit(IrMemberDeclaration decl) {
-        return visit((Ir) decl);
-    }      
+    public T visit(IrClassDeclaration node);
     
-    public T visit(IrClassDeclaration decl) {
-        return visit((Ir) decl);
-    }
+    public T visit(IrFieldDeclaration node);
     
-    public T visit(IrFieldDeclaration decl) {
-        return visit((IrMemberDeclaration) decl);
-    }
+    public T visit(IrMethodDeclaration node);
     
-    public T visit(IrMethodDeclaration decl) {
-        return visit((IrMemberDeclaration) decl);
-    }
-
-    public T visit(IrParameterDeclaration decl) {
-        return visit((IrMemberDeclaration) decl);
-    }
+    public T visit(IrParameterDeclaration node);
     
-    public T visit(IrVariableDeclaration decl) {
-        return visit((IrMemberDeclaration) decl);
-    }
-    
+    public T visit(IrVariableDeclaration node);
     
     // Expressions
-    public T visit(IrExpression exp) {
-        return visit((Ir) exp);
-    }
+    public T visit(IrBinaryExpression node);
     
-    public T visit(IrBinaryExpression exp) {
-        return visit((IrExpression) exp);
-    }
+    public T visit(IrBooleanLiteral node);
     
-    public T visit(IrIdentifier exp) {
-        return visit((IrExpression) exp);
-    }
+    public T visit(IrCalloutExpression node);
     
-    public T visit(IrUnaryExpression exp) {
-        return visit((IrExpression) exp);
-    }
+    public T visit(IrCharLiteral node);
     
-    public T visit(IrCallExpression exp) {
-        return visit((IrExpression) exp);
-    }
+    public T visit(IrIdentifier node);
     
-    public T visit(IrCalloutExpression exp) {
-        return visit((IrCallExpression) exp);
-    }
+    public T visit(IrMethodCallExpression node);
     
-    public T visit(IrMethodCallExpression exp) {
-        return visit((IrExpression) exp);
-    }
-        
-    public T visit(IrLiteral exp) {
-        return visit((IrExpression) exp);
-    }
+    public T visit(IrUnaryExpression node);
     
-    public T visit(IrBooleanLiteral exp) {
-        return visit((IrLiteral) exp);
-    }
-    
-    public T visit(IrCharLiteral exp) {
-        return visit((IrLiteral) exp);
-    }
-    
-    public T visit(IrIntLiteral exp) {
-        return visit((IrLiteral) exp);
-    }
-    
+    public T visit(IrIntLiteral node);
     
     // Statements
-    public T visit(IrStatement exp) {
-        return visit((Ir) exp);
-    }
+    public T visit(IrAssignment node);
     
-    public T visit(IrAssignment exp) {
-        return visit((IrStatement) exp);
-    }
+    public T visit(IrBlock node);
     
-    public T visit(IrBlock exp) {
-        return visit((IrStatement) exp);
-    }
+    public T visit(IrBreakStatement node);
     
-    public T visit(IrBreakStatement exp) {
-        return visit((IrStatement) exp);
-    }
+    public T visit(IrContinueStatement node);
     
-    public T visit(IrContinueStatement exp) {
-        return visit((IrStatement) exp);
-    }
+    public T visit(IrForStatement node);
     
-    public T visit(IrForStatement exp) {
-        return visit((IrStatement) exp);
-    }
+    public T visit(IrIfStatement node);
     
-    public T visit(IrIfStatement exp) {
-        return visit((IrStatement) exp);
-    }
+    public T visit(IrInvokeStatement node);
     
-    public T visit(IrInvokeStatement exp) {
-        return visit((IrStatement) exp);
-    }
-    
-    public T visit(IrReturnStatement exp) {
-        return visit((IrStatement) exp);
-    }
-    
+    public T visit(IrReturnStatement node);
+
 }

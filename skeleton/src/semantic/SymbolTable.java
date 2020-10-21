@@ -10,8 +10,8 @@ import java.util.Stack;
 public class SymbolTable {
     
     private Stack<String> stack;
-    //private Stack<Descriptor> scopeStack;
     private Map<String, Bucket> table;
+    private final static String envMarker = "#";
     
     public SymbolTable(){
         stack = new Stack<>();
@@ -25,10 +25,15 @@ public class SymbolTable {
      * @param symbol Variable/Method/Class identifier
      * @param binding Descriptor for the identifier
      * @return true if the symbol was already defined in the table
+     * @throws DuplicateKeyException if symbol is already bound in current environment 
      */
-    public boolean put(String symbol, Descriptor binding) {
+    public boolean put(String symbol, Descriptor binding) throws DuplicateKeyException {
         
         boolean isBound = table.containsKey(symbol);
+        
+        if (isBound && this.isInScope(symbol)) {
+            throw new DuplicateKeyException(symbol + " is already defined");
+        }
         
         if (isBound) {
             table.put(symbol, new Bucket(symbol, binding, table.get(symbol)));
@@ -61,7 +66,7 @@ public class SymbolTable {
      * The operation is reversible by the endScope method
      */
     public void beginScope() {
-        stack.push("#");
+        stack.push(envMarker);
     }
     
     /**
@@ -70,29 +75,12 @@ public class SymbolTable {
      */
     public void endScope() {
         String symbol = stack.pop();
-        while (!symbol.equals("#")) {
+        while (!symbol.equals(envMarker)) {
             pop(symbol);
             symbol = stack.pop();
         }
     }
-    
-    /**
-     * Push a scope on the stack, to recover it later
-     *
-    public void pushScope() {
-        String symbol = stack.pop();
-        while (!symbol.contentEquals("#")) {
-            scopeStack.push(pop(symbol));
-            symbol = stack.pop();
-        }
-    }/
-    
-    /**
-     * Pop a scope from the stack, recovering discarded bindings
-     *
-    public void popScope() {
-    }/
-    
+        
     /**
      * Removes latest binding for symbol (if present) or directly removes it from table
      */
@@ -116,12 +104,21 @@ public class SymbolTable {
         return desc;
     }
     
+    /**
+     * Check if symbol is in current scope
+     */
+    private boolean isInScope(String symbol) {
+        
+        // symbol defined after current environment start
+        return stack.lastIndexOf(symbol) > stack.lastIndexOf(envMarker);
+    }
+    
     @Override
     public String toString() {
-        String str = "";
+        String str = "SYMBOL_TABLE\n";
         for (String entry : table.keySet()) {
             try {
-                str += entry + " : " + this.get(entry).toString() + "\n";
+                str += String.format("%-10s", entry) + " : " + this.get(entry).toString() + "\n";
             } catch (KeyNotFoundException e) {};
         }
         return str;

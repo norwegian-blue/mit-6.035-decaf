@@ -6,7 +6,7 @@ import org.antlr.v4.runtime.CharStream;
 import org.antlr.v4.runtime.RecognitionException;
 import org.antlr.v4.runtime.CommonTokenStream;
 import java6035.tools.CLI.*;
-import semantic.Checker.SemanticChecker;
+import semantic.SemanticChecker;
 import decaf.GrammarLexer;
 import decaf.GrammarParser;
 import ir.*;
@@ -90,14 +90,23 @@ class Main {
                 ParseTree tree = parser.program();
                 walker.walk(loader, tree);
                 
+                if (parser.getNumberOfSyntaxErrors() > 0) {
+                    throw new Error("Syntax error");
+                }
+                
                 Ir program = loader.getAbstractSyntaxTree();
                 
                 if (CLI.debug) {
                     System.out.printf(program.toString());
+                    System.out.println();
                 }
                 
                 if (program.isClass()) {
-                    ((IrClassDeclaration)program).accept(new SemanticChecker());
+                    SemanticChecker check = new SemanticChecker();
+                    if (!((IrClassDeclaration)program).accept(check)) {
+                        check.printErrors();
+                        throw new Error("Semantic check failed");
+                    }
                 } else {
                     throw new Error("Could not get a valid AST for the program");
                 }

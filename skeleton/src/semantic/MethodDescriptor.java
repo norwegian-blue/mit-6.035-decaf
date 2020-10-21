@@ -1,19 +1,19 @@
 package semantic;
 
+import java.util.List;
+
 /**
  * @author Nicola
  */
 public class MethodDescriptor extends Descriptor {
     
     private TypeDescriptor returnType;
-    private ParameterDescriptor[] parameters;
-    private LocalDescriptor[] locals;
+    private List<ParameterDescriptor> parameters;
     
-    public MethodDescriptor(String name, TypeDescriptor returnType, ParameterDescriptor[] parameters, LocalDescriptor[] locals) {
+    public MethodDescriptor(String name, TypeDescriptor returnType, List<ParameterDescriptor> parameters) {
         super(name);
         this.returnType = returnType;
         this.parameters = parameters;
-        this.locals = locals;
     }
     
     @Override
@@ -22,11 +22,7 @@ public class MethodDescriptor extends Descriptor {
         for (ParameterDescriptor par : parameters) {
             str += par.toString();
         }
-        str += ") {";
-        for (LocalDescriptor local : locals) {
-            str += local.toString();
-        }
-        str += "}";
+        str += ")";
         return str;
     }       
 }

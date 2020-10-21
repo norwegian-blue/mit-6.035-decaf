@@ -20,6 +20,14 @@ public class IrMethodDeclaration extends IrMemberDeclaration{
         this.methodParams = methodParams;
         this.methodBody = methodBody;
     }
+    
+    public IrBlock getBody() {
+        return methodBody;
+    }
+    
+    public List<IrParameterDeclaration> getParameters() {
+        return methodParams;
+    }
      
     @Override
     public String toString() {

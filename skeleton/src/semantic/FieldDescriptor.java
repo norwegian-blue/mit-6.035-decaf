@@ -11,6 +11,9 @@ public class FieldDescriptor extends Descriptor {
         super(name);
         this.type = type;
     }
-       
-
+    
+    @Override
+    public String toString() {
+        return "[FIELD] " + type.toString() + " " + this.name; 
+    }    
 }

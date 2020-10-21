@@ -44,7 +44,7 @@ public class GrammarLoader extends GrammarBaseListener {
         for (int i = 0; i < ctx.field().size(); i++) {
             TypeDescriptor fieldType;
             IrFieldDeclaration fieldDecl;
-            String fieldName = ctx.field(i).getText();
+            String fieldName = ctx.field(i).ID().getText();
             
             if (ctx.field(i).INT_LITERAL() == null) {
                 fieldType = baseFieldType;
