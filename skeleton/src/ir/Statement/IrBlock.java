@@ -1,5 +1,6 @@
 package ir.Statement;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import ir.IrVisitor;
@@ -33,6 +34,22 @@ public class IrBlock extends IrStatement {
     
     public boolean isEmpty() {
         return isempty;
+    }
+    
+    public List<IrVariableDeclaration> getVarDecl() {
+        if (this.variableDec != null) {
+            return this.variableDec;
+        } else {
+            return new ArrayList<>();
+        }
+    }
+    
+    public List<IrStatement> getStatements() {
+        if (this.statements != null) {
+            return this.statements;
+        } else {
+            return new ArrayList<>();
+        }
     }
     
     @Override 

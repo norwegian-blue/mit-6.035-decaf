@@ -124,7 +124,6 @@ public class SemanticChecker implements IrVisitor<Boolean> {
             check = false;
         }
         
-        System.out.println(env.toString());
         
         // Add method parameters to scope
         env.beginScope();
@@ -136,14 +135,11 @@ public class SemanticChecker implements IrVisitor<Boolean> {
             }
         }
         
-        System.out.println(env.toString());
-        
         // Check method body
         check &= methodBody.accept(this);
         
         // Add method parameters to scope
         env.endScope();
-        System.out.println(env.toString());
         
         return check;
     }
@@ -151,72 +147,96 @@ public class SemanticChecker implements IrVisitor<Boolean> {
 
     @Override
     public Boolean visit(IrParameterDeclaration node) {
-        // TODO Auto-generated method stub
-        return null;
+        return true;
     }
+    
+    
+    @Override
+    public Boolean visit(IrBlock block) {
+        boolean check = true;
+        
+        env.beginScope();
+        
+        for (IrVariableDeclaration varDecl : block.getVarDecl()) {
+            check &= varDecl.accept(this);
+        }
+        
+        for (IrStatement statement : block.getStatements()) {
+            check &= statement.accept(this);
+        }
+        
+        env.endScope();
+        return check;
+    }
+    
 
     @Override
-    public Boolean visit(IrVariableDeclaration node) {
-        // TODO Auto-generated method stub
-        return null;
+    public Boolean visit(IrVariableDeclaration varDecl) {
+        boolean check = true;
+        // Add to environment (check if already defined)
+        String varName = varDecl.getId();
+        TypeDescriptor fieldType = varDecl.getType();
+        try {
+            env.put(varName, new LocalDescriptor(varName, fieldType));
+        } catch (DuplicateKeyException e) {
+            errors.add(new SemanticError(varDecl.getLineNum(), varDecl.getColNum(),
+                       "Variable " + varName + " already declared in current scope"));
+            check = false;
+        }
+        return check;
     }
+    
 
     @Override
     public Boolean visit(IrBinaryExpression node) {
         // TODO Auto-generated method stub
-        return null;
+        return true;
     }
 
     @Override
     public Boolean visit(IrBooleanLiteral node) {
         // TODO Auto-generated method stub
-        return null;
+        return true;
     }
 
     @Override
     public Boolean visit(IrCalloutExpression node) {
         // TODO Auto-generated method stub
-        return null;
+        return true;
     }
 
     @Override
     public Boolean visit(IrCharLiteral node) {
         // TODO Auto-generated method stub
-        return null;
+        return true;
     }
 
     @Override
     public Boolean visit(IrIdentifier node) {
         // TODO Auto-generated method stub
-        return null;
+        return true;
     }
 
     @Override
     public Boolean visit(IrMethodCallExpression node) {
         // TODO Auto-generated method stub
-        return null;
+        return true;
     }
 
     @Override
     public Boolean visit(IrUnaryExpression node) {
         // TODO Auto-generated method stub
-        return null;
+        return true;
     }
 
     @Override
     public Boolean visit(IrIntLiteral node) {
         // TODO Auto-generated method stub
-        return null;
+        return true;
     }
 
     @Override
     public Boolean visit(IrAssignment node) {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
-    @Override
-    public Boolean visit(IrBlock node) {
         // TODO Auto-generated method stub
         return true;
     }
@@ -224,36 +244,36 @@ public class SemanticChecker implements IrVisitor<Boolean> {
     @Override
     public Boolean visit(IrBreakStatement node) {
         // TODO Auto-generated method stub
-        return null;
+        return true;
     }
 
     @Override
     public Boolean visit(IrContinueStatement node) {
         // TODO Auto-generated method stub
-        return null;
+        return true;
     }
 
     @Override
     public Boolean visit(IrForStatement node) {
         // TODO Auto-generated method stub
-        return null;
+        return true;
     }
 
     @Override
     public Boolean visit(IrIfStatement node) {
         // TODO Auto-generated method stub
-        return null;
+        return true;
     }
 
     @Override
     public Boolean visit(IrInvokeStatement node) {
         // TODO Auto-generated method stub
-        return null;
+        return true;
     }
 
     @Override
     public Boolean visit(IrReturnStatement node) {
         // TODO Auto-generated method stub
-        return null;
+        return true;
     }
 }

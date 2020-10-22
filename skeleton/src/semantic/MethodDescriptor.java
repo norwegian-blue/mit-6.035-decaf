@@ -22,7 +22,9 @@ public class MethodDescriptor extends Descriptor {
         for (ParameterDescriptor par : parameters) {
             str += par.toString() + ", ";
         }
-        str = str.substring(0, str.length()-2) + ")";
-        return str;
+        if (!parameters.isEmpty()) {
+            str = str.substring(0, str.length()-2);
+        }
+        return str + ")";
     }       
 }
