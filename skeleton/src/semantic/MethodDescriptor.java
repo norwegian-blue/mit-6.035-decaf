@@ -20,9 +20,9 @@ public class MethodDescriptor extends Descriptor {
     public String toString() {
         String str = "[METHOD] " + returnType.toString() + " (";
         for (ParameterDescriptor par : parameters) {
-            str += par.toString();
+            str += par.toString() + ", ";
         }
-        str += ")";
+        str = str.substring(0, str.length()-2) + ")";
         return str;
     }       
 }

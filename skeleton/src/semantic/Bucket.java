@@ -21,6 +21,6 @@ public class Bucket {
     }  
     
     public boolean hasNext() {
-        return this.next == null;
+        return this.next != null;
     }
 }

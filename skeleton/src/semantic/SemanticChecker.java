@@ -98,6 +98,19 @@ public class SemanticChecker implements IrVisitor<Boolean> {
         List<IrParameterDeclaration> pars = methodDecl.getParameters();
         IrBlock methodBody = methodDecl.getBody();
         
+        // Check if main method
+        if (methodName.equals("main")) {
+            if (methodType != BaseTypeDescriptor.VOID) {
+                errors.add(new SemanticError(methodDecl.getLineNum(), methodDecl.getColNum(),
+                        "Main method must not return any value"));
+                check = false;
+            } else if (pars.size() > 0) {
+                errors.add(new SemanticError(methodDecl.getLineNum(), methodDecl.getColNum(),
+                        "Main method must not take any parameter"));
+                check = false;
+            }
+        }
+        
         // Add method to environment (check if already defined)
         List<ParameterDescriptor> methodPars = new ArrayList<>();
         for (IrParameterDeclaration par : pars) {
@@ -111,14 +124,26 @@ public class SemanticChecker implements IrVisitor<Boolean> {
             check = false;
         }
         
+        System.out.println(env.toString());
+        
         // Add method parameters to scope
         env.beginScope();
+        for (IrParameterDeclaration par : pars) {
+            try {
+                env.put(par.getId(), new ParameterDescriptor(par.getId(), par.getType()));
+            } catch (DuplicateKeyException e) {
+                throw new Error("Unexpected exception");
+            }
+        }
+        
+        System.out.println(env.toString());
         
         // Check method body
         check &= methodBody.accept(this);
         
         // Add method parameters to scope
         env.endScope();
+        System.out.println(env.toString());
         
         return check;
     }
