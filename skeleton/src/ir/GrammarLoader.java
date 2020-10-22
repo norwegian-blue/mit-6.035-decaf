@@ -117,16 +117,19 @@ public class GrammarLoader extends GrammarBaseListener {
     
     @Override
     public void exitVar_decl(GrammarParser.Var_declContext ctx) {
+        // Get variable type
+        BaseTypeDescriptor varType;
+        if (ctx.type().TK_BOOL() != null) {
+            varType = BaseTypeDescriptor.BOOL;
+        } else if (ctx.type().TK_INT() != null) {
+            varType = BaseTypeDescriptor.INT;
+        } else {
+            throw new RuntimeException("cannot identify type");
+        }
+            
+        // Add all declared variables
         for (int i = 0; i < ctx.ID().size(); i++) {
-            String varName = ctx.ID(i).getText();
-            BaseTypeDescriptor varType;
-            if (ctx.type(i).TK_BOOL() != null) {
-                varType = BaseTypeDescriptor.BOOL;
-            } else if (ctx.type(i).TK_INT() != null) {
-                varType = BaseTypeDescriptor.INT;
-            } else {
-                throw new RuntimeException("cannot identify type");
-            }
+            String varName = ctx.ID(i).getText();            
             IrVariableDeclaration var = new IrVariableDeclaration(varType, varName);
             var.setLineNum(ctx.getStart().getLine());
             var.setColNum(ctx.getStart().getCharPositionInLine());

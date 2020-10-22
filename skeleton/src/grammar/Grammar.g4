@@ -93,7 +93,7 @@ type : TK_INT | TK_BOOL ;
 
 block : LCURLY var_decl* statement* RCURLY ;
 
-var_decl : (type ID) (COMMA type ID)* SEMI ;
+var_decl : (type ID) (COMMA ID)* SEMI ;
 
 statement : location assign_op expr SEMI
 	  | method_call SEMI
