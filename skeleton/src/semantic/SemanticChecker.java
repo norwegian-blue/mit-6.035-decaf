@@ -85,7 +85,7 @@ public class SemanticChecker implements IrVisitor<Boolean> {
         // If array, check size > 0
         if (fieldType.isArray() && fieldType.getLength() < 1) {
             errors.add(new SemanticError(fieldDecl.getLineNum(), fieldDecl.getColNum(),
-                      "Array " + fieldName + "[] size must be higher than zero"));
+                      "Array " + fieldName + "[] size must be greater than zero"));
             check = false;
         }
         
@@ -219,40 +219,8 @@ public class SemanticChecker implements IrVisitor<Boolean> {
         IrExpression exp = assignment.getExpression();
         IrAssignmentOp op = assignment.getOp();
         
-        // Check if location is declared and maps to variable
-        Descriptor locationDesc;
-        TypeDescriptor locationType = BaseTypeDescriptor.unassigned;
-        try {
-            locationDesc = env.get(location.getId());
-            if (locationDesc.isMethod()) {
-                errors.add(new SemanticError(location.getLineNum(), location.getColNum(),
-                        "Identifier " + location.getId() + " should point to a variable (int/boolean) not a method"));
-                check = false;
-            }
-            locationType = locationDesc.getType();
-        } catch (KeyNotFoundException e) {
-            errors.add(new SemanticError(location.getLineNum(), location.getColNum(),
-                    "Variable " + location.getId() + " is not declared"));
-            check = false;
-        }
-        
-        // Check if scalar assignment
-        if (locationType.isArray()) {
-            if (location.isArray()) {
-                locationType = ((ArrayDescriptor)locationType).getBaseType();
-            } else {
-                errors.add(new SemanticError(location.getLineNum(), location.getColNum(),
-                        "Assignment variable " + location.getId() + " must be a scalar"));
-                check = false;
-            }
-        }
-        
         // Check if integer or boolean location
-        if (check && (locationType!=BaseTypeDescriptor.BOOL) && (locationType!=BaseTypeDescriptor.INT)) {
-            errors.add(new SemanticError(location.getLineNum(), location.getColNum(),
-                    "Assignment variable " + location.getId() + " must be a an integer or a boolean"));
-            check = false;
-        }
+        // TODO check type
         
         return check;
     }
@@ -313,10 +281,54 @@ public class SemanticChecker implements IrVisitor<Boolean> {
 
 
     @Override
-    public Boolean visit(IrIdentifier node) {
-        // TODO Auto-generated method stub
-        return true;
+    public Boolean visit(IrIdentifier location) {
+        boolean check = true;
+        
+        // Check if declared and if not a method identifier
+        Descriptor locationDesc;
+        TypeDescriptor locationType = BaseTypeDescriptor.undefined;
+        try {
+            locationDesc = env.get(location.getId());
+            if (locationDesc.isMethod()) {
+                errors.add(new SemanticError(location.getLineNum(), location.getColNum(),
+                        "Identifier " + location.getId() + " should point to a variable (INT/BOOL) not a method"));
+                check = false;
+            }
+            locationType = locationDesc.getType();
+        } catch (KeyNotFoundException e) {
+            errors.add(new SemanticError(location.getLineNum(), location.getColNum(),
+                    "Variable " + location.getId() + " is not declared"));
+            check = false;
+        }
+        
+        // Figure if scalar of array type        
+        if (locationType.isArray()) {
+            if (location.isArrayElement()) {
+                locationType = ((ArrayDescriptor)locationType).getBaseType();
+            }
+        } else {
+            if (location.isArrayElement()) {
+                errors.add(new SemanticError(location.getLineNum(), location.getColNum(),
+                        "Indexing a non array variable " + location.getId()));
+                check = false;
+            }
+        }
+        
+        // Check index expression
+        if (location.isArrayElement()) {
+            IrExpression ind = location.getInd();
+            check &= ind.accept(this);
+            if (ind.getExpType() != BaseTypeDescriptor.INT) {
+                errors.add(new SemanticError(location.getLineNum(), location.getColNum(),
+                        "Array " + location.getId() + " index expression must be of type INT"));
+                check = false;
+            }                
+        }
+        
+        location.setExpType(locationType);
+        return check;
     }
+    
 
     @Override
     public Boolean visit(IrMethodCallExpression node) {
@@ -329,9 +341,6 @@ public class SemanticChecker implements IrVisitor<Boolean> {
         // TODO Auto-generated method stub
         return true;
     }
-
-
-
 
     
     @Override

@@ -20,7 +20,7 @@ public class IrIdentifier extends IrExpression {
         this.arrayInd = arrayInd;
     }
     
-    public boolean isArray() {
+    public boolean isArrayElement() {
         return arrayInd != null;
     }
     
@@ -35,7 +35,7 @@ public class IrIdentifier extends IrExpression {
     @Override
     public String toString() {
         String str = idName;
-        if (this.isArray()) {
+        if (this.isArrayElement()) {
             str += "[\n" + Ir.indent(arrayInd.toString()) + "\n]";
         }
         return str;

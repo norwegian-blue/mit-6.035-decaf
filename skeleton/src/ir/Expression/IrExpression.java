@@ -8,7 +8,7 @@ import semantic.*;
  */
 public abstract class IrExpression extends Ir {
     
-    private TypeDescriptor expType = BaseTypeDescriptor.unassigned;
+    private TypeDescriptor expType = BaseTypeDescriptor.undefined;
     
     public void setExpType(TypeDescriptor type) {
         this.expType = type;

@@ -13,12 +13,16 @@ public class BaseTypeDescriptor extends TypeDescriptor {
     public static BaseTypeDescriptor BOOL = new BaseTypeDescriptor("bool");
     public static BaseTypeDescriptor VOID = new BaseTypeDescriptor("void");
     public static BaseTypeDescriptor STRING = new BaseTypeDescriptor("string");
-    public static BaseTypeDescriptor unassigned = new BaseTypeDescriptor("unassigned");
+    public static BaseTypeDescriptor undefined = new BaseTypeDescriptor("undefined");
  
     @Override
     public boolean equals(Object thatObject) {
         if (!(thatObject instanceof BaseTypeDescriptor)) return false;
         BaseTypeDescriptor thatType = (BaseTypeDescriptor) thatObject;
-        return thatType.typeName == this.typeName;
+        if (this.typeName.equals("undefined") || thatType.typeName.equals("undefined")) {
+            return true;
+        } else {
+            return thatType.typeName.equals(this.typeName);
+        }
     }
 }
