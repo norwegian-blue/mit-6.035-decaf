@@ -5,15 +5,12 @@ package semantic;
  */
 public class FieldDescriptor extends Descriptor {
     
-    private TypeDescriptor type;
-    
     public FieldDescriptor(String name, TypeDescriptor type) {
-        super(name);
-        this.type = type;
+        super(name, type);
     }
     
     @Override
     public String toString() {
-        return "[FIELD] " + type.toString() + " " + this.name; 
+        return "[FIELD] " + this.type.toString() + " " + this.name; 
     }    
 }

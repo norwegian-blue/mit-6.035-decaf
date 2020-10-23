@@ -5,16 +5,13 @@ package semantic;
  */
 public class ParameterDescriptor extends Descriptor {
     
-    private TypeDescriptor type;
-    
     public ParameterDescriptor(String name, TypeDescriptor type) {
-        super(name);
-        this.type = type;
+        super(name, type);
     }
     
     @Override
     public String toString() {
-        return "[PAR] " + type.toString() + " " + this.name;
+        return "[PAR] " + this.type.toString() + " " + this.name;
     }
        
 }

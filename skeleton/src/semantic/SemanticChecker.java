@@ -6,6 +6,7 @@ import ir.*;
 import ir.Declaration.*;
 import ir.Expression.*;
 import ir.Statement.*;
+import ir.Statement.IrAssignment.IrAssignmentOp;
 
 /**
  * @author Nicola
@@ -14,12 +15,16 @@ public class SemanticChecker implements IrVisitor<Boolean> {
     
     private final SymbolTable env;
     private final List<SemanticError> errors;
+    private boolean looping = false;
+    private boolean needReturn = false;
+    private MethodDescriptor currentMethod;
     
     public SemanticChecker() {
         this.env = new SymbolTable();
         this.errors = new ArrayList<>();
     }
     
+
     /**
      * Print all errors found by the semantic checker
      */
@@ -53,13 +58,13 @@ public class SemanticChecker implements IrVisitor<Boolean> {
         // Check if main method is defined
         if (!checkMain) {
             errors.add(new SemanticError(rootClass.getLineNum(), rootClass.getColNum(),
-                       "A main method must be defined"));
+                       "No main method is defined"));
             check = false;
         }            
         
         return check;
     }
-    
+       
     
     @Override
     public Boolean visit(IrFieldDeclaration fieldDecl) {
@@ -98,11 +103,16 @@ public class SemanticChecker implements IrVisitor<Boolean> {
         List<IrParameterDeclaration> pars = methodDecl.getParameters();
         IrBlock methodBody = methodDecl.getBody();
         
+        // Mark for needed return value
+        if (methodType != BaseTypeDescriptor.VOID) {
+            needReturn = true;
+        }
+        
         // Check if main method
         if (methodName.equals("main")) {
             if (methodType != BaseTypeDescriptor.VOID) {
                 errors.add(new SemanticError(methodDecl.getLineNum(), methodDecl.getColNum(),
-                        "Main method must not return any value"));
+                        "Main method must not return a value"));
                 check = false;
             } else if (pars.size() > 0) {
                 errors.add(new SemanticError(methodDecl.getLineNum(), methodDecl.getColNum(),
@@ -116,8 +126,9 @@ public class SemanticChecker implements IrVisitor<Boolean> {
         for (IrParameterDeclaration par : pars) {
             methodPars.add(new ParameterDescriptor(par.getId(), par.getType()));
         }            
+        MethodDescriptor thisMethod = new MethodDescriptor(methodName, methodType, methodPars);
         try {
-            env.put(methodName, new MethodDescriptor(methodName, methodType, methodPars));
+            env.put(methodName, thisMethod);
         } catch (DuplicateKeyException e) {
             errors.add(new SemanticError(methodDecl.getLineNum(), methodDecl.getColNum(),
                        "Method " + methodName + " already declared in current scope"));
@@ -134,12 +145,22 @@ public class SemanticChecker implements IrVisitor<Boolean> {
                 throw new Error("Unexpected exception");
             }
         }
+        currentMethod = thisMethod;
         
         // Check method body
         check &= methodBody.accept(this);
         
-        // Add method parameters to scope
+        // Pop method scope from environment
         env.endScope();
+        
+        // Check if method returned value when needed
+        if (needReturn) {
+            errors.add(new SemanticError(methodDecl.getLineNum(), methodDecl.getColNum(),
+                       "No RETURN statement found within method " + methodName + " body"));
+            check = false;
+        }
+        needReturn = false;
+            
         
         return check;
     }
@@ -157,10 +178,12 @@ public class SemanticChecker implements IrVisitor<Boolean> {
         
         env.beginScope();
         
+        // Check all variable declarations
         for (IrVariableDeclaration varDecl : block.getVarDecl()) {
             check &= varDecl.accept(this);
         }
         
+        // Check all statements
         for (IrStatement statement : block.getStatements()) {
             check &= statement.accept(this);
         }
@@ -173,6 +196,7 @@ public class SemanticChecker implements IrVisitor<Boolean> {
     @Override
     public Boolean visit(IrVariableDeclaration varDecl) {
         boolean check = true;
+        
         // Add to environment (check if already defined)
         String varName = varDecl.getId();
         TypeDescriptor fieldType = varDecl.getType();
@@ -186,61 +210,54 @@ public class SemanticChecker implements IrVisitor<Boolean> {
         return check;
     }
     
-
+    
     @Override
-    public Boolean visit(IrBinaryExpression node) {
-        // TODO Auto-generated method stub
-        return true;
+    public Boolean visit(IrAssignment assignment) {
+        boolean check = true;
+        
+        IrIdentifier location = assignment.getLocation();
+        IrExpression exp = assignment.getExpression();
+        IrAssignmentOp op = assignment.getOp();
+        
+        // Check if location is declared and maps to variable
+        Descriptor locationDesc;
+        TypeDescriptor locationType = BaseTypeDescriptor.unassigned;
+        try {
+            locationDesc = env.get(location.getId());
+            if (locationDesc.isMethod()) {
+                errors.add(new SemanticError(location.getLineNum(), location.getColNum(),
+                        "Identifier " + location.getId() + " should point to a variable (int/boolean) not a method"));
+                check = false;
+            }
+            locationType = locationDesc.getType();
+        } catch (KeyNotFoundException e) {
+            errors.add(new SemanticError(location.getLineNum(), location.getColNum(),
+                    "Variable " + location.getId() + " is not declared"));
+            check = false;
+        }
+        
+        // Check if scalar assignment
+        if (locationType.isArray()) {
+            if (location.isArray()) {
+                locationType = ((ArrayDescriptor)locationType).getBaseType();
+            } else {
+                errors.add(new SemanticError(location.getLineNum(), location.getColNum(),
+                        "Assignment variable " + location.getId() + " must be a scalar"));
+                check = false;
+            }
+        }
+        
+        // Check if integer or boolean location
+        if (check && (locationType!=BaseTypeDescriptor.BOOL) && (locationType!=BaseTypeDescriptor.INT)) {
+            errors.add(new SemanticError(location.getLineNum(), location.getColNum(),
+                    "Assignment variable " + location.getId() + " must be a an integer or a boolean"));
+            check = false;
+        }
+        
+        return check;
     }
-
-    @Override
-    public Boolean visit(IrBooleanLiteral node) {
-        // TODO Auto-generated method stub
-        return true;
-    }
-
-    @Override
-    public Boolean visit(IrCalloutExpression node) {
-        // TODO Auto-generated method stub
-        return true;
-    }
-
-    @Override
-    public Boolean visit(IrCharLiteral node) {
-        // TODO Auto-generated method stub
-        return true;
-    }
-
-    @Override
-    public Boolean visit(IrIdentifier node) {
-        // TODO Auto-generated method stub
-        return true;
-    }
-
-    @Override
-    public Boolean visit(IrMethodCallExpression node) {
-        // TODO Auto-generated method stub
-        return true;
-    }
-
-    @Override
-    public Boolean visit(IrUnaryExpression node) {
-        // TODO Auto-generated method stub
-        return true;
-    }
-
-    @Override
-    public Boolean visit(IrIntLiteral node) {
-        // TODO Auto-generated method stub
-        return true;
-    }
-
-    @Override
-    public Boolean visit(IrAssignment node) {
-        // TODO Auto-generated method stub
-        return true;
-    }
-
+    
+    
     @Override
     public Boolean visit(IrBreakStatement node) {
         // TODO Auto-generated method stub
@@ -273,6 +290,65 @@ public class SemanticChecker implements IrVisitor<Boolean> {
 
     @Override
     public Boolean visit(IrReturnStatement node) {
+        // TODO Auto-generated method stub
+        needReturn = false;
+        return true;
+    }
+      
+
+    @Override
+    public Boolean visit(IrBinaryExpression node) {
+        // TODO Auto-generated method stub
+        return true;
+    }
+
+
+
+    @Override
+    public Boolean visit(IrCalloutExpression node) {
+        // TODO Auto-generated method stub
+        return true;
+    }
+
+
+
+    @Override
+    public Boolean visit(IrIdentifier node) {
+        // TODO Auto-generated method stub
+        return true;
+    }
+
+    @Override
+    public Boolean visit(IrMethodCallExpression node) {
+        // TODO Auto-generated method stub
+        return true;
+    }
+
+    @Override
+    public Boolean visit(IrUnaryExpression node) {
+        // TODO Auto-generated method stub
+        return true;
+    }
+
+
+
+
+    
+    @Override
+    public Boolean visit(IrBooleanLiteral node) {
+        // TODO Auto-generated method stub
+        return true;
+    }
+    
+    
+    @Override
+    public Boolean visit(IrCharLiteral node) {
+        // TODO Auto-generated method stub
+        return true;
+    }
+    
+    @Override
+    public Boolean visit(IrIntLiteral node) {
         // TODO Auto-generated method stub
         return true;
     }

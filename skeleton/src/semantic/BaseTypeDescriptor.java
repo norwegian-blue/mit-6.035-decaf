@@ -13,6 +13,7 @@ public class BaseTypeDescriptor extends TypeDescriptor {
     public static BaseTypeDescriptor BOOL = new BaseTypeDescriptor("bool");
     public static BaseTypeDescriptor VOID = new BaseTypeDescriptor("void");
     public static BaseTypeDescriptor STRING = new BaseTypeDescriptor("string");
+    public static BaseTypeDescriptor unassigned = new BaseTypeDescriptor("unassigned");
  
     @Override
     public boolean equals(Object thatObject) {

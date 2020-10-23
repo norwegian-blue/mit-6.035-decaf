@@ -5,15 +5,12 @@ package semantic;
  */
 public class LocalDescriptor extends Descriptor {
     
-    private TypeDescriptor type;
-    
     public LocalDescriptor(String name, TypeDescriptor type) {
-        super(name);
-        this.type = type;
+        super(name, type);
     }
     
     @Override
     public String toString() {
-        return "[LOCAL] " + type.toString() + " " + this.name;
+        return "[LOCAL] " + this.type.toString() + " " + this.name;
     }   
 }

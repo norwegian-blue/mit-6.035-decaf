@@ -24,6 +24,14 @@ public class IrIdentifier extends IrExpression {
         return arrayInd != null;
     }
     
+    public String getId() {
+        return this.idName;
+    }
+    
+    public IrExpression getInd() {
+        return this.arrayInd;
+    }
+    
     @Override
     public String toString() {
         String str = idName;

@@ -24,6 +24,18 @@ public class IrAssignment extends IrStatement {
         this.expr = expr;
     }
     
+    public IrIdentifier getLocation() {
+        return this.location;
+    }
+    
+    public IrAssignmentOp getOp() {
+        return this.assignOp;
+    }
+    
+    public IrExpression getExpression() {
+        return this.expr;
+    }
+    
     @Override
     public String toString() {
         return assignOp.toString() + "\n" + Ir.indent(location.toString()) + Ir.indent("\n<--\n") + Ir.indent(expr.toString());

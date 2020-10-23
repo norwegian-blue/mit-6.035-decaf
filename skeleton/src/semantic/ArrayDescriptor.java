@@ -11,6 +11,10 @@ public class ArrayDescriptor extends TypeDescriptor {
         this.length = length;
     }
     
+    public TypeDescriptor getBaseType() {
+        return this.elementType;
+    }
+    
     @Override
     public String toString() {
         return elementType.toString() + "[" + length + "]";

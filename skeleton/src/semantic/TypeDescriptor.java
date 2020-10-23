@@ -15,6 +15,9 @@ public abstract class TypeDescriptor {
     public String toString() {
         return typeName;
     }
+    
+    @Override
+    public abstract boolean equals(Object thatObject);
 
     public boolean isArray() {
         return false;
