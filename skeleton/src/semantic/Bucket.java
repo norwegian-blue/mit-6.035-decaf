@@ -1,22 +1,22 @@
 package semantic;
 
-public class Bucket {
+public class Bucket<T> {
     
     String key;
-    Descriptor binding;
-    Bucket next;
+    T binding;
+    Bucket<T> next;
     
-    public Bucket(String key, Descriptor binding, Bucket next){
+    public Bucket(String key, T binding, Bucket<T> next){
         this.key = key;
         this.binding = binding;
         this.next = next;
     }
     
-    public Descriptor getBinding() {
+    public T getBinding() {
         return this.binding;
     }
     
-    public Bucket getNext() {
+    public Bucket<T> getNext() {
         return this.next;
     }  
     

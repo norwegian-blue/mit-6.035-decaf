@@ -22,7 +22,9 @@ public class ArrayDescriptor extends TypeDescriptor {
     
     @Override
     public boolean equals(Object thatObject) {
+        if ((thatObject instanceof BaseTypeDescriptor) && thatObject.equals(BaseTypeDescriptor.undefined)) return true;
         if (!(thatObject instanceof ArrayDescriptor)) return false;
+        if (this.getBaseType().equals(BaseTypeDescriptor.undefined)) return true;
         ArrayDescriptor thatArray = (ArrayDescriptor) thatObject;
         return thatArray.elementType.equals(this.elementType);
     }

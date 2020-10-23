@@ -10,7 +10,7 @@ import java.util.Stack;
 public class SymbolTable {
     
     private Stack<String> stack;
-    private Map<String, Bucket> table;
+    private Map<String, Bucket<Descriptor>> table;
     private final static String envMarker = "#";
     
     public SymbolTable(){
@@ -36,10 +36,10 @@ public class SymbolTable {
         }
         
         if (isBound) {
-            table.put(symbol, new Bucket(symbol, binding, table.get(symbol)));
+            table.put(symbol, new Bucket<Descriptor>(symbol, binding, table.get(symbol)));
             
         } else {
-            table.put(symbol, new Bucket(symbol, binding, null));
+            table.put(symbol, new Bucket<Descriptor>(symbol, binding, null));
         }
         
         stack.push(symbol);
@@ -90,7 +90,7 @@ public class SymbolTable {
         
         try {
             desc = this.get(symbol);
-            Bucket current = table.get(symbol);
+            Bucket<Descriptor> current = table.get(symbol);
             
             if (current.hasNext()) {
                 table.replace(symbol, current.getNext());

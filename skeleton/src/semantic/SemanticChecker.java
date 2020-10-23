@@ -78,14 +78,14 @@ public class SemanticChecker implements IrVisitor<Boolean> {
             env.put(fieldName, new FieldDescriptor(fieldName, fieldType));
         } catch (DuplicateKeyException e) {
             errors.add(new SemanticError(fieldDecl.getLineNum(), fieldDecl.getColNum(),
-                       "Variable " + fieldName + " already declared in current scope"));
+                       "Variable '" + fieldName + "' already declared in current scope"));
             check = false;
         }
         
         // If array, check size > 0
         if (fieldType.isArray() && fieldType.getLength() < 1) {
             errors.add(new SemanticError(fieldDecl.getLineNum(), fieldDecl.getColNum(),
-                      "Array " + fieldName + "[] size must be greater than zero"));
+                      "Array '" + fieldName + "[]' size must be greater than zero"));
             check = false;
         }
         
@@ -131,7 +131,7 @@ public class SemanticChecker implements IrVisitor<Boolean> {
             env.put(methodName, thisMethod);
         } catch (DuplicateKeyException e) {
             errors.add(new SemanticError(methodDecl.getLineNum(), methodDecl.getColNum(),
-                       "Method " + methodName + " already declared in current scope"));
+                       "A variable named '" + methodName + "' is already declared in current scope"));
             check = false;
         }
         
@@ -156,7 +156,7 @@ public class SemanticChecker implements IrVisitor<Boolean> {
         // Check if method returned value when needed
         if (needReturn) {
             errors.add(new SemanticError(methodDecl.getLineNum(), methodDecl.getColNum(),
-                       "No RETURN statement found within method " + methodName + " body"));
+                       "No RETURN statement found within method '" + methodName + "' body"));
             check = false;
         }
         needReturn = false;
@@ -204,7 +204,7 @@ public class SemanticChecker implements IrVisitor<Boolean> {
             env.put(varName, new LocalDescriptor(varName, fieldType));
         } catch (DuplicateKeyException e) {
             errors.add(new SemanticError(varDecl.getLineNum(), varDecl.getColNum(),
-                       "Variable " + varName + " already declared in current scope"));
+                       "Variable '" + varName + "' already declared in current scope"));
             check = false;
         }
         return check;
@@ -219,9 +219,34 @@ public class SemanticChecker implements IrVisitor<Boolean> {
         IrExpression exp = assignment.getExpression();
         IrAssignmentOp op = assignment.getOp();
         
-        // Check if integer or boolean location
-        // TODO check type
+        // Check location definition and if integer or boolean
+        check &= location.accept(this);
+        if (location.getExpType().isArray()) {
+            errors.add(new SemanticError(assignment.getLineNum(), assignment.getColNum(),
+                    "Assigned variable '" + location.getId() + "' must be a scalar"));
+            check = false;
+        } else if (!(location.getExpType().equals(BaseTypeDescriptor.INT)) && 
+                   !(location.getExpType().equals(BaseTypeDescriptor.BOOL))) {
+            errors.add(new SemanticError(assignment.getLineNum(), assignment.getColNum(),
+                    "Assigned variable '" + location.getId() + "' must be of type INT or BOOLEAN"));
+            check = false;
+        }
         
+        // Check assignment expression
+        check &= exp.accept(this);
+        
+        // Check type matching
+        if ((op != IrAssignmentOp.ASSIGN) && !(location.getExpType().equals(BaseTypeDescriptor.INT)) && 
+            !(exp.getExpType().equals(BaseTypeDescriptor.INT))) {
+            errors.add(new SemanticError(assignment.getLineNum(), assignment.getColNum(),
+                    "Increase/decrease operations must be performed between INT types"));
+            check = false;
+        } else if (!(location.getExpType().equals(exp.getExpType()))) {
+            errors.add(new SemanticError(exp.getLineNum(), exp.getColNum(),
+                    "The right hand side expression should be of type " + location.getExpType().toString()));
+            check = false;
+        }
+                
         return check;
     }
     
@@ -291,13 +316,14 @@ public class SemanticChecker implements IrVisitor<Boolean> {
             locationDesc = env.get(location.getId());
             if (locationDesc.isMethod()) {
                 errors.add(new SemanticError(location.getLineNum(), location.getColNum(),
-                        "Identifier " + location.getId() + " should point to a variable (INT/BOOL) not a method"));
+                        "Identifier '" + location.getId() + "' should point to a variable (INT/BOOL) not a method"));
                 check = false;
+            } else {
+                locationType = locationDesc.getType();
             }
-            locationType = locationDesc.getType();
         } catch (KeyNotFoundException e) {
             errors.add(new SemanticError(location.getLineNum(), location.getColNum(),
-                    "Variable " + location.getId() + " is not declared"));
+                    "Variable '" + location.getId() + "' is not declared"));
             check = false;
         }
         
@@ -309,7 +335,7 @@ public class SemanticChecker implements IrVisitor<Boolean> {
         } else {
             if (location.isArrayElement()) {
                 errors.add(new SemanticError(location.getLineNum(), location.getColNum(),
-                        "Indexing a non array variable " + location.getId()));
+                        "Indexing a non array variable '" + location.getId() + "'"));
                 check = false;
             }
         }
@@ -318,13 +344,13 @@ public class SemanticChecker implements IrVisitor<Boolean> {
         if (location.isArrayElement()) {
             IrExpression ind = location.getInd();
             check &= ind.accept(this);
-            if (ind.getExpType() != BaseTypeDescriptor.INT) {
+            if (!ind.getExpType().equals(BaseTypeDescriptor.INT)) {
                 errors.add(new SemanticError(location.getLineNum(), location.getColNum(),
-                        "Array " + location.getId() + " index expression must be of type INT"));
+                        "Array '" + location.getId() + "' index expression must be of type INT"));
                 check = false;
             }                
         }
-        
+
         location.setExpType(locationType);
         return check;
     }

@@ -9,10 +9,10 @@ public class BaseTypeDescriptor extends TypeDescriptor {
         super(typeName);
     }
     
-    public static BaseTypeDescriptor INT = new BaseTypeDescriptor("int");
-    public static BaseTypeDescriptor BOOL = new BaseTypeDescriptor("bool");
-    public static BaseTypeDescriptor VOID = new BaseTypeDescriptor("void");
-    public static BaseTypeDescriptor STRING = new BaseTypeDescriptor("string");
+    public static BaseTypeDescriptor INT = new BaseTypeDescriptor("INT");
+    public static BaseTypeDescriptor BOOL = new BaseTypeDescriptor("BOOL");
+    public static BaseTypeDescriptor VOID = new BaseTypeDescriptor("VOID");
+    public static BaseTypeDescriptor STRING = new BaseTypeDescriptor("STRING");
     public static BaseTypeDescriptor undefined = new BaseTypeDescriptor("undefined");
  
     @Override
