@@ -335,8 +335,10 @@ public class GrammarLoader extends GrammarBaseListener {
         
         if (ctx.BOOL_LITERAL() != null) {
             value = new IrBooleanLiteral(ctx.BOOL_LITERAL().getText());
-        } else if (ctx.CHAR() != null || ctx.INT_LITERAL() != null) {
-            value = new IrIntLiteral(ctx.CHAR().getText());  
+        } else if (ctx.CHAR() != null) {
+            value = new IrIntLiteral(ctx.CHAR().getText().replace("'", ""));  
+        } else if (ctx.INT_LITERAL() != null) {
+            value = new IrIntLiteral(ctx.INT_LITERAL().getText()); 
         } else {
             throw new RuntimeException("cannot identify literal");
         }        

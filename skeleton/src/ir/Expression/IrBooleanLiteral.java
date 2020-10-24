@@ -14,7 +14,7 @@ public class IrBooleanLiteral extends IrLiteral {
     }
     
     public boolean eval() {
-        return true;
+        return Boolean.parseBoolean(this.value);
     }
     
     @Override

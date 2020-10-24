@@ -444,8 +444,11 @@ public class SemanticChecker implements IrVisitor<Boolean> {
     
     
     @Override
-    public Boolean visit(IrIntLiteral node) {
-        // TODO Range check
-        return true;
+    public Boolean visit(IrIntLiteral intLit) {
+        boolean check = true;
+        
+        System.out.println(intLit.eval());
+        
+        return check;
     }
 }

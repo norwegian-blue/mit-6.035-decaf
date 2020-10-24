@@ -13,8 +13,16 @@ public class IrIntLiteral extends IrLiteral {
         this.setExpType(BaseTypeDescriptor.INT);
     }
     
+    // Return integer literal value
+    // Checks if decimal number / hex / ASCII char
     public int eval() {
-        return 0;
+        if (this.value.matches("^0x.*")) {
+            return Integer.parseInt(this.value.substring(2), 16);   // HEX
+        } else if (this.value.matches("^\\d+")) {
+            return Integer.valueOf(this.value);                     // DEC
+        } else { 
+            return Integer.valueOf(this.value.charAt(0));           // ASCII
+        }
     }
     
     @Override
