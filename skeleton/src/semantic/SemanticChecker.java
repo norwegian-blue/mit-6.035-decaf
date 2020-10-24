@@ -355,6 +355,11 @@ public class SemanticChecker implements IrVisitor<Boolean> {
                 throw new Error("Unexpected operator type");            
         }
         
+        // Update type
+        if (check) {
+            exp.setExpType(lhs.getExpType());
+        }
+        
         return check;
     }
 
@@ -405,7 +410,10 @@ public class SemanticChecker implements IrVisitor<Boolean> {
             }                
         }
 
-        location.setExpType(locationType);
+        // Update type
+        if (check) {
+            location.setExpType(locationType);
+        }
         return check;
     }
     
@@ -425,9 +433,37 @@ public class SemanticChecker implements IrVisitor<Boolean> {
     
 
     @Override
-    public Boolean visit(IrUnaryExpression node) {
-        // TODO Auto-generated method stub
-        return true;
+    public Boolean visit(IrUnaryExpression exp) {
+        boolean check = true;
+        
+        IrExpression unExp = exp.getExp();
+        IrUnaryExpression.UnaryOperator unOp = exp.getOp();
+        
+        // Check subExpression
+        check &= unExp.accept(this);
+        
+        // Check return type
+        if (unOp.equals(IrUnaryExpression.UnaryOperator.MINUS)) {
+            if (!unExp.getExpType().equals(BaseTypeDescriptor.INT)) {
+                errors.add(new SemanticError(unExp.getLineNum(), unExp.getColNum(),
+                        "Unary MINUS expression must be of type INT"));
+                check = false;
+            }
+                
+        } else {
+            if (!unExp.getExpType().equals(BaseTypeDescriptor.BOOL)) {
+                errors.add(new SemanticError(unExp.getLineNum(), unExp.getColNum(),
+                        "Unary NOT expression must be of type BOOLEAN"));
+                check = false;
+            }
+        }
+         
+        // Update type
+        if (check) {
+            exp.setExpType(unExp.getExpType());
+        }
+        
+        return check;        
     }
 
     
@@ -447,6 +483,7 @@ public class SemanticChecker implements IrVisitor<Boolean> {
     public Boolean visit(IrIntLiteral intLit) {
         boolean check = true;
         
+        // TODO check range
         System.out.println(intLit.eval());
         
         return check;

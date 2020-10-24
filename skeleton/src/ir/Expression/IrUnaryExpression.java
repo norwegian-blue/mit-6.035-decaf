@@ -20,6 +20,14 @@ public class IrUnaryExpression extends IrExpression {
         this.op = op;
     }
     
+    public IrExpression getExp() {
+        return this.expr;
+    }
+    
+    public UnaryOperator getOp() {
+        return this.op;
+    }
+    
     @Override
     public String toString() {
         return op.name() + "\n" + Ir.indent(expr.toString());
