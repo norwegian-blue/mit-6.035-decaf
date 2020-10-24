@@ -290,19 +290,73 @@ public class SemanticChecker implements IrVisitor<Boolean> {
       
 
     @Override
-    public Boolean visit(IrBinaryExpression node) {
-        // TODO Auto-generated method stub
-        return true;
+    public Boolean visit(IrBinaryExpression exp) {
+        boolean check = true;
+        
+        IrExpression lhs = exp.getLHS();
+        IrExpression rhs = exp.getRHS();
+        IrBinaryExpression.BinaryOperator op = exp.getOp();
+        
+        check &= lhs.accept(this);
+        check &= rhs.accept(this);
+        
+        // Check operation types
+        switch (op) {
+            // arithmetic or relation
+            case PLUS:
+            case MINUS:
+            case TIMES:
+            case DIVIDE:
+            case MOD:
+            case LT:
+            case LE:
+            case GT:
+            case GE:
+                if (!lhs.getExpType().equals(BaseTypeDescriptor.INT)) {
+                    errors.add(new SemanticError(lhs.getLineNum(), lhs.getColNum(),
+                               "Arithmetic/relation expression must be of type INT"));
+                    check = false;
+                } 
+                if (!rhs.getExpType().equals(BaseTypeDescriptor.INT)) {
+                    errors.add(new SemanticError(rhs.getLineNum(), rhs.getColNum(),
+                               "Arithmetic/relation expression must be of type INT"));
+                    check = false;
+                }
+                break;           
+            
+            // connective
+            case AND:
+            case OR:
+                if (!lhs.getExpType().equals(BaseTypeDescriptor.BOOL)) {
+                    errors.add(new SemanticError(lhs.getLineNum(), lhs.getColNum(),
+                               "Connective expression must be of type BOOL"));
+                    check = false;
+                } 
+                if (!rhs.getExpType().equals(BaseTypeDescriptor.BOOL)) {
+                    errors.add(new SemanticError(rhs.getLineNum(), rhs.getColNum(),
+                               "Connective expression must be of type BOOL"));
+                    check = false;
+                }
+                break;
+                
+            // equality
+            case EQ:
+            case NEQ:
+                if ((!lhs.getExpType().equals(rhs.getExpType())) ||
+                    ((!lhs.getExpType().equals(BaseTypeDescriptor.BOOL)) &&
+                     (!lhs.getExpType().equals(BaseTypeDescriptor.INT)))) {
+                    errors.add(new SemanticError(lhs.getLineNum(), lhs.getColNum(),
+                               "Left hand side and right hand side expressions must be of the same type (INT/BOOL)"));
+                    check = false;
+                }
+                break;
+                
+            default:
+                throw new Error("Unexpected operator type");            
+        }
+        
+        return check;
     }
-
-
-
-    @Override
-    public Boolean visit(IrCalloutExpression node) {
-        // TODO Auto-generated method stub
-        return true;
-    }
-
 
 
     @Override
@@ -355,12 +409,20 @@ public class SemanticChecker implements IrVisitor<Boolean> {
         return check;
     }
     
+    
+    @Override
+    public Boolean visit(IrCalloutExpression node) {
+        // TODO Auto-generated method stub
+        return true;
+    }
+    
 
     @Override
     public Boolean visit(IrMethodCallExpression node) {
         // TODO Auto-generated method stub
         return true;
     }
+    
 
     @Override
     public Boolean visit(IrUnaryExpression node) {
@@ -371,20 +433,19 @@ public class SemanticChecker implements IrVisitor<Boolean> {
     
     @Override
     public Boolean visit(IrBooleanLiteral node) {
-        // TODO Auto-generated method stub
         return true;
     }
     
     
     @Override
     public Boolean visit(IrCharLiteral node) {
-        // TODO Auto-generated method stub
         return true;
     }
     
+    
     @Override
     public Boolean visit(IrIntLiteral node) {
-        // TODO Auto-generated method stub
+        // TODO Range check
         return true;
     }
 }

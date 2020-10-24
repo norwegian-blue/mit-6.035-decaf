@@ -33,6 +33,18 @@ public class IrBinaryExpression extends IrExpression {
         this.operator = operator;
     }
     
+    public IrExpression getLHS() {
+        return this.leftHandSide;
+    }
+    
+    public IrExpression getRHS() {
+        return this.rightHandSide;
+    }
+    
+    public BinaryOperator getOp() {
+        return this.operator;
+    }
+    
     @Override
     public String toString() {        
         return operator.name() + "\n" + Ir.indent(leftHandSide.toString()) 
