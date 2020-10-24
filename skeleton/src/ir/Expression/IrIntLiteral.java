@@ -13,6 +13,10 @@ public class IrIntLiteral extends IrLiteral {
         this.setExpType(BaseTypeDescriptor.INT);
     }
     
+    public int eval() {
+        return 0;
+    }
+    
     @Override
     public <T> T accept(IrVisitor<T> v) {
         return v.visit(this);

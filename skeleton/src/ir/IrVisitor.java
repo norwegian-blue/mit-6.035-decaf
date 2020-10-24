@@ -27,7 +27,7 @@ public interface IrVisitor<T> {
     
     public T visit(IrCalloutExpression node);
     
-    public T visit(IrCharLiteral node);
+    public T visit(IrStringLiteral node);
     
     public T visit(IrIdentifier node);
     

@@ -287,30 +287,40 @@ public class GrammarLoader extends GrammarBaseListener {
     public void exitMethod_call(GrammarParser.Method_callContext ctx) {
         IrExpression callout;
         String calloutName;
-        List<String> stringArgs = new ArrayList<String>();
-        List<IrExpression> exprArgs = new ArrayList<IrExpression>();
+        List<IrExpression> args = new ArrayList<IrExpression>();
                         
         if (ctx.TK_CALLOUT() == null) {
             // Method call
             calloutName = ctx.method_name().getText();
             for (int i = 0; i < ctx.expr().size(); i++) {
-                exprArgs.add((IrExpression) stack.pop());
+                args.add((IrExpression) stack.pop());
             }
-            Collections.reverse(exprArgs);
-            callout = new IrMethodCallExpression(calloutName, exprArgs); 
+            Collections.reverse(args);
+            callout = new IrMethodCallExpression(calloutName, args); 
             
         } else {
             // Callout
             calloutName = ctx.STRING().getText();
+            
+            // get non-string args
+            List<IrExpression> expArgs = new ArrayList<IrExpression>();
             for (Callout_argContext arg : ctx.callout_arg()) {
-                if (arg.STRING() != null) {
-                    stringArgs.add(arg.getText());
-                } else {
-                    exprArgs.add((IrExpression) stack.pop());
+                if (arg.STRING() == null) {
+                    expArgs.add((IrExpression) stack.pop());
                 }
             }
-            Collections.reverse(exprArgs);
-            callout = new IrCalloutExpression(calloutName, exprArgs, stringArgs);
+            Collections.reverse(expArgs);
+            
+            // join string and other arguments
+            int i = 0;
+            for (Callout_argContext arg : ctx.callout_arg()) {
+                if (arg.STRING() != null) {
+                    args.add(new IrStringLiteral(arg.getText()));
+                } else {
+                    args.add(expArgs.get(i++));
+                }
+            }
+            callout = new IrCalloutExpression(calloutName, args);
         }
         
         callout.setLineNum(ctx.getStart().getLine());
@@ -325,14 +335,11 @@ public class GrammarLoader extends GrammarBaseListener {
         
         if (ctx.BOOL_LITERAL() != null) {
             value = new IrBooleanLiteral(ctx.BOOL_LITERAL().getText());
-        } else if (ctx.CHAR() != null) {
-            value = new IrCharLiteral(ctx.CHAR().getText());  
-        } else if (ctx.INT_LITERAL() != null) { 
-            value = new IrIntLiteral(ctx.INT_LITERAL().getText());
+        } else if (ctx.CHAR() != null || ctx.INT_LITERAL() != null) {
+            value = new IrIntLiteral(ctx.CHAR().getText());  
         } else {
             throw new RuntimeException("cannot identify literal");
-        }
-        
+        }        
         value.setLineNum(ctx.getStart().getLine());
         value.setColNum(ctx.getStart().getCharPositionInLine());
         stack.push(value);

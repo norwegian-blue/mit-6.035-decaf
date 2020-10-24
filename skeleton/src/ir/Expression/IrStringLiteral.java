@@ -6,15 +6,24 @@ import semantic.BaseTypeDescriptor;
 /**
  * @author Nicola
  */
-public class IrCharLiteral extends IrLiteral {
+public class IrStringLiteral extends IrLiteral {
    
-    public IrCharLiteral(String value) {
+    public IrStringLiteral(String value) {
         super(value);
         this.setExpType(BaseTypeDescriptor.STRING);
+    }
+    
+    public String eval() {
+        return this.value;
     }
     
     @Override
     public <T> T accept(IrVisitor<T> v) {
         return v.visit(this);
+    }
+    
+    @Override
+    public String toString() {
+        return this.value.replaceAll("\\%", "\\%\\%");
     }
 }

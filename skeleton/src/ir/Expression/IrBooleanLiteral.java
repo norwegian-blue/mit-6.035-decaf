@@ -13,6 +13,10 @@ public class IrBooleanLiteral extends IrLiteral {
         this.setExpType(BaseTypeDescriptor.BOOL);
     }
     
+    public boolean eval() {
+        return true;
+    }
+    
     @Override
     public <T> T accept(IrVisitor<T> v) {
         return v.visit(this);

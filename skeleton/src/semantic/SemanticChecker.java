@@ -438,7 +438,7 @@ public class SemanticChecker implements IrVisitor<Boolean> {
     
     
     @Override
-    public Boolean visit(IrCharLiteral node) {
+    public Boolean visit(IrStringLiteral node) {
         return true;
     }
     

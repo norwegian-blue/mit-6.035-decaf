@@ -10,31 +10,24 @@ import ir.IrVisitor;
  */
 public class IrCalloutExpression extends IrCallExpression {
     private final String calloutName;
-    private final List<IrExpression> exprArgs;
-    private final List<String> strArgs;
+    private final List<IrExpression> args;
     
-    public IrCalloutExpression(String calloutName, List<IrExpression> exprArgs, List<String> strArgs) {
+    public IrCalloutExpression(String calloutName, List<IrExpression> args) {
         this.calloutName = calloutName;
-        this.exprArgs = exprArgs;
-        this.strArgs = strArgs;
+        this.args = args;
     }
     
     @Override
     public String toString() {
         String str = "Callout " + calloutName;
-        String args = "";
+        String arguments = "";
       
-        for (IrExpression expr : exprArgs) {
-            args += expr.toString() + "\n";
+        for (IrExpression arg : this.args) {
+            arguments += arg.toString() + "\n";
         }
-        for (String expr : strArgs) {
-            args += expr + "\n";
-        }
-        
-        if (!exprArgs.isEmpty() || !strArgs.isEmpty()) {
-            str += " (\n" + Ir.indent(args) + ")";
-        }
-        
+
+        str += " (\n" + Ir.indent(arguments) + ")";
+                
         return str;
     }
     

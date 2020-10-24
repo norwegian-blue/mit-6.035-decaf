@@ -87,13 +87,13 @@ class Main {
                 ParseTreeWalker walker = new ParseTreeWalker();
                 GrammarLoader loader = new GrammarLoader();
                 
-                ParseTree tree = parser.program();
-                walker.walk(loader, tree);
+                ParseTree tree = parser.program(); 
                 
                 if (parser.getNumberOfSyntaxErrors() > 0) {
                     throw new Error("Syntax error");
                 }
                 
+                walker.walk(loader, tree);
                 Ir program = loader.getAbstractSyntaxTree();
                 
                 if (CLI.debug) {
