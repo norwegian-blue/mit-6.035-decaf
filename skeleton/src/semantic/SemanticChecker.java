@@ -482,10 +482,16 @@ public class SemanticChecker implements IrVisitor<Boolean> {
     @Override
     public Boolean visit(IrIntLiteral intLit) {
         boolean check = true;
-        
-        // TODO check range
-        System.out.println(intLit.eval());
-        
+
+        try {
+            intLit.eval();
+        } catch (NumberFormatException e) {
+            errors.add(new SemanticError(intLit.getLineNum(), intLit.getColNum(),
+                    "Integer value \"" + intLit.toString() + 
+                    "\" is outside admissible range for 32 bit signed [-2147483648, 2147483647]"));
+            check = false;
+        }
+            
         return check;
     }
 }

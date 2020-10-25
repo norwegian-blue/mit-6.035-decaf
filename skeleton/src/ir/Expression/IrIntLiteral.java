@@ -17,11 +17,11 @@ public class IrIntLiteral extends IrLiteral {
     // Checks if decimal number / hex / ASCII char
     public int eval() {
         if (this.value.matches("^0x.*")) {
-            return Integer.parseInt(this.value.substring(2), 16);   // HEX
-        } else if (this.value.matches("^\\d+")) {
-            return Integer.valueOf(this.value);                     // DEC
+            return Integer.parseUnsignedInt(this.value.substring(2), 16);   // HEX
+        } else if (this.value.matches("^-?\\d+")) {
+            return Integer.valueOf(this.value);                             // DEC
         } else { 
-            return Integer.valueOf(this.value.charAt(0));           // ASCII
+            return Integer.valueOf(this.value.charAt(0));                   // ASCII
         }
     }
     
