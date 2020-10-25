@@ -21,6 +21,18 @@ public class IrIfStatement extends IrStatement {
         this.elseBlock = new IrBlock();
     }
     
+    public IrExpression getCondition() {
+        return this.condition;
+    }
+    
+    public IrBlock getThenBlock() {
+        return this.thenBlock;
+    }
+    
+    public IrBlock getElseBlock() {
+        return this.elseBlock;
+    }
+    
     @Override
     public String toString() {
         String str;

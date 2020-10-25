@@ -7,6 +7,7 @@ import org.antlr.v4.runtime.RecognitionException;
 import org.antlr.v4.runtime.CommonTokenStream;
 import java6035.tools.CLI.*;
 import semantic.SemanticChecker;
+import semantic.TreeSimplifier;
 import decaf.GrammarLexer;
 import decaf.GrammarParser;
 import ir.*;
@@ -95,13 +96,18 @@ class Main {
                 
                 walker.walk(loader, tree);
                 Ir program = loader.getAbstractSyntaxTree();
-                
-                if (CLI.debug) {
-                    System.out.printf(program.toString());
-                    System.out.println();
-                }
-                
+                                
                 if (program.isClass()) {
+                    // Simplify tree
+                    TreeSimplifier simplify = new TreeSimplifier();
+                    ((IrClassDeclaration)program).accept(simplify);
+                    
+                    if (CLI.debug) {
+                        System.out.printf(program.toString());
+                        System.out.println();
+                    }
+                    
+                    // Run semantic check
                     SemanticChecker check = new SemanticChecker();
                     if (!((IrClassDeclaration)program).accept(check)) {
                         check.printErrors();
@@ -110,7 +116,10 @@ class Main {
                 } else {
                     throw new Error("Could not get a valid AST for the program");
                 }
-                       	    
+                
+                if (CLI.debug) {
+                    System.out.println("### Semantic check passed ###");
+                }
         	}
         	
         } catch(Exception e) {

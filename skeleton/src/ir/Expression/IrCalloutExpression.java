@@ -17,6 +17,10 @@ public class IrCalloutExpression extends IrCallExpression {
         this.args = args;
     }
     
+    public List<IrExpression> getArgs() {
+        return this.args;
+    }
+    
     @Override
     public String toString() {
         String str = "Callout " + calloutName;

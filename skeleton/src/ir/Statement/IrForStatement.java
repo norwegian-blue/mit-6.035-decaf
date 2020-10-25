@@ -20,6 +20,22 @@ public class IrForStatement extends IrStatement {
         this.loopBlock = loopBlock;
     }
     
+    public IrIdentifier getLoopVar() {
+        return this.loopVar;
+    }
+    
+    public IrExpression getStartExp() {
+        return this.startExpr;
+    }
+    
+    public IrExpression getEndExp() {
+        return this.endExpr;
+    }
+    
+    public IrBlock getLoopBlock() {
+        return this.loopBlock;
+    }
+    
     @Override
     public String toString() {
         String str;

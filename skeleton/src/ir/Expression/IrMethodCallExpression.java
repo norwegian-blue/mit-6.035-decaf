@@ -26,6 +26,10 @@ public class IrMethodCallExpression extends IrCallExpression{
         return "function " + methodName + "(\n" + Ir.indent(args) + ")";
     }
     
+    public List<IrExpression> getArgs() {
+        return this.arguments;
+    }
+    
     @Override
     public <T> T accept(IrVisitor<T> v) {
         return v.visit(this);

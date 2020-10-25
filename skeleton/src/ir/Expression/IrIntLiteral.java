@@ -25,6 +25,15 @@ public class IrIntLiteral extends IrLiteral {
         }
     }
     
+    // Negate
+    public void negate() {
+        if (this.value.matches(Long.toString((long)Integer.MAX_VALUE + 1))) {
+            this.value = "-" + this.value;
+        } else {
+            this.value = Integer.toString(-this.eval());
+        }            
+    }
+    
     @Override
     public <T> T accept(IrVisitor<T> v) {
         return v.visit(this);

@@ -21,6 +21,14 @@ public class IrReturnStatement extends IrStatement {
         this.returnVoid = true;
     }
     
+    public IrExpression getReturnExp() {
+        return this.returnExpr;
+    }
+    
+    public boolean returnsVoid() {
+        return this.returnVoid;
+    }
+    
     @Override
     public String toString() {
         String str;
