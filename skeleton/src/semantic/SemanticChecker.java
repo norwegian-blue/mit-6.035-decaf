@@ -295,22 +295,43 @@ public class SemanticChecker implements IrVisitor<Boolean> {
     }
 
     @Override
-    public Boolean visit(IrIfStatement node) {
-        // TODO Auto-generated method stub
-        return true;
+    public Boolean visit(IrIfStatement ifStatement) {
+        boolean check = true;
+        
+        // Check condition expression type
+        check &= ifStatement.getCondition().accept(this);
+        if (!(ifStatement.getCondition().getExpType().equals(BaseTypeDescriptor.INT))) {
+            errors.add(new SemanticError(ifStatement.getLineNum(), ifStatement.getColNum(),
+                       "Condition expression in if statement must be of type BOOLEAN"));
+            check = false;
+        }
+        
+        // Check then-else blocks
+        check &= ifStatement.getThenBlock().accept(this);
+        check &= ifStatement.getElseBlock().accept(this);
+        
+        return check;
     }
 
     @Override
-    public Boolean visit(IrInvokeStatement node) {
-        // TODO Auto-generated method stub
-        return true;
+    public Boolean visit(IrInvokeStatement invocation) {
+        return invocation.getMethod().accept(this);
     }
 
     @Override
-    public Boolean visit(IrReturnStatement node) {
-        // TODO Auto-generated method stub
+    public Boolean visit(IrReturnStatement returnStatement) {
+        boolean check = true;
+        
+        // Check return value type against method signature
+        check &= returnStatement.getReturnExp().accept(this);
+        if (!returnStatement.getReturnExp().getExpType().equals(this.currentMethod.getType())) {
+            errors.add(new SemanticError(returnStatement.getLineNum(), returnStatement.getColNum(),
+                       "Returned type does not match method signature"));
+            check = false;
+        }
+        
         needReturn = false;
-        return true;
+        return check;
     }
       
 
