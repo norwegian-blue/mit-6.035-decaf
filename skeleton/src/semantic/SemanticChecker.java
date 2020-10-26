@@ -373,6 +373,7 @@ public class SemanticChecker implements IrVisitor<Boolean> {
                     case MINUS:
                     case TIMES:
                     case DIVIDE:
+                    case MOD:
                         exp.setExpType(BaseTypeDescriptor.INT);
                         break;
                     default:
