@@ -8,3 +8,4 @@ void main ( ) {
   a[i ( ) ] = 1;
 }
 }
+//ERROR (line  0, col  0): Array 'a' index expression must be of type INT

@@ -5,3 +5,4 @@ void main ( ) {
   i ( );
 }
 }
+//ERROR (line  5, col  2): Identifier 'i' should point to a method

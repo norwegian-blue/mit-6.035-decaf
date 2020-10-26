@@ -7,3 +7,4 @@ void main ( ) {
   test ( 2, 2 );
 }
 }
+//ERROR (line  7, col  2): Number of arguments do not match method signature

@@ -8,3 +8,4 @@ void main ( ) {
   x = 2 + foo ( );
 }
 }
+//ERROR (line  8, col 10): Arithmetic/relation expression must be of type INT

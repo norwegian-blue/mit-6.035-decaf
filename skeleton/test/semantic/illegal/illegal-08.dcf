@@ -7,3 +7,4 @@ class Program {
     x = foo(34, true);
   }							
 }
+//ERROR (line  0, col  0): Returned type does not match method signature

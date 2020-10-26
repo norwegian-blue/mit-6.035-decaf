@@ -110,7 +110,7 @@ class Main {
                     // Run semantic check
                     SemanticChecker check = new SemanticChecker();
                     if (!((IrClassDeclaration)program).accept(check)) {
-                        check.printErrors();
+                        System.err.println(check.toString());
                         throw new Error("Semantic check failed");
                     }
                 } else {

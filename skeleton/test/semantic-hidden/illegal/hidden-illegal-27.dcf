@@ -7,3 +7,4 @@ void main ( ) {
   test ( true );
 }
 }
+//ERROR (line  7, col  2): Argument type do not match method signature

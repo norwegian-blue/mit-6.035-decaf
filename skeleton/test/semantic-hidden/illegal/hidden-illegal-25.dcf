@@ -2,3 +2,4 @@
 // has no parameters.
 class Program {
 }
+//ERROR (line  3, col  0): No main method is defined

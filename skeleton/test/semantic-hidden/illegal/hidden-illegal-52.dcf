@@ -7,3 +7,4 @@ void main ( ) {
   y = x ( ) == x ( );
 }
 }
+//ERROR (line  7, col  6): Left hand side and right hand side expressions must be of the same type (INT/BOOL)

@@ -8,3 +8,4 @@ class Program {
     x = foo(34, true, true);	// argument mismatch
   }								
 }	
+//ERROR (line  8, col  8): Number of arguments do not match method signature

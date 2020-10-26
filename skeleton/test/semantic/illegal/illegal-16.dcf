@@ -5,3 +5,4 @@ class Program {
     b = !5;	// operand of ! must be boolean
   }								
 }
+//ERROR (line  5, col  9): The right hand side expression should be of type BOOL

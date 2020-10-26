@@ -9,3 +9,5 @@ void main ( ) {
   b = foo ( );
 }
 }
+//ERROR (line  0, col  0): No RETURN statement found within method 'foo' body
+//ERROR (line  9, col  6): The right hand side expression should be of type BOOL

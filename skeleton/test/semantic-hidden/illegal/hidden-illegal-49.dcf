@@ -6,3 +6,4 @@ void main ( ) {
   x += true;
 }
 }
+//ERROR (line  6, col  7): The right hand side expression should be of type INT

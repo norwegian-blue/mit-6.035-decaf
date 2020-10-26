@@ -4,3 +4,4 @@ void main ( ) {
   foo ( );
 }
 }
+//ERROR (line  4, col  2): Method foo is not declared

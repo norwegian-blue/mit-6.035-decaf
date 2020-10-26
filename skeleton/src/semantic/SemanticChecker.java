@@ -25,13 +25,13 @@ public class SemanticChecker implements IrVisitor<Boolean> {
     }
     
 
-    /**
-     * Print all errors found by the semantic checker
-     */
-    public void printErrors() {
+    @Override
+    public String toString() {
+        String errStr = "";
         for (SemanticError err : errors) {
-            System.out.println(err.toString());
+            errStr += err.toString() + "\n";
         }
+        return errStr.substring(0, errStr.length()-1);
     }
     
     
@@ -142,7 +142,9 @@ public class SemanticChecker implements IrVisitor<Boolean> {
             try {
                 env.put(par.getId(), new ParameterDescriptor(par.getId(), par.getType()));
             } catch (DuplicateKeyException e) {
-                throw new Error("Unexpected exception");
+                errors.add(new SemanticError(methodDecl.getLineNum(), methodDecl.getColNum(),
+                        "A parameter named '" + par.getId() + "' is already defined"));
+                check = false;
             }
         }
         currentMethod = thisMethod;
@@ -253,11 +255,21 @@ public class SemanticChecker implements IrVisitor<Boolean> {
     
     @Override
     public Boolean visit(IrBreakStatement node) {
+        if (!looping) {
+            errors.add(new SemanticError(node.getLineNum(), node.getColNum(),
+                    "Continue statement must be within the body of a loop statement"));
+        }
+        
         return looping;
     }
 
     @Override
     public Boolean visit(IrContinueStatement node) {
+        if (!looping) {
+            errors.add(new SemanticError(node.getLineNum(), node.getColNum(),
+                    "Continue statement must be within the body of a loop statement"));
+        }
+            
         return looping;
     }
 
@@ -323,6 +335,17 @@ public class SemanticChecker implements IrVisitor<Boolean> {
         boolean check = true;
         
         // Check return value type against method signature
+        if (returnStatement.returnsVoid()) {
+            if (needReturn) {
+                needReturn = false;
+                errors.add(new SemanticError(returnStatement.getLineNum(), returnStatement.getColNum(),
+                                             "The method should return a value"));
+                return false;
+            } else {
+                return true;
+            }
+        }
+        
         check &= returnStatement.getReturnExp().accept(this);
         if (!returnStatement.getReturnExp().getExpType().equals(this.currentMethod.getType())) {
             errors.add(new SemanticError(returnStatement.getLineNum(), returnStatement.getColNum(),

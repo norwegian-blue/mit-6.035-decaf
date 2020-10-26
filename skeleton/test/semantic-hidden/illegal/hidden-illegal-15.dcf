@@ -6,3 +6,4 @@ void main ( ) {
   b[1] = 10;
 }
 }
+//ERROR (line  6, col  9): The right hand side expression should be of type BOOL

@@ -7,3 +7,4 @@ void main ( ) {
   }
 }
 }
+//ERROR (line  6, col  7): Left hand side and right hand side expressions must be of the same type (INT/BOOL)

@@ -8,3 +8,4 @@ void bar ( ) {
 void main ( ) {
 }
 }
+//ERROR (line  4, col  2): Method bar is not declared

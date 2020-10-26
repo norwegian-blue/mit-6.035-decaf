@@ -8,3 +8,4 @@ void main ( ) {
   i = -foo ( );
 }
 }
+//ERROR (line  8, col  7): Unary MINUS expression must be of type INT

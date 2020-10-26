@@ -5,3 +5,4 @@ class Program {
     if (a[3]) {}	// condition should be a boolean
   }								
 }
+//ERROR (line  0, col  0): Condition expression in if statement must be of type BOOLEAN

@@ -5,3 +5,4 @@ void foo ( ) {
 void main ( ) {
 }
 }
+//ERROR (line  0, col  0): A variable named 'foo' is already declared in current scope

@@ -5,3 +5,4 @@ void main ( ) {
   x = x + true;
 }
 }
+//ERROR (line  5, col 10): Arithmetic/relation expression must be of type INT

@@ -5,3 +5,4 @@ void main ( ) {
   b = 1 == true;
 }
 }
+//ERROR (line  5, col  6): Left hand side and right hand side expressions must be of the same type (INT/BOOL)

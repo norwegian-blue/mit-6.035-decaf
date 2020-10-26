@@ -4,3 +4,4 @@ void main ( ) {
   continue;
 }
 }
+//ERROR (line  4, col  2): Continue statement must be within the body of a loop statement

@@ -7,3 +7,4 @@ void main ( ) {
   // Error: callouts must be declared
 }
 }
+//ERROR (line  6, col  6): Method getpida is not declared

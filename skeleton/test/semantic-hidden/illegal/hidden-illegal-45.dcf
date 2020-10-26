@@ -11,3 +11,4 @@ void main ( ) {
   }
 }
 }
+//ERROR (line  9, col 10): The right hand side expression should be of type INT

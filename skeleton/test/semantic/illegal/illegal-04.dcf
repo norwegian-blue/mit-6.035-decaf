@@ -3,3 +3,4 @@ class Program {
   void main() {
   }							
 }
+//ERROR (line  2, col  2): Array 'a[]' size must be greater than zero

@@ -4,3 +4,4 @@ class Program {
     boolean x;	// identifier declared twice
   }								
 }
+//ERROR (line  4, col  4): Variable 'x' already declared in current scope

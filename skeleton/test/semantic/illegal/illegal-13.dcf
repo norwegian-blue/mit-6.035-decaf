@@ -6,3 +6,4 @@ class Program {
     a[3] = i < 35;	// rhs should be an int expression
   }								
 }
+//ERROR (line  0, col  0): The right hand side expression should be of type INT

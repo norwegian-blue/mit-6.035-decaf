@@ -7,3 +7,4 @@ void main ( ) {
   // variable declaration should shadow method call
 }
 }
+//ERROR (line  6, col  2): Identifier 'foo' should point to a method

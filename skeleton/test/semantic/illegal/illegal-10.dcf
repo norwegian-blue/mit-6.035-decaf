@@ -5,3 +5,4 @@ class Program {
     a[1] = a;	// bad type, rhs should be an int
   }								
 }
+//ERROR (line  5, col 11): The right hand side expression should be of type INT

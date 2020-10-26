@@ -8,3 +8,4 @@ void main ( ) {
   }
 }
 }
+//ERROR (line  7, col 15): Connective expression must be of type BOOL

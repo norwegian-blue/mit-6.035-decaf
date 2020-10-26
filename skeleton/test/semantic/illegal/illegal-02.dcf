@@ -3,3 +3,4 @@ class Program {
     a = 34;	// identifier used before being declared
   }								
 }	
+// ERROR (line  3, col  4): Variable 'a' is not declared

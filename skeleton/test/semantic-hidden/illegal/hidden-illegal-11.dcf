@@ -7,3 +7,4 @@ void main ( ) {
   int z;
 }
 }
+//ERROR (line  7, col  2): Variable 'z' already declared in current scope
