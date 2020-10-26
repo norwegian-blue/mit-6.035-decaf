@@ -300,7 +300,7 @@ public class SemanticChecker implements IrVisitor<Boolean> {
         
         // Check condition expression type
         check &= ifStatement.getCondition().accept(this);
-        if (!(ifStatement.getCondition().getExpType().equals(BaseTypeDescriptor.INT))) {
+        if (!(ifStatement.getCondition().getExpType().equals(BaseTypeDescriptor.BOOL))) {
             errors.add(new SemanticError(ifStatement.getLineNum(), ifStatement.getColNum(),
                        "Condition expression in if statement must be of type BOOLEAN"));
             check = false;
@@ -368,6 +368,16 @@ public class SemanticChecker implements IrVisitor<Boolean> {
                                "Arithmetic/relation expression must be of type INT"));
                     check = false;
                 }
+                switch (op) {
+                    case PLUS:
+                    case MINUS:
+                    case TIMES:
+                    case DIVIDE:
+                        exp.setExpType(BaseTypeDescriptor.INT);
+                        break;
+                    default:
+                        exp.setExpType(BaseTypeDescriptor.BOOL);
+                }                     
                 break;           
             
             // connective
@@ -383,6 +393,7 @@ public class SemanticChecker implements IrVisitor<Boolean> {
                                "Connective expression must be of type BOOL"));
                     check = false;
                 }
+                exp.setExpType(BaseTypeDescriptor.BOOL);
                 break;
                 
             // equality
@@ -395,17 +406,13 @@ public class SemanticChecker implements IrVisitor<Boolean> {
                                "Left hand side and right hand side expressions must be of the same type (INT/BOOL)"));
                     check = false;
                 }
+                exp.setExpType(BaseTypeDescriptor.BOOL);
                 break;
                 
             default:
                 throw new Error("Unexpected operator type");            
         }
-        
-        // Update type
-        if (check) {
-            exp.setExpType(lhs.getExpType());
-        }
-        
+                
         return check;
     }
 
@@ -480,10 +487,26 @@ public class SemanticChecker implements IrVisitor<Boolean> {
     public Boolean visit(IrMethodCallExpression method) {
         boolean check = true;
         
+        // Get method descriptor
+        Descriptor methodDescriptor;
+        List<ParameterDescriptor> pars;
+        try {
+            methodDescriptor = env.get(method.getName());
+            if (methodDescriptor.isMethod()) {
+                pars = ((MethodDescriptor)methodDescriptor).getPars();
+            } else {
+                errors.add(new SemanticError(method.getLineNum(), method.getColNum(),
+                        "Identifier '" + method.getName() + "' should point to a method"));
+                return false;
+            }
+        } catch (KeyNotFoundException e) {
+            errors.add(new SemanticError(method.getLineNum(), method.getColNum(),
+                    "Method " + method.getName() + " is not declared"));
+            return false;
+        }
+                    
         // Check arguments
         List<IrExpression> args = method.getArgs();
-        List<ParameterDescriptor> pars = this.currentMethod.getPars();
-        
         if (args.size() != pars.size()) {
             errors.add(new SemanticError(method.getLineNum(), method.getColNum(),
                     "Number of arguments do not match method signature"));
@@ -494,13 +517,13 @@ public class SemanticChecker implements IrVisitor<Boolean> {
             check &= args.get(i).accept(this);
             if (!args.get(i).getExpType().equals(pars.get(i).getType())) {
                 errors.add(new SemanticError(method.getLineNum(), method.getColNum(),
-                        "Number of arguments do not match method signature"));
+                        "Argument type do not match method signature"));
                 check = false;
             }   
         }
         
         // Set return type
-        method.setExpType(this.currentMethod.getType());
+        method.setExpType(methodDescriptor.getType());
                 
         return check;
     }

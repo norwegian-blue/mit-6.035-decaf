@@ -30,6 +30,10 @@ public class IrMethodCallExpression extends IrCallExpression{
         return this.arguments;
     }
     
+    public String getName() {
+        return this.methodName;
+    }
+    
     @Override
     public <T> T accept(IrVisitor<T> v) {
         return v.visit(this);
