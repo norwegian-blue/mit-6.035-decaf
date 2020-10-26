@@ -19,6 +19,10 @@ public class MethodDescriptor extends Descriptor {
         return true;
     }
     
+    public List<ParameterDescriptor> getPars() {
+        return this.parameters;
+    }
+    
     @Override
     public String toString() {
         String str = "[METHOD] " + this.type.toString() + " (";

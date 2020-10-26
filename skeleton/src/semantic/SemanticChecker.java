@@ -253,20 +253,45 @@ public class SemanticChecker implements IrVisitor<Boolean> {
     
     @Override
     public Boolean visit(IrBreakStatement node) {
-        // TODO Auto-generated method stub
-        return true;
+        return looping;
     }
 
     @Override
     public Boolean visit(IrContinueStatement node) {
-        // TODO Auto-generated method stub
-        return true;
+        return looping;
     }
 
     @Override
-    public Boolean visit(IrForStatement node) {
-        // TODO Auto-generated method stub
-        return true;
+    public Boolean visit(IrForStatement forLoop) {
+        boolean check = true;
+        
+        env.beginScope();
+        
+        // Create loop variable
+        IrIdentifier loopVar = forLoop.getLoopVar();
+        try {
+            env.put(loopVar.getId(), new LocalDescriptor(loopVar.getId(), BaseTypeDescriptor.INT));
+        } catch (DuplicateKeyException e) {
+            throw new Error("this should not happen");
+        }
+        
+        // Check start and end expressions
+        check &= forLoop.getStartExp().accept(this);
+        check &= forLoop.getEndExp().accept(this);
+        if (!(forLoop.getStartExp().getExpType().equals(BaseTypeDescriptor.INT)) ||
+            !(forLoop.getEndExp().getExpType().equals(BaseTypeDescriptor.INT))) {
+            errors.add(new SemanticError(forLoop.getLineNum(), forLoop.getColNum(),
+                    "Start and End expressions in the for loop must be of type INT"));
+            check = false;
+        }
+        
+        // Check loop block
+        this.looping = true;
+        forLoop.getLoopBlock().accept(this);
+        this.looping = false;
+        
+        env.endScope();
+        return check;
     }
 
     @Override
@@ -419,16 +444,44 @@ public class SemanticChecker implements IrVisitor<Boolean> {
     
     
     @Override
-    public Boolean visit(IrCalloutExpression node) {
-        // TODO Auto-generated method stub
-        return true;
+    public Boolean visit(IrCalloutExpression callout) {
+        boolean check = true;
+        
+        for (IrExpression arg : callout.getArgs()) {
+            check &= arg.accept(this);
+        }
+        
+        return check;
     }
     
 
     @Override
-    public Boolean visit(IrMethodCallExpression node) {
-        // TODO Auto-generated method stub
-        return true;
+    public Boolean visit(IrMethodCallExpression method) {
+        boolean check = true;
+        
+        // Check arguments
+        List<IrExpression> args = method.getArgs();
+        List<ParameterDescriptor> pars = this.currentMethod.getPars();
+        
+        if (args.size() != pars.size()) {
+            errors.add(new SemanticError(method.getLineNum(), method.getColNum(),
+                    "Number of arguments do not match method signature"));
+            return false;
+        }
+        
+        for (int i = 0; i < args.size(); i++) {
+            check &= args.get(i).accept(this);
+            if (!args.get(i).getExpType().equals(pars.get(i).getType())) {
+                errors.add(new SemanticError(method.getLineNum(), method.getColNum(),
+                        "Number of arguments do not match method signature"));
+                check = false;
+            }   
+        }
+        
+        // Set return type
+        method.setExpType(this.currentMethod.getType());
+                
+        return check;
     }
     
 
