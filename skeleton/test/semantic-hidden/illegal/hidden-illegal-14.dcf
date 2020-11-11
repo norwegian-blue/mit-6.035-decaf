@@ -1,0 +1,10 @@
+// 14. The <location> and <expr> in an assignment, <location> = <expr>, 
+// must have the same type.
+class Program {
+boolean b[10];
+void main ( ) {
+  int x;
+  x = b[1];
+}
+}
+//ERROR (line  0, col  0): The right hand side expression should be of type INT

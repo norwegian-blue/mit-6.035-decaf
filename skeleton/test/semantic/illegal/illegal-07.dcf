@@ -1,0 +1,8 @@
+class Program {
+  void foo(int i, boolean b) {
+    return 3;	// should not return value;
+  }
+  void main() {
+  }								
+}
+//ERROR (line  0, col  0): Returned type does not match method signature

@@ -60,7 +60,7 @@
     <java jar="${lib}/antlr.jar" fork="true">
       <arg value="-o"/>
       <arg value="${java}/decaf"/>
-      <arg value="${src}/decaf/Grammar.g4"/>
+      <arg value="${src}/grammar/Grammar.g4"/>
     </java>
   </target>
 
@@ -73,7 +73,7 @@
   <target name="jar" depends="compile">
     <jar jarfile="${dist}/Compiler.jar" basedir="${classes}">
      <manifest>
-       <attribute name="Main-Class" value="decaf.Main" />
+       <attribute name="Main-Class" value="Main" />
        <!-- ANTLR runtime is needed for parsing! -->
        <attribute name="Class-Path" value="antlr.jar" />
      </manifest>
@@ -94,8 +94,13 @@
     <exec executable="${tests}/parser-hidden/test.sh"/>
   </target>
 
+  <target name="test_semantic" depends="jar">
+    <exec executable="${tests}/semantic/test.sh"/>
+    <exec executable="${tests}/semantic-hidden/test.sh"/>
+  </target>
+
   <target name="integration_tests" 
-	  depends="test_scanner, test_parser">
+	  depends="test_scanner, test_parser, test_semantic">
   </target>
   
  <!-- to clean, delete everything in the java, classes, and dist

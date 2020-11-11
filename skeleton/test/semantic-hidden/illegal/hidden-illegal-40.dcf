@@ -1,0 +1,8 @@
+// 10(a). <id> must be an array variable
+class Program {
+int a;
+void main ( ) {
+  a[1] = 0;
+}
+}
+//ERROR (line  0, col  0): Indexing a non array variable 'a'

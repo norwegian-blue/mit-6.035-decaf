@@ -1,0 +1,10 @@
+// 1. No identifier can be declared twice in the same scope.
+class Program {
+int x;
+void main ( ) {
+  int y;
+  int z;
+  int z;
+}
+}
+//ERROR (line  7, col  2): Variable 'z' already declared in current scope

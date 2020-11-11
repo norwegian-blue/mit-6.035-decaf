@@ -1,0 +1,11 @@
+// 6. If a method call is used as an expression, the method must return
+//    a result.
+class Program {
+void foo ( ) {
+}
+void main ( ) {
+  int x;
+  x = 2 + foo ( );
+}
+}
+//ERROR (line  8, col 10): Arithmetic/relation expression must be of type INT

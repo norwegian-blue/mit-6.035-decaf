@@ -1,0 +1,12 @@
+// 5. The types of arguments must match those in the method signature
+class Program {
+void foo ( int i ) {
+}
+void main ( ) {
+  boolean b;
+  int i;
+  i = 0;
+  foo ( ( i + 5 ) < 3 );
+}
+}
+//ERROR (line  9, col  2): Argument type do not match method signature

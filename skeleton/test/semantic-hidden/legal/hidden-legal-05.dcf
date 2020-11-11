@@ -1,0 +1,15 @@
+// OK
+class Program {
+void x ( ) {
+}
+void main ( ) {
+  boolean x;
+  if(x) {
+    int x;
+    boolean y;
+    if (y) {
+      int x;
+    }
+  }
+}
+}

@@ -1,0 +1,11 @@
+// 15. <location> = <expr> must have same type
+class Program {
+int i ( ) {
+  return 1;
+}
+void main ( ) {
+  boolean b;
+  b = i ( );
+}
+}
+//ERROR (line  8, col  6): The right hand side expression should be of type BOOL

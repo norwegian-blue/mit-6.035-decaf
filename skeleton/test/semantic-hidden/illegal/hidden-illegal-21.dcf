@@ -1,0 +1,11 @@
+// 14. The operands of <cond_ops> must have type bool.
+class Program {
+int foo ( ) {
+  return 1;
+}
+void main ( ) {
+  if ( true || foo ( ) ) {
+  }
+}
+}
+//ERROR (line  7, col 15): Connective expression must be of type BOOL

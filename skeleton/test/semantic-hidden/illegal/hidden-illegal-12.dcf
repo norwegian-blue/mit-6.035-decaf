@@ -1,0 +1,8 @@
+// 13. The operands of <eq_ops> must have the same type, either int or bool.
+class Program {
+void main ( ) {
+  boolean b;
+  b = 1 == true;
+}
+}
+//ERROR (line  5, col  6): Left hand side and right hand side expressions must be of the same type (INT/BOOL)

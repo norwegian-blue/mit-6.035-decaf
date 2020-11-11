@@ -1,0 +1,11 @@
+// 15. <location> += <expr> must have type int on both sides
+class Program {
+void main ( ) {
+  boolean b;
+  int x;
+  x = 0;
+  b = true;
+  x += b;
+}
+}
+//ERROR (line  8, col  7): The right hand side expression should be of type INT

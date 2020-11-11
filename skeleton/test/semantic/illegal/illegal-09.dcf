@@ -1,0 +1,9 @@
+class Program {
+  int a[10];
+  boolean b;
+
+  void main() {
+    a[b] = 25;	// array index has wrong type
+  }								
+}
+//ERROR (line  0, col  0): Array 'a' index expression must be of type INT

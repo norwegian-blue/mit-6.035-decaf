@@ -1,0 +1,10 @@
+// 15. <location> = <expr> must have same type
+class Program {
+void i ( ) {
+}
+void main ( ) {
+  int x;
+  x = i ( );
+}
+}
+//ERROR (line  7, col  6): The right hand side expression should be of type INT

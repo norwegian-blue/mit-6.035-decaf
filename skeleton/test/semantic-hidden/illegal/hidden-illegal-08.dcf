@@ -1,0 +1,9 @@
+// 12. The operands of <rel_op>s must have type int.
+class Program {
+void main ( ) {
+  boolean b;
+  b = ( 1 > 2 ) <= ( 3 > 4 );
+}
+}
+//ERROR (line  0, col  0): Arithmetic/relation expression must be of type INT
+//ERROR (line  0, col  0): Arithmetic/relation expression must be of type INT

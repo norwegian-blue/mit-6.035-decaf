@@ -1,0 +1,8 @@
+// 15. <location> = <expr> must have the same type
+class Program {
+boolean a[10];
+void main ( ) {
+  a[0] = 1 + 1;
+}
+}
+//ERROR (line  0, col  0): The right hand side expression should be of type BOOL

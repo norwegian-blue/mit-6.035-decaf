@@ -1,0 +1,7 @@
+// 3. The program should contain a definition for a method called main that 
+// has no parameters.
+class Program {
+void main ( int x ) {
+}
+}
+//ERROR (line  0, col  0): Main method must not take any parameter

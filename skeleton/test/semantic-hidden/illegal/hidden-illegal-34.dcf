@@ -1,0 +1,7 @@
+// Error
+class Program {
+void main ( ) {
+  main = 3;
+}
+}
+//ERROR (line  4, col  2): Identifier 'main' should point to a variable (INT/BOOL) not a method

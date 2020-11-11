@@ -1,0 +1,11 @@
+// 15. <expr> + <expr> must have type boolean on both sides
+class Program {
+void x ( ) {
+}
+void main ( ) {
+  int y;
+  y = x ( ) + x ( );
+}
+}
+//ERROR (line  7, col  6): Arithmetic/relation expression must be of type INT
+//ERROR (line  7, col 14): Arithmetic/relation expression must be of type INT

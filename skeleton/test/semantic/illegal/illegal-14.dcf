@@ -1,0 +1,9 @@
+class Program {
+  boolean b;
+
+  void main() {
+    b = true > false;		// operands of > must be ints
+  }								
+}
+//ERROR (line  5, col  8): Arithmetic/relation expression must be of type INT
+//ERROR (line  5, col 15): Arithmetic/relation expression must be of type INT

@@ -1,0 +1,7 @@
+class Program {
+  void main() {
+    for x = false, 10 {   //initial condition must be an int
+    }
+  }							
+}
+//ERROR (line  0, col  0): Start and End expressions in the for loop must be of type INT

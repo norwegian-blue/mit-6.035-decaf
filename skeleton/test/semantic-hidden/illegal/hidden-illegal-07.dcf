@@ -1,0 +1,13 @@
+// 11. The <expr> in if statement must have type bool.
+class Program {
+int foo ( ) {
+  return 0;
+}
+void main ( ) {
+  if ( foo ( ) ) {
+  }
+  else {
+  }
+}
+}
+//ERROR (line  0, col  0): Condition expression in if statement must be of type BOOLEAN

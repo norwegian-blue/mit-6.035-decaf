@@ -1,0 +1,14 @@
+// 15. <location> = <expr> must have the same type
+class Program {
+void main ( ) {
+  boolean b;
+  if(b) {
+    int b;
+    boolean c;
+    if (c) {
+      b = false;
+    }
+  }
+}
+}
+//ERROR (line  9, col 10): The right hand side expression should be of type INT

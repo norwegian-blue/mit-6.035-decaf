@@ -1,0 +1,8 @@
+// No main method
+class Program {
+  void foo() {
+  }
+  void bar() {
+  }
+}	
+//ERROR (line  2, col  0): No main method is defined

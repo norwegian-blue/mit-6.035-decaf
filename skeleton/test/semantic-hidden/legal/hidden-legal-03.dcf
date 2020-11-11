@@ -1,0 +1,10 @@
+// OK
+class Program {
+boolean foo ( ) {
+  return true;
+}
+void main ( ) {
+  if ( true || foo ( ) ) {
+  }
+}
+}

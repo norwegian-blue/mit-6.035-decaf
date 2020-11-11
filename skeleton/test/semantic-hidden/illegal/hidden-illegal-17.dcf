@@ -1,0 +1,10 @@
+// 14. The <location> and <expr> in an assignment, <location> = <expr>, 
+// and callout must be declared.
+class Program {
+void main ( ) {
+  boolean b;
+  b = getpida ( );
+  // Error: callouts must be declared
+}
+}
+//ERROR (line  6, col  6): Method getpida is not declared

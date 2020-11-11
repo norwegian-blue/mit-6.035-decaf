@@ -1,0 +1,10 @@
+// 5. The number and types of arguments in a method call must be
+//    the same as the number and type of the formals.
+class Program {
+void test ( int x ) {
+}
+void main ( ) {
+  test ( true );
+}
+}
+//ERROR (line  7, col  2): Argument type do not match method signature

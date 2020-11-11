@@ -1,0 +1,11 @@
+// 12. <arith_op>s must have type int
+class Program {
+boolean foo ( ) {
+  return true;
+}
+void main ( ) {
+  int i;
+  i = -foo ( );
+}
+}
+//ERROR (line  8, col  7): Unary MINUS expression must be of type INT

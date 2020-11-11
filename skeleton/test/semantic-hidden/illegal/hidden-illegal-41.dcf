@@ -1,0 +1,9 @@
+// 1. No identifier is declared twice in the same scope
+class Program {
+int foo ( int a, int a ) {
+  return 0;
+}
+void main ( ) {
+}
+}
+//ERROR (line  0, col  0): A parameter named 'a' is already defined

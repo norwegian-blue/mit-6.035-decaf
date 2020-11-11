@@ -1,0 +1,7 @@
+// 2. No identifier can be used before it is declared 
+class Program {
+void main ( ) {
+  x = 3;
+}
+}
+//ERROR (line  4, col  2): Variable 'x' is not declared

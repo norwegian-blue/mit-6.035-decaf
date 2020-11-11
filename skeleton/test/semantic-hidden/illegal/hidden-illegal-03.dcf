@@ -1,0 +1,8 @@
+// 15. character literals have int type
+class Program {
+void main ( ) {
+  boolean b;
+  b = 'b';
+}
+}
+//ERROR (line  5, col  6): The right hand side expression should be of type BOOL

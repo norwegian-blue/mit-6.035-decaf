@@ -1,0 +1,9 @@
+class Program {
+  boolean b;
+
+  void main() {
+    b = 5 == true;		// types of operands of == must be equal
+  }								
+}
+//ERROR (line  5, col  8): Left hand side and right hand side expressions must be of the same type (INT/BOOL)
+

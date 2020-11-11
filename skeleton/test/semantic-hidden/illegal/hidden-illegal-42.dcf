@@ -1,0 +1,13 @@
+// 8. The expression in a return must have the same type as the declared
+// result type of the enclosing method definition.
+class Program {
+boolean bar ( ) {
+  return false;
+}
+int foo ( ) {
+  return bar ( );
+}
+void main ( ) {
+}
+}
+//ERROR (line  0, col  0): Returned type does not match method signature

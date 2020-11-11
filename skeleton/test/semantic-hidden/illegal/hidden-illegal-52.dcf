@@ -1,0 +1,10 @@
+// 15. <expr> == <expr> must have type boolean on both sides
+class Program {
+void x ( ) {
+}
+void main ( ) {
+  boolean y;
+  y = x ( ) == x ( );
+}
+}
+//ERROR (line  7, col  6): Left hand side and right hand side expressions must be of the same type (INT/BOOL)
