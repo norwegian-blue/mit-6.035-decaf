@@ -2,15 +2,21 @@ package cfg;
 
 import java.util.Stack;
 
+import cfg.Nodes.CfgBranch;
+import cfg.Nodes.CfgDeclaration;
+import cfg.Nodes.CfgEntryNode;
+import cfg.Nodes.CfgExitNode;
+import cfg.Nodes.CfgStatement;
 import ir.IrVisitor;
 import ir.Declaration.*;
 import ir.Expression.*;
 import ir.Statement.*;
+import semantic.BaseTypeDescriptor;
 
 public class CfgCreator implements IrVisitor<CFG> {
     
-    private Stack<CFG> loopStart;
-    private Stack<CFG> loopEnd;
+    private Stack<CFG> loopStart = new Stack<CFG>();
+    private Stack<CFG> loopEnd = new Stack<CFG>();
     
     // Declarations
 
@@ -133,7 +139,7 @@ public class CfgCreator implements IrVisitor<CFG> {
         
         // Declare loop variable
         IrIdentifier loopVar = node.getLoopVar();
-        IrVariableDeclaration loopDecl = new IrVariableDeclaration(loopVar.getExpType(), loopVar.getId());
+        IrVariableDeclaration loopDecl = new IrVariableDeclaration(BaseTypeDescriptor.INT, loopVar.getId());
         CFG forLoop = CFG.makeSingleNode(new CfgDeclaration(loopDecl));     
         
         // Initialize loop variable
@@ -173,8 +179,7 @@ public class CfgCreator implements IrVisitor<CFG> {
 
     @Override
     public CFG visit(IrReturnStatement node) {
-        // TODO Auto-generated method stub
-        return null;
+        return CFG.makeSingleNode(new CfgExitNode());
     }
     
     

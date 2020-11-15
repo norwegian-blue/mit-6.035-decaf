@@ -1,4 +1,4 @@
-package cfg;
+package cfg.Nodes;
 
 import ir.Statement.IrStatement;
 
@@ -7,11 +7,9 @@ import ir.Statement.IrStatement;
  */
 
 public class CfgStatement extends CfgNode {
-
-    private final IrStatement stat;
     
     public CfgStatement(IrStatement stat) {
-        this.stat = stat;
+        this.nodeInstruction = stat;
     }
     
 }

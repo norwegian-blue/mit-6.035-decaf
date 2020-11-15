@@ -1,4 +1,4 @@
-package cfg;
+package cfg.Nodes;
 
 import ir.Expression.IrExpression;
 
@@ -7,11 +7,14 @@ import ir.Expression.IrExpression;
  */
 
 public class CfgBranch extends CfgNode {
-
-    private IrExpression cond;
     
     public CfgBranch(IrExpression cond) {
-        this.cond = cond;
+        this.nodeInstruction = cond;
+    }
+    
+    @Override
+    public boolean isBranch() {
+        return true;
     }
     
 }

@@ -1,4 +1,4 @@
-package cfg;
+package cfg.Nodes;
 
 import ir.Declaration.IrMemberDeclaration;
 
@@ -7,11 +7,9 @@ import ir.Declaration.IrMemberDeclaration;
  */
 
 public class CfgDeclaration extends CfgNode {
-    
-    private final IrMemberDeclaration decl;
-    
+        
     public CfgDeclaration(IrMemberDeclaration decl) {
-        this.decl = decl;
+        this.nodeInstruction = decl;
     }
    
 }
