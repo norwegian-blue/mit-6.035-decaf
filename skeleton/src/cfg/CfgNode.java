@@ -27,5 +27,11 @@ public abstract class CfgNode {
     protected void setFalseBranch(CfgNode falseBranch) {
         this.falseBranch = falseBranch;
     }
+    
+    public static void concatenate(CfgNode node1, CfgNode node2) {
+        node1.trueBranch = node2;
+        node1.falseBranch = node2;
+        node2.addParentNode(node1);
+    }
 
 }

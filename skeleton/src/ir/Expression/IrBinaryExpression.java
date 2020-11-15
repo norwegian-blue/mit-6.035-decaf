@@ -55,4 +55,14 @@ public class IrBinaryExpression extends IrExpression {
     public <T> T accept(IrVisitor<T> v) {
         return v.visit(this);
     }
+    
+    @Override
+    public boolean isAndExp() {
+        return (this.operator == BinaryOperator.AND);
+    }
+    
+    @Override
+    public boolean isOrExp() {
+        return (this.operator == BinaryOperator.OR);
+    }
 }

@@ -37,4 +37,9 @@ public class IrUnaryExpression extends IrExpression {
     public <T> T accept(IrVisitor<T> v) {
         return v.visit(this);
     }
+    
+    @Override
+    public boolean isNotExp() {
+        return (this.op == UnaryOperator.NOT);
+    }
 }

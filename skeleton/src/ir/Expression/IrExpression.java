@@ -17,4 +17,16 @@ public abstract class IrExpression extends Ir {
     public TypeDescriptor getExpType() {
         return expType;
     }
+    
+    public boolean isAndExp() {
+        return false;
+    }
+    
+    public boolean isOrExp() {
+        return false;
+    }
+    
+    public boolean isNotExp() {
+        return false;
+    }
 }

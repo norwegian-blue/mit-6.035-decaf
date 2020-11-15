@@ -21,6 +21,14 @@ public class CFG {
         return graph;
     }
     
+    public static CFG makeNoOp() {
+        CFG graph = new CFG();
+        graph.start = new CfgNoOp();
+        graph.end = graph.start;
+        graph.nodes.add(graph.start);
+        return graph;
+    }
+    
     public Set<CfgNode> getNodes() {
         return this.nodes;
     }
@@ -33,13 +41,18 @@ public class CFG {
     
     public void concatenate(CfgNode node) {
         this.end = node;
-        nodes.add(node);
+        addNode(node);
     }
     
     private void addNodes(CFG block) {
         for (CfgNode node : block.getNodes()) {
-            this.nodes.add(node);
+            addNode(node);
         }
     }
     
+    private void addNode(CfgNode node) {
+        if (!nodes.contains(node)) {
+            nodes.add(node);
+        }
+    }
 }
