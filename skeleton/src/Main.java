@@ -1,17 +1,21 @@
 import org.antlr.v4.runtime.Token;
 import org.antlr.v4.runtime.tree.ParseTreeWalker;
+
 import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.CharStream;
 import org.antlr.v4.runtime.RecognitionException;
 import org.antlr.v4.runtime.CommonTokenStream;
+
 import java6035.tools.CLI.*;
+
 import semantic.SemanticChecker;
 import semantic.TreeSimplifier;
 import decaf.GrammarLexer;
 import decaf.GrammarParser;
 import ir.*;
 import ir.Declaration.IrClassDeclaration;
+import cfg.CfgProgram;
 
 class Main {
     public static void main(String[] args) {
@@ -79,8 +83,9 @@ class Main {
                     throw new Error("Syntax error");
                 }
                 
-        	} else if (CLI.target == CLI.INTER) {
+        	} else if (CLI.target == CLI.INTER || CLI.target == CLI.ASSEMBLY) {
         	    
+        	    // INTERPRETER        	    
         	    GrammarLexer lexer = new GrammarLexer(inputStream);
         	    CommonTokenStream tokens = new CommonTokenStream(lexer);
                 GrammarParser parser = new GrammarParser (tokens);                               
@@ -102,7 +107,7 @@ class Main {
                     TreeSimplifier simplify = new TreeSimplifier();
                     ((IrClassDeclaration)program).accept(simplify);
                     
-                    if (CLI.debug) {
+                    if (CLI.debug && CLI.target == CLI.INTER) {
                         System.out.printf(program.toString());
                         System.out.println();
                     }
@@ -117,9 +122,17 @@ class Main {
                     throw new Error("Could not get a valid AST for the program");
                 }
                 
-                if (CLI.debug) {
+                if (CLI.debug && CLI.target == CLI.INTER) {
                     System.out.println("### Semantic check passed ###");
                 }
+                
+                if (CLI.target == CLI.INTER) {
+                    System.exit(0);
+                }
+                
+                // ASSEMBLER
+                CfgProgram controlFlow = new CfgProgram((IrClassDeclaration)program);
+                controlFlow.flatten();
         	}
         	
         } catch(Exception e) {
