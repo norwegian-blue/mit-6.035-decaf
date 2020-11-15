@@ -20,7 +20,9 @@ public class CfgProgram {
         this.methods = new HashMap<String, CFG>();
         
         for (IrMethodDeclaration method : program.getMethods()) {
-            this.methods.put(method.getId(), method.accept(new CfgCreator()));
+            CFG methodCFG = method.accept(new CfgCreator());
+            methodCFG.removeNoOps();
+            this.methods.put(method.getId(), methodCFG);            
         }
     }
     

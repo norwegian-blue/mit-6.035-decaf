@@ -1,11 +1,16 @@
 package cfg;
 
+import java.util.Stack;
+
 import ir.IrVisitor;
 import ir.Declaration.*;
 import ir.Expression.*;
 import ir.Statement.*;
 
 public class CfgCreator implements IrVisitor<CFG> {
+    
+    private Stack<CFG> loopStart;
+    private Stack<CFG> loopEnd;
     
     // Declarations
 
@@ -48,7 +53,6 @@ public class CfgCreator implements IrVisitor<CFG> {
     @Override
     public CFG visit(IrBooleanLiteral node) {
         throw new Error("IrBooleanLiteral does not serve CfgCreator");
-
     }
 
     @Override
@@ -107,33 +111,59 @@ public class CfgCreator implements IrVisitor<CFG> {
 
     @Override
     public CFG visit(IrBreakStatement node) {
-        // TODO Auto-generated method stub
-        return null;
+        CFG breakNode = CFG.makeNoOp();
+        breakNode.concatenate(loopEnd.peek());
+        return breakNode;
     }
 
     @Override
     public CFG visit(IrContinueStatement node) {
-        // TODO Auto-generated method stub
-        return null;
+        CFG continueNode = CFG.makeNoOp();
+        continueNode.concatenate(loopStart.peek());
+        return continueNode;
     }
 
     @Override
     public CFG visit(IrForStatement node) {
-        // TODO Auto-generated method stub
-        return null;
+        CFG start = CFG.makeNoOp();
+        CFG end = CFG.makeNoOp();
+        
+        loopStart.push(start);
+        loopEnd.push(end);
+        
+        // Declare loop variable
+        IrIdentifier loopVar = node.getLoopVar();
+        IrVariableDeclaration loopDecl = new IrVariableDeclaration(loopVar.getExpType(), loopVar.getId());
+        CFG forLoop = CFG.makeSingleNode(new CfgDeclaration(loopDecl));     
+        
+        // Initialize loop variable
+        IrStatement initVar = new IrAssignment(loopVar, IrAssignment.IrAssignmentOp.ASSIGN, node.getStartExp());
+        forLoop.concatenate(new CfgStatement(initVar));
+        forLoop.concatenate(start);        
+        
+        // Add loop block
+        forLoop.concatenate(node.getLoopBlock().accept(this));
+        
+        // Increase loop variable
+        IrStatement incVar = new IrAssignment(loopVar, IrAssignment.IrAssignmentOp.INC, new IrIntLiteral("1"));
+        forLoop.concatenate(new CfgStatement(incVar));
+        
+        // Loop condition
+        IrExpression loopCond = new IrBinaryExpression(IrBinaryExpression.BinaryOperator.LT, loopVar, node.getEndExp());
+        forLoop.concatenate(shortCircuit(loopCond, start, end));
+        
+        loopStart.pop();
+        loopEnd.pop();
+        
+        return forLoop;
     }
 
     @Override
     public CFG visit(IrIfStatement node) {
         CFG ifBranch = node.getThenBlock().accept(this);
         CFG elseBranch = node.getElseBlock().accept(this);
-        CfgNoOp noOp = new CfgNoOp();
-        
-        ifBranch.concatenate(noOp);
-        elseBranch.concatenate(noOp);
         
         return shortCircuit(node.getCondition(), ifBranch, elseBranch);
-        
     }
 
     @Override
@@ -150,20 +180,32 @@ public class CfgCreator implements IrVisitor<CFG> {
     
     // Private
 
-    private CFG shortCircuit(IrExpression cond, CFG ifBranch, CFG elseBranch) {
+    private CFG shortCircuit(IrExpression cond, CFG trueBranch, CFG falseBranch) {
         
         CFG graph = CFG.makeNoOp();
         
         if (cond.isAndExp()) {
-            // TODO recursive shortCircuit
+            IrExpression c1 = ((IrBinaryExpression)cond).getLHS();
+            IrExpression c2 = ((IrBinaryExpression)cond).getRHS();
+            
+            CFG b2 = shortCircuit(c2, trueBranch, falseBranch);
+            graph = shortCircuit(c1, b2, falseBranch);
+            
         } else if (cond.isOrExp()) {
-            // TODO recursive shortCircuit
+            IrExpression c1 = ((IrBinaryExpression)cond).getLHS();
+            IrExpression c2 = ((IrBinaryExpression)cond).getRHS();
+            
+            CFG b2 = shortCircuit(c2, trueBranch, falseBranch);
+            graph = shortCircuit(c1, b2, trueBranch);
+            
         } else if (cond.isNotExp()) {
-            // TODO recursive shortCircuit
+            IrExpression c = ((IrUnaryExpression)cond).getExp();
+            graph = shortCircuit(c, falseBranch, trueBranch);
+            
         } else {
             CfgBranch cfgCond = new CfgBranch(cond);
             graph.concatenate(cfgCond);
-            //TODO connect branches
+            graph.addBranches(trueBranch, falseBranch);
         }
         
         return graph;

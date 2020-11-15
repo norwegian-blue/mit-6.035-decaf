@@ -33,18 +33,32 @@ public class CFG {
         return this.nodes;
     }
     
+    public void addBranches(CFG trueBranch, CFG falseBranch) {
+        CfgNode noOp = new CfgNoOp();
+        this.end.setTrueBranch(trueBranch.start);
+        this.end.setFalseBranch(falseBranch.start);
+        CfgNode.concatenate(trueBranch.end, noOp);
+        CfgNode.concatenate(falseBranch.end, noOp);
+        this.end = noOp;
+        this.addNode(noOp);
+        this.addNodes(trueBranch);
+        this.addNodes(falseBranch);
+    }
+    
     public void concatenate(CFG block) {
         this.end = block.end;
         block.start = this.end;
+        CfgNode.concatenate(this.end, block.start);
         this.addNodes(block);
     }
     
     public void concatenate(CfgNode node) {
         this.end = node;
+        CfgNode.concatenate(this.end, node);
         addNode(node);
     }
     
-    private void addNodes(CFG block) {
+    public void addNodes(CFG block) {
         for (CfgNode node : block.getNodes()) {
             addNode(node);
         }
@@ -54,5 +68,8 @@ public class CFG {
         if (!nodes.contains(node)) {
             nodes.add(node);
         }
+    }
+    
+    public void removeNoOps() {
     }
 }

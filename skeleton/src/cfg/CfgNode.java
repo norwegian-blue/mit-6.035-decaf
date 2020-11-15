@@ -22,10 +22,12 @@ public abstract class CfgNode {
     
     protected void setTrueBranch(CfgNode trueBranch) {
         this.trueBranch = trueBranch;
+        trueBranch.addParentNode(this);
     }
     
     protected void setFalseBranch(CfgNode falseBranch) {
         this.falseBranch = falseBranch;
+        falseBranch.addParentNode(this);
     }
     
     public static void concatenate(CfgNode node1, CfgNode node2) {
