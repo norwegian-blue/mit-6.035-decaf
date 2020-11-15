@@ -13,11 +13,11 @@ import ir.Declaration.*;
 public class CfgProgram {
 
     private List<IrFieldDeclaration> globals;
-    private Map<String, CfgNode> methods;
+    private Map<String, CFG> methods;
     
     public CfgProgram(IrClassDeclaration program) {
         this.globals = program.getFields();
-        this.methods = new HashMap<String, CfgNode>();
+        this.methods = new HashMap<String, CFG>();
         
         for (IrMethodDeclaration method : program.getMethods()) {
             this.methods.put(method.getId(), method.accept(new CfgCreator()));

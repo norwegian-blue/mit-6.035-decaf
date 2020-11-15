@@ -5,130 +5,128 @@ import ir.Declaration.*;
 import ir.Expression.*;
 import ir.Statement.*;
 
-public class CfgCreator implements IrVisitor<CfgNode> {
+public class CfgCreator implements IrVisitor<CFG> {
 
     @Override
-    public CfgNode visit(IrClassDeclaration node) {
+    public CFG visit(IrClassDeclaration node) {
+        throw new Error("IrClassDeclaration does not serve CfgCreator");
+    }
+
+    @Override
+    public CFG visit(IrFieldDeclaration node) {
+        throw new Error("IrFieldDeclaration does not serve CfgCreator");
+    }
+
+    @Override
+    public CFG visit(IrMethodDeclaration node) {
+        CFG methodCFG = CFG.makeSingleNode(new CfgEntryNode());        
+        methodCFG.concatenate(node.getBody().accept(this));        
+        return methodCFG;    
+    }
+
+    @Override
+    public CFG visit(IrParameterDeclaration node) {
         // TODO Auto-generated method stub
         return null;
     }
 
     @Override
-    public CfgNode visit(IrFieldDeclaration node) {
+    public CFG visit(IrVariableDeclaration node) {
+        return CFG.makeSingleNode(new CfgDeclaration(node));
+    }
+
+    @Override
+    public CFG visit(IrBinaryExpression node) {
         // TODO Auto-generated method stub
         return null;
     }
 
     @Override
-    public CfgNode visit(IrMethodDeclaration node) {
+    public CFG visit(IrBooleanLiteral node) {
         // TODO Auto-generated method stub
         return null;
     }
 
     @Override
-    public CfgNode visit(IrParameterDeclaration node) {
+    public CFG visit(IrCalloutExpression node) {
         // TODO Auto-generated method stub
         return null;
     }
 
     @Override
-    public CfgNode visit(IrVariableDeclaration node) {
+    public CFG visit(IrStringLiteral node) {
         // TODO Auto-generated method stub
         return null;
     }
 
     @Override
-    public CfgNode visit(IrBinaryExpression node) {
+    public CFG visit(IrIdentifier node) {
         // TODO Auto-generated method stub
         return null;
     }
 
     @Override
-    public CfgNode visit(IrBooleanLiteral node) {
+    public CFG visit(IrMethodCallExpression node) {
         // TODO Auto-generated method stub
         return null;
     }
 
     @Override
-    public CfgNode visit(IrCalloutExpression node) {
+    public CFG visit(IrUnaryExpression node) {
         // TODO Auto-generated method stub
         return null;
     }
 
     @Override
-    public CfgNode visit(IrStringLiteral node) {
+    public CFG visit(IrIntLiteral node) {
         // TODO Auto-generated method stub
         return null;
     }
 
     @Override
-    public CfgNode visit(IrIdentifier node) {
+    public CFG visit(IrAssignment node) {
         // TODO Auto-generated method stub
         return null;
     }
 
     @Override
-    public CfgNode visit(IrMethodCallExpression node) {
+    public CFG visit(IrBlock node) {
         // TODO Auto-generated method stub
         return null;
     }
 
     @Override
-    public CfgNode visit(IrUnaryExpression node) {
+    public CFG visit(IrBreakStatement node) {
         // TODO Auto-generated method stub
         return null;
     }
 
     @Override
-    public CfgNode visit(IrIntLiteral node) {
+    public CFG visit(IrContinueStatement node) {
         // TODO Auto-generated method stub
         return null;
     }
 
     @Override
-    public CfgNode visit(IrAssignment node) {
+    public CFG visit(IrForStatement node) {
         // TODO Auto-generated method stub
         return null;
     }
 
     @Override
-    public CfgNode visit(IrBlock node) {
+    public CFG visit(IrIfStatement node) {
         // TODO Auto-generated method stub
         return null;
     }
 
     @Override
-    public CfgNode visit(IrBreakStatement node) {
+    public CFG visit(IrInvokeStatement node) {
         // TODO Auto-generated method stub
         return null;
     }
 
     @Override
-    public CfgNode visit(IrContinueStatement node) {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
-    @Override
-    public CfgNode visit(IrForStatement node) {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
-    @Override
-    public CfgNode visit(IrIfStatement node) {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
-    @Override
-    public CfgNode visit(IrInvokeStatement node) {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
-    @Override
-    public CfgNode visit(IrReturnStatement node) {
+    public CFG visit(IrReturnStatement node) {
         // TODO Auto-generated method stub
         return null;
     }
