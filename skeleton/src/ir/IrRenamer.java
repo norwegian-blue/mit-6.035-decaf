@@ -1,24 +1,35 @@
-package semantic;
+package ir;
 
 import java.util.List;
-import ir.*;
+
 import ir.Declaration.*;
 import ir.Expression.*;
 import ir.Statement.*;
+import semantic.*;
 
 /**
  * @author Nicola
  */
-public class TreeSimplifier implements IrVisitor<Ir> {
 
+public class IrRenamer implements IrVisitor<Ir> {
+    
+    private static int globalCount = 0;
+    private static int localCount = 0;
+    private final SymbolTable env = new SymbolTable();
+    private static String currentMethod;
+    
     @Override
     public Ir visit(IrClassDeclaration node) {
         
+        env.beginScope();
+        
+        // Rename globals
         List<IrFieldDeclaration> fields = node.getFields();
         for (int i = 0; i < fields.size(); i++) {
             fields.set(i, (IrFieldDeclaration) fields.get(i).accept(this));
         }
         
+        // Rename methods
         List<IrMethodDeclaration> methods = node.getMethods();
         for (int i = 0; i < methods.size(); i++) {
             methods.set(i, (IrMethodDeclaration) methods.get(i).accept(this));
@@ -29,11 +40,29 @@ public class TreeSimplifier implements IrVisitor<Ir> {
 
     @Override
     public Ir visit(IrFieldDeclaration node) {
-        return node;
+        
+        String fieldName = node.getId();
+        TypeDescriptor fieldType = node.getType();
+        FieldDescriptor desc = new FieldDescriptor(fieldName, fieldType);
+        String alias = getGlobalAlias(fieldName);
+        desc.setAlias(alias);
+        
+        try {
+            env.put(node.getId(), desc);
+        } catch (DuplicateKeyException e) {
+            throw new Error("Unexpected error after semantic check");
+        }
+        
+        IrFieldDeclaration newNode = new IrFieldDeclaration(fieldType, alias);
+        return newNode;
     }
 
     @Override
     public Ir visit(IrMethodDeclaration node) {
+        
+        currentMethod = node.getId();
+        localCount = 0;
+        env.beginScope();
         
         List<IrParameterDeclaration> parameters = node.getParameters();
         for (int i = 0; i < parameters.size(); i++) {
@@ -43,27 +72,54 @@ public class TreeSimplifier implements IrVisitor<Ir> {
         IrBlock block = node.getBody();
         block = (IrBlock) block.accept(this);
         
+        env.endScope();
+        
         IrMethodDeclaration newNode = new IrMethodDeclaration(node.getId(), node.getType(), parameters, block);
-        copyLocation(node, newNode);
         return newNode;
     }
 
     @Override
     public Ir visit(IrParameterDeclaration node) {
-        return node;
+        String varName = node.getId();
+        TypeDescriptor varType = node.getType();
+        FieldDescriptor desc = new FieldDescriptor(varName, varType);
+        String alias = getLocalAlias(varName);
+        desc.setAlias(alias);
+        
+        try {
+            env.put(node.getId(), desc);
+        } catch (DuplicateKeyException e) {
+            throw new Error("Unexpected error after semantic check");
+        }
+        
+        IrParameterDeclaration newNode = new IrParameterDeclaration(varType, alias);
+        return newNode;
     }
 
     @Override
     public Ir visit(IrVariableDeclaration node) {
-        return node;
+        
+        String varName = node.getId();
+        TypeDescriptor varType = node.getType();
+        FieldDescriptor desc = new FieldDescriptor(varName, varType);
+        String alias = getLocalAlias(varName);
+        desc.setAlias(alias);
+        
+        try {
+            env.put(node.getId(), desc);
+        } catch (DuplicateKeyException e) {
+            throw new Error("Unexpected error after semantic check");
+        }
+        
+        IrVariableDeclaration newNode = new IrVariableDeclaration(varType, alias);
+        return newNode;
     }
 
     @Override
     public Ir visit(IrBinaryExpression node) {
         IrBinaryExpression newNode = new IrBinaryExpression(node.getOp(),
-                                                (IrExpression) node.getLHS().accept(this), 
-                                                (IrExpression) node.getRHS().accept(this));
-        copyLocation(node, newNode);
+                (IrExpression) node.getLHS().accept(this), 
+                (IrExpression) node.getRHS().accept(this));
         return newNode;
     }
 
@@ -90,13 +146,23 @@ public class TreeSimplifier implements IrVisitor<Ir> {
 
     @Override
     public Ir visit(IrIdentifier node) {
-        if (node.isArrayElement()) {
-            IrIdentifier newNode = new IrIdentifier(node.getId(), (IrExpression) node.getInd().accept(this));
-            copyLocation(node, newNode);
-            return newNode;
-        } else {
-            return node;
+        
+        String varName = node.getId();
+        String newName;
+        try {
+            newName = env.get(varName).getAlias();
+        } catch (KeyNotFoundException e) {
+            throw new Error("Unexpected error after semantic check");
         }
+        
+        IrIdentifier newNode;
+        if (node.isArrayElement()) {
+            newNode = new IrIdentifier(newName, (IrExpression) node.getInd().accept(this));
+            
+        } else {
+            newNode = new IrIdentifier(newName);
+        }
+        return newNode;
     }
 
     @Override
@@ -111,25 +177,8 @@ public class TreeSimplifier implements IrVisitor<Ir> {
 
     @Override
     public Ir visit(IrUnaryExpression node) {
-        Ir outNode;
-        node = new IrUnaryExpression(node.getOp(), (IrExpression) node.getExp().accept(this));
-        
-        if (node.getExp() instanceof IrIntLiteral) {
-            IrIntLiteral intNode = (IrIntLiteral) node.getExp();
-            try {
-                intNode.negate();
-                outNode = intNode;
-            } catch (NumberFormatException e) {
-                // do nothing, will be caught by semantic checker
-                outNode = node;
-            }
-            
-        } else {
-            outNode = node;
-        }
-        
-        copyLocation(node, outNode);
-        return outNode;
+        Ir newNode = new IrUnaryExpression(node.getOp(), (IrExpression) node.getExp().accept(this));
+        return newNode;
     }
 
     @Override
@@ -142,12 +191,13 @@ public class TreeSimplifier implements IrVisitor<Ir> {
         IrAssignment newNode = new IrAssignment((IrIdentifier) node.getLocation().accept(this),
                                                 node.getOp(), 
                                                 (IrExpression) node.getExpression().accept(this));
-        copyLocation(node, newNode);
         return newNode;
     }
 
     @Override
     public Ir visit(IrBlock node) {
+        env.beginScope();
+        
         List<IrVariableDeclaration> vars = node.getVarDecl();
         for (int i = 0; i < vars.size(); i++) {
             vars.set(i, (IrVariableDeclaration) vars.get(i).accept(this));
@@ -157,6 +207,9 @@ public class TreeSimplifier implements IrVisitor<Ir> {
         for (int i = 0; i < statements.size(); i++) {
             statements.set(i, (IrStatement) statements.get(i).accept(this));
         }
+        
+        env.endScope();
+        
         return node;
     }
 
@@ -172,27 +225,41 @@ public class TreeSimplifier implements IrVisitor<Ir> {
 
     @Override
     public Ir visit(IrForStatement node) {
+        
+        env.beginScope();
+        
+        IrIdentifier loopVar = node.getLoopVar();
+        LocalDescriptor loopDesc = new LocalDescriptor(loopVar.getId(), loopVar.getExpType());
+        loopDesc.setAlias(getLocalAlias(loopVar.getId()));
+        
+        try {
+            env.put(loopVar.getId(), loopDesc);
+        } catch (DuplicateKeyException e) {
+            throw new Error("Unexpected error after semantic check");
+        }
+        
         IrForStatement newNode = new IrForStatement((IrIdentifier) node.getLoopVar().accept(this),
-                                                      (IrExpression) node.getStartExp().accept(this),
-                                                      (IrExpression) node.getEndExp().accept(this),
-                                                      (IrBlock) node.getLoopBlock().accept(this));
-        copyLocation(node, newNode);
+                (IrExpression) node.getStartExp().accept(this),
+                (IrExpression) node.getEndExp().accept(this),
+                (IrBlock) node.getLoopBlock().accept(this));
+        
+        env.endScope();
+        
         return newNode;
     }
 
     @Override
     public Ir visit(IrIfStatement node) {
         IrIfStatement newNode = new IrIfStatement((IrExpression) node.getCondition().accept(this),
-                                                     (IrBlock) node.getThenBlock().accept(this), 
-                                                     (IrBlock) node.getElseBlock().accept(this));
-        copyLocation(node, newNode);
+                (IrBlock) node.getThenBlock().accept(this), 
+                (IrBlock) node.getElseBlock().accept(this));
+
         return newNode;
     }
 
     @Override
     public Ir visit(IrInvokeStatement node) {
         IrInvokeStatement newNode = new IrInvokeStatement((IrCallExpression) node.getMethod().accept(this));
-        copyLocation(node, newNode);
         return newNode;
     }
 
@@ -202,14 +269,18 @@ public class TreeSimplifier implements IrVisitor<Ir> {
             return node;
         } else {
             IrReturnStatement newNode = new IrReturnStatement((IrExpression) node.getReturnExp().accept(this));
-            copyLocation(node, newNode);
             return newNode;
         }
+    }    
+    
+    private static String getGlobalAlias(String name) {
+        globalCount += 1;
+        return "_glb" + globalCount + "_" + name;
     }
     
-    private static void copyLocation(Ir nodeFrom, Ir nodeTo) {
-        nodeTo.setColNum(nodeFrom.getColNum());
-        nodeTo.setLineNum(nodeFrom.getLineNum());
+    private static String getLocalAlias(String name) {
+        localCount += 1;
+        return "_" + currentMethod + localCount + "_" + name;
     }
 
 }

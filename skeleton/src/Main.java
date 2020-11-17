@@ -69,7 +69,7 @@ class Main {
         		
         	} else if (CLI.target == CLI.PARSE || CLI.target == CLI.DEFAULT) {
         	    
-        		GrammarLexer lexer = new GrammarLexer(inputStream);
+         		GrammarLexer lexer = new GrammarLexer(inputStream);
         		CommonTokenStream tokens = new CommonTokenStream(lexer);
         		GrammarParser parser = new GrammarParser (tokens);
         		
@@ -85,7 +85,10 @@ class Main {
                 
         	} else if (CLI.target == CLI.INTER || CLI.target == CLI.ASSEMBLY) {
         	    
-        	    // INTERPRETER        	    
+                //****************************************************** 
+                // INTERPRETER 
+                //******************************************************     
+        	    
         	    GrammarLexer lexer = new GrammarLexer(inputStream);
         	    CommonTokenStream tokens = new CommonTokenStream(lexer);
                 GrammarParser parser = new GrammarParser (tokens);                               
@@ -100,28 +103,24 @@ class Main {
                 }
                 
                 walker.walk(loader, tree);
-                Ir program = loader.getAbstractSyntaxTree();
-                                
-                if (program.isClass()) {
-                    // Simplify tree
-                    TreeSimplifier simplify = new TreeSimplifier();
-                    ((IrClassDeclaration)program).accept(simplify);
-                    
-                    if (CLI.debug && CLI.target == CLI.INTER) {
-                        System.out.printf(program.toString());
-                        System.out.println();
-                    }
-                    
-                    // Run semantic check
-                    SemanticChecker check = new SemanticChecker();
-                    if (!((IrClassDeclaration)program).accept(check)) {
-                        System.err.println(check.toString());
-                        throw new Error("Semantic check failed");
-                    }
-                } else {
-                    throw new Error("Could not get a valid AST for the program");
+                IrClassDeclaration program = loader.getAbstractSyntaxTree();
+                
+                // Simplify tree
+                TreeSimplifier simplify = new TreeSimplifier();
+                program.accept(simplify);
+                
+                if (CLI.debug && CLI.target == CLI.INTER) {
+                    System.out.printf(program.toString());
+                    System.out.println();
                 }
                 
+                // Run semantic check
+                SemanticChecker check = new SemanticChecker();
+                if (!program.accept(check)) {
+                    System.err.println(check.toString());
+                    throw new Error("Semantic check failed");
+                }
+                                             
                 if (CLI.debug && CLI.target == CLI.INTER) {
                     System.out.println("### Semantic check passed ###");
                 }
@@ -130,9 +129,23 @@ class Main {
                     System.exit(0);
                 }
                 
-                // ASSEMBLER
-                CfgProgram controlFlow = new CfgProgram((IrClassDeclaration)program);
+                
+                //****************************************************** 
+                // ASSEMBLER  
+                //******************************************************
+                
+                // Rename to unique identifiers
+                program.accept(new IrRenamer());    
+                assert(program.accept(check));
+                if (CLI.debug) {
+                    System.out.print(program.toString());
+                }
+
+                // Create Control flow graph
+                CfgProgram controlFlow = new CfgProgram(program);
+                
                 controlFlow.flatten();
+                //controlFlow.blockify();
         	}
         	
         } catch(Exception e) {

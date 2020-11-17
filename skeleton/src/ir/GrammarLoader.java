@@ -24,8 +24,8 @@ public class GrammarLoader extends GrammarBaseListener {
      * the tree walk. The listener should have walked the entire Grammar Parse tree
      * @return Ir with AST of the parsed program
      */
-    public Ir getAbstractSyntaxTree() {
-        return stack.pop();
+    public IrClassDeclaration getAbstractSyntaxTree() {
+        return (IrClassDeclaration)stack.pop();
     }
     
     @Override 

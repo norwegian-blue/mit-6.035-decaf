@@ -7,6 +7,7 @@ public abstract class Descriptor {
     
     protected String name;
     protected TypeDescriptor type;
+    private String alias;
     
     public Descriptor(String name, TypeDescriptor type) {
         this.name = name;
@@ -24,6 +25,14 @@ public abstract class Descriptor {
     @Override
     public String toString() {
         return this.name;
+    }
+    
+    public String getAlias() {
+        return alias;
+    }
+    
+    public void setAlias(String alias) {
+        this.alias = alias;
     }
 
 }
