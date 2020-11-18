@@ -112,20 +112,20 @@ public class TreeSimplifier implements IrVisitor<Ir> {
     @Override
     public Ir visit(IrUnaryExpression node) {
         Ir outNode;
-        node = new IrUnaryExpression(node.getOp(), (IrExpression) node.getExp().accept(this));
+        IrUnaryExpression simpleNode = new IrUnaryExpression(node.getOp(), (IrExpression) node.getExp().accept(this));
         
-        if (node.getExp() instanceof IrIntLiteral) {
-            IrIntLiteral intNode = (IrIntLiteral) node.getExp();
+        if (simpleNode.getExp() instanceof IrIntLiteral) {
+            IrIntLiteral intNode = (IrIntLiteral) simpleNode.getExp();
             try {
                 intNode.negate();
                 outNode = intNode;
             } catch (NumberFormatException e) {
                 // do nothing, will be caught by semantic checker
-                outNode = node;
+                outNode = simpleNode;
             }
             
         } else {
-            outNode = node;
+            outNode = simpleNode;
         }
         
         copyLocation(node, outNode);

@@ -141,10 +141,9 @@ class Main {
                     System.out.print(program.toString());
                 }
 
-                // Create Control flow graph
+                // Create Control Flow Graph
                 CfgProgram controlFlow = new CfgProgram(program);
-                
-                controlFlow.flatten();
+                //controlFlow.flatten();
                 //controlFlow.blockify();
         	}
         	

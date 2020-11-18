@@ -4,4 +4,4 @@ class Program {
     }
   }							
 }
-//ERROR (line  0, col  0): Start and End expressions in the for loop must be of type INT
+//ERROR (line  3, col  4): Start and End expressions in the for loop must be of type INT

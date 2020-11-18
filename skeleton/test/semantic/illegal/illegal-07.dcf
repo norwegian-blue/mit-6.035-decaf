@@ -5,4 +5,4 @@ class Program {
   void main() {
   }								
 }
-//ERROR (line  0, col  0): Returned type does not match method signature
+//ERROR (line  3, col  4): Returned type does not match method signature

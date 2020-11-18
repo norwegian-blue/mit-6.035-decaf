@@ -6,4 +6,4 @@ int foo ( int a, int a ) {
 void main ( ) {
 }
 }
-//ERROR (line  0, col  0): A parameter named 'a' is already defined
+//ERROR (line  3, col  0): A parameter named 'a' is already defined

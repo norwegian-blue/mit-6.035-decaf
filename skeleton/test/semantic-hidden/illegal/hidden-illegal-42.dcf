@@ -10,4 +10,4 @@ int foo ( ) {
 void main ( ) {
 }
 }
-//ERROR (line  0, col  0): Returned type does not match method signature
+//ERROR (line  8, col  2): Returned type does not match method signature

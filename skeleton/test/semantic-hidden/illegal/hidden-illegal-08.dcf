@@ -5,5 +5,5 @@ void main ( ) {
   b = ( 1 > 2 ) <= ( 3 > 4 );
 }
 }
-//ERROR (line  0, col  0): Arithmetic/relation expression must be of type INT
-//ERROR (line  0, col  0): Arithmetic/relation expression must be of type INT
+//ERROR (line  5, col  8): Arithmetic/relation expression must be of type INT
+//ERROR (line  5, col 21): Arithmetic/relation expression must be of type INT

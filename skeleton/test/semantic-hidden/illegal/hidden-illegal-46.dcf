@@ -6,4 +6,4 @@ void main ( ) {
   b += false;
 }
 }
-//ERROR (line  0, col  0): Increase/decrease operations must be performed between INT types
+//ERROR (line  6, col  2): Increase/decrease operations must be performed between INT types

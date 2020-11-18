@@ -10,4 +10,4 @@ void main ( ) {
   }
 }
 }
-//ERROR (line  0, col  0): Condition expression in if statement must be of type BOOLEAN
+//ERROR (line  7, col  2): Condition expression in if statement must be of type BOOLEAN

@@ -7,4 +7,4 @@ void main ( ) {
   x = b[1];
 }
 }
-//ERROR (line  0, col  0): The right hand side expression should be of type INT
+//ERROR (line  7, col  6): The right hand side expression should be of type INT

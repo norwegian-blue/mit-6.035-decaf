@@ -5,4 +5,4 @@ class Program {
     b += true;	// lhs and rhs of += must be int
   }								
 }
-//ERROR (line  0, col  0): Increase/decrease operations must be performed between INT types
+//ERROR (line  5, col  4): Increase/decrease operations must be performed between INT types

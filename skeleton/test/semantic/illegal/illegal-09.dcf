@@ -6,4 +6,4 @@ class Program {
     a[b] = 25;	// array index has wrong type
   }								
 }
-//ERROR (line  0, col  0): Array 'a' index expression must be of type INT
+//ERROR (line  6, col  4): Array 'a' index expression must be of type INT

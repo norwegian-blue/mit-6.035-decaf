@@ -5,4 +5,4 @@ void main ( ) {
   a[0] = 1 + 1;
 }
 }
-//ERROR (line  0, col  0): The right hand side expression should be of type BOOL
+//ERROR (line  5, col  9): The right hand side expression should be of type BOOL

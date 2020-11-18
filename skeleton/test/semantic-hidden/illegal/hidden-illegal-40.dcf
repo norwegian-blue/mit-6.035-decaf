@@ -5,4 +5,4 @@ void main ( ) {
   a[1] = 0;
 }
 }
-//ERROR (line  0, col  0): Indexing a non array variable 'a'
+//ERROR (line  5, col  2): Indexing a non array variable 'a'
