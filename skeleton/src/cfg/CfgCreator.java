@@ -125,51 +125,51 @@ public class CfgCreator implements IrVisitor<DestructNodes> {
 
     @Override
     public DestructNodes visit(IrBreakStatement node) {
-        // TODO break statement
-        return null;
+        DestructNodes breakBlock = new DestructNodes(new CfgNoOp());
+        breakBlock.getEndNode().setNextBranch(loopEnd.peek());;
+        return breakBlock;
     }
 
     @Override
     public DestructNodes visit(IrContinueStatement node) {
-        // TODO continue statement
-        return null;
+        DestructNodes continueBlock = new DestructNodes(new CfgNoOp());
+        continueBlock.getEndNode().setNextBranch(loopStart.peek());;
+        return continueBlock;
     }
 
     @Override
     public DestructNodes visit(IrForStatement node) {
-        // TODO for statement
-        return null;
-//        CFG start = CFG.makeNoOp();
-//        CFG end = CFG.makeNoOp();
-//        
-//        loopStart.push(start);
-//        loopEnd.push(end);
-//        
-//        // Declare loop variable
-//        IrIdentifier loopVar = node.getLoopVar();
-//        IrVariableDeclaration loopDecl = new IrVariableDeclaration(BaseTypeDescriptor.INT, loopVar.getId());
-//        CFG forLoop = CFG.makeSingleNode(new CfgDeclaration(loopDecl));     
-//        
-//        // Initialize loop variable
-//        IrStatement initVar = new IrAssignment(loopVar, IrAssignment.IrAssignmentOp.ASSIGN, node.getStartExp());
-//        forLoop.concatenate(new CfgStatement(initVar));
-//        forLoop.concatenate(start);        
-//        
-//        // Add loop block
-//        forLoop.concatenate(node.getLoopBlock().accept(this));
-//        
-//        // Increase loop variable
-//        IrStatement incVar = new IrAssignment(loopVar, IrAssignment.IrAssignmentOp.INC, new IrIntLiteral("1"));
-//        forLoop.concatenate(new CfgStatement(incVar));
-//        
-//        // Loop condition
-//        IrExpression loopCond = new IrBinaryExpression(IrBinaryExpression.BinaryOperator.LT, loopVar, node.getEndExp());
-//        forLoop.concatenate(shortCircuit(loopCond, start, end));
-//        
-//        loopStart.pop();
-//        loopEnd.pop();
-//        
-//        return forLoop;
+        
+        // Loop variable declaration
+        IrIdentifier forVar = node.getLoopVar();
+        IrVariableDeclaration forDecl = new IrVariableDeclaration(forVar.getExpType(), forVar.getId());
+        locals.add(forDecl);
+        
+        // Loop variable initialization
+        IrAssignment forInit = new IrAssignment(forVar, IrAssignment.IrAssignmentOp.ASSIGN, node.getStartExp());
+        Node forInitNode = new CfgStatement(forInit);
+        DestructNodes forLoop = new DestructNodes(forInitNode);
+        
+        // Loop block
+        Node forEndNode = new CfgNoOp();
+        loopStart.push(forInitNode);
+        loopEnd.push(forEndNode);
+        DestructNodes forBlock = node.getLoopBlock().accept(this);
+        forLoop.concatenate(forBlock);
+        
+        // Loop condition
+        IrExpression forCond = new IrBinaryExpression(IrBinaryExpression.BinaryOperator.LT, forVar, node.getEndExp());
+        
+        // Destruct loop
+        DestructNodes forEnd = new DestructNodes(forEndNode);
+        forLoop.getEndNode().setNextBranch(shortCircuit(forCond, forLoop, forEnd));
+        forLoop.setEndNode(forEndNode);
+        
+        // Clean up
+        loopStart.pop();
+        loopEnd.pop();
+        return forLoop;
+
     }
 
     @Override

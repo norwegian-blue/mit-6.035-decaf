@@ -4,6 +4,8 @@ package cfg.Nodes;
  * @author Nicola
  */
 public class CfgExitNode extends CfgLineNode {
+    
+    // TODO return expression
        
     public CfgExitNode() {
         super();

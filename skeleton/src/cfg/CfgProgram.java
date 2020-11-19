@@ -30,6 +30,10 @@ public class CfgProgram {
         //TODO implement tree flattener --> create temporary variables
     }
     
+    public void blockify() {
+        //TODO blockify CFG nodes
+    }
+    
     @Override 
     public String toString() {
         String graph = "";
