@@ -1,19 +1,20 @@
 package cfg.Nodes;
 
+import java.util.Set;
+
 /**
  * @author Nicola
  */
 
-public class CfgEntryNode extends CfgNode {
-
+public class CfgEntryNode extends CfgLineNode {
+    
     public CfgEntryNode() {
         super();
-        this.addParentNode(null);
     }
-    
+        
     @Override
-    public String toString() {
-        return "ENTRY";
+    public Set<Node> getParents() {
+        throw new Error("Entry node does not have parent nodes");
     }
     
 }

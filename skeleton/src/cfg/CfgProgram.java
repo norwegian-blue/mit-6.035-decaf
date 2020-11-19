@@ -13,16 +13,16 @@ import ir.Declaration.*;
 public class CfgProgram {
 
     private List<IrFieldDeclaration> globals;
-    private Map<String, CFG> methods;
+    private Map<String, MethodCFG> methods;
     
     public CfgProgram(IrClassDeclaration program) {
         this.globals = program.getFields();
-        this.methods = new HashMap<String, CFG>();
+        this.methods = new HashMap<String, MethodCFG>();
         
         for (IrMethodDeclaration method : program.getMethods()) {
-            CFG methodCFG = method.accept(new CfgCreator());
-            methodCFG.removeNoOps();
-            this.methods.put(method.getId(), methodCFG);            
+            MethodCFG CFG = CfgCreator.BuildMethodCFG(method);
+            CFG.removeNoOps();
+            this.methods.put(method.getId(), CFG);            
         }
     }
     

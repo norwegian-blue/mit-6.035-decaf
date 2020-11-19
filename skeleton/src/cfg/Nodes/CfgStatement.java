@@ -6,10 +6,13 @@ import ir.Statement.IrStatement;
  * @author Nicola
  */
 
-public class CfgStatement extends CfgNode {
+public class CfgStatement extends CfgLineNode {
+    
+    private IrStatement stat;
     
     public CfgStatement(IrStatement stat) {
-        this.nodeInstruction = stat;
+        super();
+        this.stat = stat;
     }
     
 }
