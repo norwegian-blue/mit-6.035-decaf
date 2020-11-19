@@ -9,4 +9,14 @@ public class CfgExitNode extends CfgLineNode {
         super();
     }
     
+    @Override
+    public String nodeString() {
+        return "NODE EXIT";
+    }
+    
+    @Override
+    public boolean hasNext() {
+        return false;
+    }
+    
 }

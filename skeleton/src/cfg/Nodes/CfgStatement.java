@@ -15,4 +15,9 @@ public class CfgStatement extends CfgLineNode {
         this.stat = stat;
     }
     
+    @Override
+    public String nodeString() {
+        return "NODE STMT";
+    }
+    
 }

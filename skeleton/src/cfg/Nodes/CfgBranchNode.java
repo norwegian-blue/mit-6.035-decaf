@@ -4,7 +4,7 @@ package cfg.Nodes;
  * @author Nicola
  */
 
-public class CfgBranchNode extends Node {
+public abstract class CfgBranchNode extends Node {
     
     public CfgBranchNode() {
         this.childNodes = new Node[2];
@@ -28,6 +28,13 @@ public class CfgBranchNode extends Node {
     @Override
     public boolean isTrueBranch(Node node) {
         return this.getTrueBranch().equals(node);
+    }
+    
+    @Override
+    public String toString() {
+        return this.nodeString() + 
+                "\n\tTrueBranch: " + this.getTrueBranch().nodeString() + 
+                "\n\tFalseBranch: " + this.getFalseBranch().nodeString();
     }
 
 }

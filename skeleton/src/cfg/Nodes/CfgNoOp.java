@@ -11,4 +11,9 @@ public class CfgNoOp extends CfgLineNode {
         return true;
     }
     
+    @Override
+    public String nodeString() {
+        return "NODE NOOP";
+    }
+    
 }

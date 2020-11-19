@@ -15,4 +15,8 @@ public class CfgCondBranch extends CfgBranchNode {
         this.cond = cond;
     }
     
+    @Override
+    public String nodeString() {
+        return "NODE CMP";
+    }
 }

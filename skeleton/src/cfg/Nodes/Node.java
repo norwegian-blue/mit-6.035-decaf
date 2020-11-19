@@ -88,4 +88,6 @@ public abstract class Node {
         return false;
     }
     
+    public abstract String nodeString();
+    
 }

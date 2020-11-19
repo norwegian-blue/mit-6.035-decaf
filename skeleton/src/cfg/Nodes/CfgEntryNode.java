@@ -17,4 +17,8 @@ public class CfgEntryNode extends CfgLineNode {
         throw new Error("Entry node does not have parent nodes");
     }
     
+    @Override
+    public String nodeString() {
+        return "NODE ENTRY";
+    }
 }
