@@ -139,17 +139,22 @@ class Main {
                 assert(program.accept(check));
                 if (CLI.debug) {
                     System.out.println("################# Variable renaming (no duplicate names) #################");
-                    System.out.print(program.toString());
+                    System.out.print(program.toString() + "\n");
                 }
 
                 // Create Control Flow Graph
                 CfgProgram controlFlow = new CfgProgram(program);
-                System.out.println("Done");
+                if (CLI.debug) {
+                    System.out.println("################# Control Flow Graph #################");
+                    System.out.println(controlFlow.toString());
+                }
+                    
                 // TODO: controlFlow.flatten();
                 // TODO: controlFlow.blockify();
                 
                 // Assemble
                 // TODO: assembler
+                System.out.println("Done");
         	}
         	
         } catch(Exception e) {

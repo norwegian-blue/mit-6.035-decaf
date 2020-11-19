@@ -17,11 +17,13 @@ public abstract class CfgBranchNode extends Node {
     
     @Override
     public void setTrueBranch(Node node) {
+        node.addParentNode(this);
         this.childNodes[0] = node;
     }
     
     @Override
     public void setFalseBranch(Node node) {
+        node.addParentNode(this);
         this.childNodes[1] = node;
     }
     

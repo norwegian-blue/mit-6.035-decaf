@@ -30,4 +30,13 @@ public class CfgProgram {
         //TODO implement tree flattener --> create temporary variables
     }
     
+    @Override 
+    public String toString() {
+        String graph = "";
+        for (String method : methods.keySet()) {
+            graph += method + ":\n" + methods.get(method).toString() + "\n\n";
+        }
+        return graph;
+    }
+    
 }

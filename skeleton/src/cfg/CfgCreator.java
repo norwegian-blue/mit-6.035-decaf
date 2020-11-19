@@ -23,9 +23,8 @@ public class CfgCreator implements IrVisitor<DestructNodes> {
         for (IrVariableDeclaration local : locals) {
             CFG.addLocal(local);
         }
-        System.out.println(CFG);
+        //System.out.println("############## RAW CFG ##############\n" + CFG + "\n");
         CFG.removeNoOps();
-        System.out.println(CFG);
         return CFG;
     }
     
