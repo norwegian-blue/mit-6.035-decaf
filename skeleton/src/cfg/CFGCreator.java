@@ -10,16 +10,16 @@ import ir.Declaration.*;
 import ir.Expression.*;
 import ir.Statement.*;
 
-public class CfgCreator implements IrVisitor<DestructNodes> {
+public class CFGCreator implements IrVisitor<DestructNodes> {
     
-    private Stack<Node> loopStart = new Stack<Node>();
+    private Stack<Node> loopContinue = new Stack<Node>();
     private Stack<Node> loopEnd = new Stack<Node>();
     private static List<IrVariableDeclaration> locals = new ArrayList<IrVariableDeclaration>();
     
     public static MethodCFG BuildMethodCFG(IrMethodDeclaration method) {
-        CfgCreator creator = new CfgCreator();
+        CFGCreator creator = new CFGCreator();
         Node root = method.accept(creator).getBeginNode();
-        MethodCFG CFG = new MethodCFG(root);
+        MethodCFG CFG = new MethodCFG(root, method.getId());
         for (IrVariableDeclaration local : locals) {
             CFG.addLocal(local);
         }
@@ -125,15 +125,17 @@ public class CfgCreator implements IrVisitor<DestructNodes> {
 
     @Override
     public DestructNodes visit(IrBreakStatement node) {
-        DestructNodes breakBlock = new DestructNodes(new CfgNoOp());
-        breakBlock.getEndNode().setNextBranch(loopEnd.peek());;
+        CfgNoOpFix breakNode = new CfgNoOpFix();
+        breakNode.fixNextBranch(loopEnd.peek());
+        DestructNodes breakBlock = new DestructNodes(breakNode);
         return breakBlock;
     }
 
     @Override
     public DestructNodes visit(IrContinueStatement node) {
-        DestructNodes continueBlock = new DestructNodes(new CfgNoOp());
-        continueBlock.getEndNode().setNextBranch(loopStart.peek());;
+        CfgNoOpFix continueNode = new CfgNoOpFix();
+        continueNode.fixNextBranch(loopContinue.peek());
+        DestructNodes continueBlock = new DestructNodes(continueNode);
         return continueBlock;
     }
 
@@ -150,23 +152,29 @@ public class CfgCreator implements IrVisitor<DestructNodes> {
         Node forInitNode = new CfgStatement(forInit);
         DestructNodes forLoop = new DestructNodes(forInitNode);
         
+        // Increment loop variable
+        IrAssignment loopInc = new IrAssignment(forVar, IrAssignment.IrAssignmentOp.INC, new IrIntLiteral("1"));
+        Node loopContinueNode = new CfgStatement(loopInc);
+        DestructNodes incBlock = new DestructNodes(loopContinueNode);
+        
         // Loop block
+        Node forStartNode = new CfgNoOp();
         Node forEndNode = new CfgNoOp();
-        loopStart.push(forInitNode);
+        loopContinue.push(loopContinueNode);
         loopEnd.push(forEndNode);
-        DestructNodes forBlock = node.getLoopBlock().accept(this);
-        forLoop.concatenate(forBlock);
+        DestructNodes forBlock = node.getLoopBlock().accept(this);       
+        forBlock.concatenate(incBlock);
         
-        // Loop condition
+        // Loop
         IrExpression forCond = new IrBinaryExpression(IrBinaryExpression.BinaryOperator.LT, forVar, node.getEndExp());
-        
-        // Destruct loop
+        forBlock.getEndNode().setNextBranch(forStartNode);
         DestructNodes forEnd = new DestructNodes(forEndNode);
-        forLoop.getEndNode().setNextBranch(shortCircuit(forCond, forLoop, forEnd));
+        forStartNode.setNextBranch(shortCircuit(forCond, forBlock, forEnd));
+        forLoop.getEndNode().setNextBranch(forStartNode);
         forLoop.setEndNode(forEndNode);
-        
+               
         // Clean up
-        loopStart.pop();
+        loopContinue.pop();
         loopEnd.pop();
         return forLoop;
 

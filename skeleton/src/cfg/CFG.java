@@ -12,7 +12,7 @@ import cfg.Nodes.Node;
 
 public abstract class CFG {
     
-    private Node root;
+    protected Node root;
     private Set<Node> nodes = new HashSet<Node>();
     private Set<Node> visited;
     
@@ -116,4 +116,5 @@ public abstract class CFG {
     private boolean isVisited(Node node) {
         return visited.contains(node);
     }
+        
 }

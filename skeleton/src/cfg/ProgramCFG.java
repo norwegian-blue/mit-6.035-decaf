@@ -10,17 +10,17 @@ import ir.Declaration.*;
  * @author Nicola
  */
 
-public class CfgProgram {
+public class ProgramCFG {
 
     private List<IrFieldDeclaration> globals;
     private Map<String, MethodCFG> methods;
     
-    public CfgProgram(IrClassDeclaration program) {
+    public ProgramCFG(IrClassDeclaration program) {
         this.globals = program.getFields();
         this.methods = new HashMap<String, MethodCFG>();
         
         for (IrMethodDeclaration method : program.getMethods()) {
-            MethodCFG CFG = CfgCreator.BuildMethodCFG(method);
+            MethodCFG CFG = CFGCreator.BuildMethodCFG(method);
             CFG.removeNoOps();
             this.methods.put(method.getId(), CFG);            
         }
@@ -31,7 +31,9 @@ public class CfgProgram {
     }
     
     public void blockify() {
-        //TODO blockify CFG nodes
+        for (String method: methods.keySet()) {
+            methods.put(method, methods.get(method).blockify());
+        }
     }
     
     @Override 

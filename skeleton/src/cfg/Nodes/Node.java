@@ -11,6 +11,7 @@ public abstract class Node {
     
     protected Set<Node> parentNodes = new HashSet<Node>();
     protected Node childNodes[];
+    private Node parentBlock = null;
         
     public void addParentNode(Node parent) {
         this.parentNodes.add(parent);
@@ -41,15 +42,30 @@ public abstract class Node {
     }
     
     public void setTrueBranch(Node node) {
-        throw new Error("Undefined method");
+        if (this.isFork()) {
+            childNodes[0] = node;
+            node.addParentNode(this);
+        } else {
+            throw new Error("Unsupported method for non fork nodes");
+        }
     }
     
     public void setFalseBranch(Node node) {
-        throw new Error("Undefined method");
+        if (this.isFork()) {
+            childNodes[1] = node;
+            node.addParentNode(this);
+        } else {
+            throw new Error("Unsupported method for non fork nodes");
+        }
     }
     
     public void setNextBranch(Node node) {
-        throw new Error("Undefined method");
+        if (!this.isFork()) {
+            childNodes[0] = node;
+            node.addParentNode(this);
+        } else {
+            throw new Error("Unsupported method for fork nodes");
+        }
     }
     
     public Node getTrueBranch() {
@@ -88,6 +104,26 @@ public abstract class Node {
         return false;
     }
     
+    public boolean hasNext() {
+        return true;
+    }
+    
     public abstract String nodeString();
+    
+    public boolean hasParentBlock() {
+        return parentBlock != null;
+    }
+    
+    public Node getParentBlock() {
+        if (this.hasParentBlock()) {
+            return parentBlock;
+        } else {
+            throw new Error("Node does not have parent block");
+        }
+    }
+    
+    public void setParentBlock(Node block) {
+        parentBlock = block;
+    }
     
 }

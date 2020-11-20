@@ -7,12 +7,6 @@ public abstract class CfgLineNode extends Node {
     }
     
     @Override
-    public void setNextBranch(Node next) {
-        next.addParentNode(this);
-        this.childNodes[0] = next;
-    }
-    
-    @Override
     public String toString() {
         String nodeStr = this.nodeString();
         if (this.hasNext()) {
@@ -21,7 +15,4 @@ public abstract class CfgLineNode extends Node {
         return nodeStr;
     }
     
-    public boolean hasNext() {
-        return true;
-    }
 }
