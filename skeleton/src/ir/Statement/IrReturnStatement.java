@@ -9,31 +9,31 @@ import ir.Expression.IrExpression;
  */
 public class IrReturnStatement extends IrStatement {    
     private final IrExpression returnExpr;
-    private final boolean returnVoid;
+    private final boolean returnsVal;
     
     public IrReturnStatement(IrExpression returnExpr) {
         this.returnExpr = returnExpr;
-        this.returnVoid = false;
+        this.returnsVal = true;
     }
     
     public IrReturnStatement() {
         this.returnExpr = null;
-        this.returnVoid = true;
+        this.returnsVal = false;
     }
     
     public IrExpression getReturnExp() {
         return this.returnExpr;
     }
     
-    public boolean returnsVoid() {
-        return this.returnVoid;
+    public boolean returnsValue() {
+        return this.returnsVal;
     }
     
     @Override
     public String toString() {
         String str;
         str = "RETURN";
-        if (!returnVoid) {
+        if (returnsVal) {
             str += "\n" + Ir.indent(returnExpr.toString());
         }
         return str;

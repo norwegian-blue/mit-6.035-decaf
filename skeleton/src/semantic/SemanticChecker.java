@@ -334,27 +334,27 @@ public class SemanticChecker implements IrVisitor<Boolean> {
     public Boolean visit(IrReturnStatement returnStatement) {
         boolean check = true;
         
-        // Check return value type against method signature
-        if (returnStatement.returnsVoid()) {
-            if (needReturn) {
-                needReturn = false;
+        needReturn = false;
+        
+        if (returnStatement.returnsValue()) {
+            // Method returns a value
+            check &= returnStatement.getReturnExp().accept(this);
+            if (!returnStatement.getReturnExp().getExpType().equals(this.currentMethod.getType())) {
+                errors.add(new SemanticError(returnStatement.getLineNum(), returnStatement.getColNum(),
+                           "Returned type does not match method signature"));
+                check = false;
+            }
+        } else {
+            // Method returns void
+            if (this.currentMethod.getType() != BaseTypeDescriptor.VOID) {
                 errors.add(new SemanticError(returnStatement.getLineNum(), returnStatement.getColNum(),
                                              "The method should return a value"));
-                return false;
-            } else {
-                return true;
+                check = false;
             }
         }
-        
-        check &= returnStatement.getReturnExp().accept(this);
-        if (!returnStatement.getReturnExp().getExpType().equals(this.currentMethod.getType())) {
-            errors.add(new SemanticError(returnStatement.getLineNum(), returnStatement.getColNum(),
-                       "Returned type does not match method signature"));
-            check = false;
-        }
-        
-        needReturn = false;
+         
         return check;
+       
     }
       
 

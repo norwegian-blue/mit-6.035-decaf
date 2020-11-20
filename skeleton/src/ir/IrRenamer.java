@@ -265,7 +265,7 @@ public class IrRenamer implements IrVisitor<Ir> {
 
     @Override
     public Ir visit(IrReturnStatement node) {
-        if (node.returnsVoid()) {
+        if (!node.returnsValue()) {
             return node;
         } else {
             IrReturnStatement newNode = new IrReturnStatement((IrExpression) node.getReturnExp().accept(this));
