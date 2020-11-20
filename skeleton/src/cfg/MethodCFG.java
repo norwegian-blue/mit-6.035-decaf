@@ -28,7 +28,7 @@ public class MethodCFG extends CFG {
         CfgBlock.resetCounter();
         MethodCFG methodBlock = new MethodCFG(this.blockifyTree(this.root), name);
         methodBlock.locals = this.locals;
-        System.out.println(methodBlock);
+        //System.out.println(methodBlock);
         return methodBlock;
     }
     

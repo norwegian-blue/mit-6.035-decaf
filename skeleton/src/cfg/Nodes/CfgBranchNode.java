@@ -23,7 +23,7 @@ public abstract class CfgBranchNode extends Node {
     @Override
     public String toString() {
         return this.nodeString() + 
-                "\n\tTrueBranch: " + this.getTrueBranch().nodeString() + 
+                "\n\tTrueBranch:  " + this.getTrueBranch().nodeString() + 
                 "\n\tFalseBranch: " + this.getFalseBranch().nodeString();
     }
 
