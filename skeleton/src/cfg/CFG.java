@@ -72,6 +72,7 @@ public abstract class CFG {
                 
                 // Update parents
                 for (Node parent : node.getParents()) {
+                    parent.unlock();
                     if (parent.isFork()) {
                         if (parent.isTrueBranch(node)) {
                             parent.setTrueBranch(node.getNextBranch());

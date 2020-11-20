@@ -126,4 +126,8 @@ public abstract class Node {
         parentBlock = block;
     }
     
+    public void lock() {};
+    
+    public void unlock() {};
+    
 }

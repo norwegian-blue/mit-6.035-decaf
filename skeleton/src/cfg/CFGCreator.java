@@ -9,6 +9,7 @@ import ir.IrVisitor;
 import ir.Declaration.*;
 import ir.Expression.*;
 import ir.Statement.*;
+import semantic.BaseTypeDescriptor;
 
 public class CFGCreator implements IrVisitor<DestructNodes> {
     
@@ -44,6 +45,12 @@ public class CFGCreator implements IrVisitor<DestructNodes> {
     public DestructNodes visit(IrMethodDeclaration node) {
         DestructNodes methodBlock = new DestructNodes(new CfgEntryNode());
         methodBlock.concatenate(node.getBody().accept(this));
+        
+        // Terminate if no return was found code
+        if (methodBlock.getEndNode().hasNext()) {
+            methodBlock.concatenate(new DestructNodes(new CfgExitNode()));
+        }
+        
         return methodBlock;
     }
 
@@ -125,16 +132,18 @@ public class CFGCreator implements IrVisitor<DestructNodes> {
 
     @Override
     public DestructNodes visit(IrBreakStatement node) {
-        CfgNoOpFix breakNode = new CfgNoOpFix();
-        breakNode.fixNextBranch(loopEnd.peek());
+        CfgNoOpLock breakNode = new CfgNoOpLock();
+        breakNode.setNextBranch(loopEnd.peek());
+        breakNode.lock();
         DestructNodes breakBlock = new DestructNodes(breakNode);
         return breakBlock;
     }
 
     @Override
     public DestructNodes visit(IrContinueStatement node) {
-        CfgNoOpFix continueNode = new CfgNoOpFix();
-        continueNode.fixNextBranch(loopContinue.peek());
+        CfgNoOpLock continueNode = new CfgNoOpLock();
+        continueNode.setNextBranch(loopContinue.peek());
+        continueNode.lock();
         DestructNodes continueBlock = new DestructNodes(continueNode);
         return continueBlock;
     }
@@ -144,7 +153,7 @@ public class CFGCreator implements IrVisitor<DestructNodes> {
         
         // Loop variable declaration
         IrIdentifier forVar = node.getLoopVar();
-        IrVariableDeclaration forDecl = new IrVariableDeclaration(forVar.getExpType(), forVar.getId());
+        IrVariableDeclaration forDecl = new IrVariableDeclaration(BaseTypeDescriptor.INT, forVar.getId());
         locals.add(forDecl);
         
         // Loop variable initialization
@@ -201,8 +210,13 @@ public class CFGCreator implements IrVisitor<DestructNodes> {
 
     @Override
     public DestructNodes visit(IrReturnStatement node) {
-        // TODO return expression
-        return new DestructNodes(new CfgExitNode());
+        CfgExitNode exitNode;
+        if (node.returnsValue()) {
+            exitNode = new CfgExitNode(node.getReturnExp());
+        } else {
+            exitNode = new CfgExitNode();
+        }
+        return new DestructNodes(exitNode);
     }
     
     
