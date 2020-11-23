@@ -5,6 +5,12 @@ package ir;
  */
 public abstract class Ir {
     
+    protected static boolean printAsTree = true;
+    
+    public static void printAsTree(boolean asTree) {
+        printAsTree = asTree;
+    }
+    
     private int line_number;
     private int column_number;
     

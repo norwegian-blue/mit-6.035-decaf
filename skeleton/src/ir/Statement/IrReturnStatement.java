@@ -31,10 +31,23 @@ public class IrReturnStatement extends IrStatement {
     
     @Override
     public String toString() {
+        if (!printAsTree) {
+            return inLineStr();
+        }
+        
         String str;
         str = "RETURN";
         if (returnsVal) {
             str += "\n" + Ir.indent(returnExpr.toString());
+        }
+        return str;
+    }
+    
+    private String inLineStr() {
+        String str;
+        str = "RETURN";
+        if (returnsVal) {
+            str += " " + returnExpr;
         }
         return str;
     }

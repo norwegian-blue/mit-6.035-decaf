@@ -35,6 +35,13 @@ public class IrClassDeclaration extends Ir {
     
     @Override
     public String toString() {
+        
+        // Inline
+        if (!printAsTree) {
+            return this.inLineStr();
+        }
+        
+        // As tree
         String str;
         str = "CLASS " + className + "\nfields:";
         for (IrFieldDeclaration fieldDecl : this.fieldDecl) {
@@ -43,6 +50,19 @@ public class IrClassDeclaration extends Ir {
         str += "\nmethods:";
         for (IrMethodDeclaration methodDecl : this.methodDecl) {
             str += "\n" + Ir.indent(methodDecl.toString()) + "\n";
+        }
+        return str;
+    }
+        
+    private String inLineStr() {
+        String str;
+        str = "CLASS " + className + "\nfields:";
+        for (IrFieldDeclaration fieldDecl : this.fieldDecl) {
+            str += "\n" + fieldDecl.toString();
+        }
+        str += "\nmethods:";
+        for (IrMethodDeclaration methodDecl : this.methodDecl) {
+            str += "\n" + methodDecl.toString() + "\n";
         }
         return str;
     }

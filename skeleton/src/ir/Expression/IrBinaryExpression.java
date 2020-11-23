@@ -46,9 +46,17 @@ public class IrBinaryExpression extends IrExpression {
     }
     
     @Override
-    public String toString() {        
+    public String toString() {
+        if (!printAsTree) {
+            return inLineStr();
+        }
+        
         return operator.name() + "\n" + Ir.indent(leftHandSide.toString()) 
                                + "\n" + Ir.indent(rightHandSide.toString());
+    }
+    
+    private String inLineStr() {
+        return "(" + leftHandSide.toString() + " " + operator.name() + " " + rightHandSide.toString() + ")";
     }
     
     @Override

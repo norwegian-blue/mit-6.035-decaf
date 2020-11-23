@@ -21,7 +21,15 @@ public class IrInvokeStatement extends IrStatement {
     
     @Override
     public String toString() {
+        if (!printAsTree) {
+            return inLineStr();
+        }
+        
         return "CALL:\n" + Ir.indent(methodCall.toString());
+    }
+    
+    private String inLineStr() {
+        return methodCall.toString();
     }
     
     @Override

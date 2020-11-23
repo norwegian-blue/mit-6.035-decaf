@@ -16,6 +16,11 @@ public class IrCalloutExpression extends IrCallExpression {
     
     @Override
     public String toString() {
+        
+        if(!printAsTree) {
+            return inLineStr();
+        }
+        
         String str = "Callout " + this.getName();
         String arguments = "";
       
@@ -24,6 +29,22 @@ public class IrCalloutExpression extends IrCallExpression {
         }
 
         str += " (\n" + Ir.indent(arguments) + ")";
+                
+        return str;
+    }
+    
+    private String inLineStr() {
+        String str = "Callout(" + this.getName() + ", ";
+        String arguments = "";
+      
+        if (this.getArgs().size() > 0) {
+            for (IrExpression arg : this.getArgs()) {
+                arguments += arg.toString() + ", ";
+            }
+            arguments = arguments.substring(0, arguments.length()-2);
+        }
+
+        str += arguments + ")";
                 
         return str;
     }

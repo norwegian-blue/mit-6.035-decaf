@@ -30,7 +30,15 @@ public class IrUnaryExpression extends IrExpression {
     
     @Override
     public String toString() {
+        if (!printAsTree) {
+            return inLineStr();
+        }
+        
         return op.name() + "\n" + Ir.indent(expr.toString());
+    }
+    
+    private String inLineStr() {
+        return op.name() + expr.toString();
     }
     
     @Override

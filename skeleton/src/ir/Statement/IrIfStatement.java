@@ -35,6 +35,10 @@ public class IrIfStatement extends IrStatement {
     
     @Override
     public String toString() {
+        if (!printAsTree) {
+            return inLineStr();
+        }
+        
         String str;
         str = "IF (\n" + Ir.indent(condition.toString()) + "\n)\n";
         str += "THEN\n" + Ir.indent(thenBlock.toString());
@@ -43,6 +47,24 @@ public class IrIfStatement extends IrStatement {
         }
         return str;
     }
+    
+    private String inLineStr() {
+        String str;
+        String thenBlockStr = thenBlock.toString();
+        String elseBlockStr = "";
+        if (!elseBlock.isEmpty()) {
+            elseBlockStr = elseBlock.toString();
+        }
+        
+        str = "IF (" + condition.toString() + ") {";
+        str += Ir.indent(thenBlockStr.substring(1, thenBlockStr.length()-1));
+        str += "}";
+        
+        if (!elseBlock.isEmpty()) {
+            str += " ELSE {" + Ir.indent(elseBlockStr.substring(1, elseBlockStr.length()-1)) + "}";
+        }
+        return str;
+    }        
     
     @Override
     public <T> T accept(IrVisitor<T> v) {

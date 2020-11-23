@@ -38,6 +38,10 @@ public class IrForStatement extends IrStatement {
     
     @Override
     public String toString() {
+        if (!printAsTree) {
+            return inLineStr();
+        }
+        
         String str;
         str = "FOR (\n" + Ir.indent(loopVar.toString()) + "\n" + Ir.indent("=\n");
         str += Ir.indent(startExpr.toString()) + "\n" + Ir.indent("to\n");
@@ -45,6 +49,16 @@ public class IrForStatement extends IrStatement {
         str += Ir.indent(loopBlock.toString());
         return str;
     }
+    
+    private String inLineStr() {
+        String str;
+        str = "FOR (" + loopVar.toString() + " = ";
+        str += startExpr.toString() + " to ";
+        str += endExpr.toString() + ") {";
+        String loopStr = loopBlock.toString();
+        str += Ir.indent(loopStr.substring(1, loopStr.length()-1));
+        return str + "}";
+    }        
     
     @Override
     public <T> T accept(IrVisitor<T> v) {

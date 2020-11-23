@@ -54,6 +54,7 @@ public class IrBlock extends IrStatement {
     
     @Override 
     public String toString() {
+
         String str = "{";
         if (variableDec != null) {
             for (IrVariableDeclaration var : this.variableDec) {

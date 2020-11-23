@@ -38,7 +38,14 @@ public class IrAssignment extends IrStatement {
     
     @Override
     public String toString() {
+        if (!printAsTree) {
+            return inLineStr();
+        }
         return assignOp.toString() + "\n" + Ir.indent(location.toString()) + Ir.indent("\n<--\n") + Ir.indent(expr.toString());
+    }
+    
+    private String inLineStr() {
+        return location.toString() + " " + assignOp.toString() + " " + expr.toString();
     }
     
     @Override

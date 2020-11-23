@@ -34,9 +34,21 @@ public class IrIdentifier extends IrExpression {
     
     @Override
     public String toString() {
+        if (!printAsTree) {
+            return inLineStr();
+        }
+        
         String str = idName;
         if (this.isArrayElement()) {
             str += "[\n" + Ir.indent(arrayInd.toString()) + "\n]";
+        }
+        return str;
+    }
+    
+    private String inLineStr() {
+        String str = idName;
+        if (this.isArrayElement()) {
+            str += "[" + arrayInd.toString() + "]";
         }
         return str;
     }
