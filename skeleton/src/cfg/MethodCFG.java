@@ -2,6 +2,7 @@ package cfg;
 
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
@@ -67,7 +68,8 @@ public class MethodCFG extends CFG {
     
     public void flatten() {
         NodeFlattener flattener = new NodeFlattener(this);  
-        for (Node node : this.getNodes()) {
+        List<Node> nodes = new LinkedList<Node>(this.getNodes());
+        for (Node node : nodes) {
             node.accept(flattener);
         }
         this.removeNoOps();

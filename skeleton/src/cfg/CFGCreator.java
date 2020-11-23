@@ -198,7 +198,7 @@ public class CFGCreator implements IrVisitor<DestructNodes> {
         Node merge = new CfgNoOp();
         
         ifBranch.getEndNode().setNextBranch(merge);
-        elseBranch.getBeginNode().setNextBranch(merge);
+        elseBranch.getEndNode().setNextBranch(merge);
         
         return new DestructNodes(cond, merge);
     }

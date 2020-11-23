@@ -48,4 +48,8 @@ public class CfgExitNode extends CfgLineNode {
         return v.visit(this);
     }
     
+    @Override
+    public void setNextBranch(Node node) {
+    }
+    
 }
