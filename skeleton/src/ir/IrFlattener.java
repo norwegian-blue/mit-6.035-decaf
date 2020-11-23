@@ -65,78 +65,7 @@ public class IrFlattener implements IrVisitor<DestructIr> {
         simplifiedExp.setExpType(node.getExpType());
         DestructIr nodeDestruct = new DestructIr(simplifiedExp);
         
-        return mergeDestructs(blockDestruct, nodeDestruct);
-               
-//        List<IrVariableDeclaration> newTemps = new ArrayList<IrVariableDeclaration>();
-//        List<IrStatement> tempOps = new ArrayList<IrStatement>();
-//        TypeDescriptor expType = node.getExpType();
-//        IrExpression lhs = node.getLHS();
-//        IrExpression rhs = node.getRHS();
-//        IrBinaryExpression simplifiedExp;
-//        
-//        if (lhs.isAtom() && rhs.isAtom()) {
-//            return new DestructIr(node);
-//        }
-//        
-//        // Destruct LHS
-//        if (!lhs.isAtom()) {
-//            DestructIr lhsDestruct = lhs.accept(this);
-//            IrBlock lhsBlock;
-//            try {
-//                lhsBlock = lhsDestruct.getDestructBlock();
-//                for (IrVariableDeclaration tmpDecl : lhsBlock.getVarDecl()) {
-//                    newTemps.add(tmpDecl);
-//                }
-//                for (IrStatement tmpStm : lhsBlock.getStatements()) {
-//                    tempOps.add(tmpStm);
-//                }
-//            } catch (NoSuchFieldException e) {
-//                // LHS is binary expression of atomic parts
-//            }
-//
-//            // Add temporary variable
-//            String tmpName = getTmpName();
-//            newTemps.add(new IrVariableDeclaration(lhsDestruct.getSimplifiedExp().getExpType(), tmpName));
-//            
-//            // Assign lhs subtree to temporary
-//            IrIdentifier lhsTmp = new IrIdentifier(tmpName);
-//            lhsTmp.setExpType(lhsDestruct.getSimplifiedExp().getExpType());
-//            tempOps.add(new IrAssignment(lhsTmp, IrAssignmentOp.ASSIGN, lhsDestruct.getSimplifiedExp()));
-//            lhs = lhsTmp;
-//        }
-//        
-//        // Destruct RHS
-//        if (!rhs.isAtom()) {
-//            DestructIr rhsDestruct = rhs.accept(this);
-//            IrBlock rhsBlock;
-//            try { 
-//                rhsBlock = rhsDestruct.getDestructBlock();
-//                for (IrVariableDeclaration tmpDecl : rhsBlock.getVarDecl()) {
-//                    newTemps.add(tmpDecl);
-//                }
-//                for (IrStatement tmpStm : rhsBlock.getStatements()) {
-//                    tempOps.add(tmpStm);
-//                }
-//            } catch(NoSuchFieldException e) {
-//                // RHS is binary expression of atomic parts 
-//            }
-//            
-//            // Add temporary variable
-//            String tmpName = getTmpName();
-//            newTemps.add(new IrVariableDeclaration(rhsDestruct.getSimplifiedExp().getExpType(), tmpName));
-//            
-//            // Assign lhs subtree to temporary
-//            IrIdentifier rhsTmp = new IrIdentifier(tmpName);
-//            rhsTmp.setExpType(rhsDestruct.getSimplifiedExp().getExpType());
-//            tempOps.add(new IrAssignment(rhsTmp, IrAssignmentOp.ASSIGN, rhsDestruct.getSimplifiedExp()));
-//            rhs = rhsTmp;
-//        }
-//        
-//        // Simplify expression
-//        simplifiedExp = new IrBinaryExpression(node.getOp(), lhs, rhs);
-//        simplifiedExp.setExpType(expType);
-//        return new DestructIr(new IrBlock(newTemps, tempOps), simplifiedExp);
-        
+        return mergeDestructs(blockDestruct, nodeDestruct);        
     }
 
     @Override
@@ -146,7 +75,7 @@ public class IrFlattener implements IrVisitor<DestructIr> {
 
     @Override
     public DestructIr visit(IrCalloutExpression node) {
-        // TODO desctruct callout expression
+        // TODO destruct callout expression
         return null;
     }
 
@@ -163,7 +92,7 @@ public class IrFlattener implements IrVisitor<DestructIr> {
 
     @Override
     public DestructIr visit(IrMethodCallExpression node) {
-        
+        // TODO destruct method call expression
         return null;
 //        List<IrVariableDeclaration> newTemps = new ArrayList<IrVariableDeclaration>();
 //        List<IrStatement> tempOps = new ArrayList<IrStatement>();
@@ -196,47 +125,18 @@ public class IrFlattener implements IrVisitor<DestructIr> {
     @Override
     public DestructIr visit(IrUnaryExpression node) {  
         
-        List<IrVariableDeclaration> newTemps = new ArrayList<IrVariableDeclaration>();
-        List<IrStatement> tempOps = new ArrayList<IrStatement>();
-        TypeDescriptor expType = node.getExpType();
-        IrExpression exp = node.getExp();
-        IrUnaryExpression simplifiedExp;
+        // Destruct exp
+        DestructIr expDestruct = node.getExp().accept(this);
         
-        if (exp.isAtom()) {
-            return new DestructIr(node);
-        }
-               
-        // Destruct expression
-        if (!exp.isAtom()) {
-            DestructIr expDestruct = exp.accept(this);
-            IrBlock expBlock;
-            try { 
-                expBlock = expDestruct.getDestructBlock();
-            } catch(NoSuchFieldException e) {
-                throw new Error("Should not happen for non-atomic child");   
-            }
-            for (IrVariableDeclaration tmpDecl : expBlock.getVarDecl()) {
-                newTemps.add(tmpDecl);
-            }
-            for (IrStatement tmpStm : expBlock.getStatements()) {
-                tempOps.add(tmpStm);
-            }
-            
-            // Add temporary variable
-            String tmpName = getTmpName();
-            newTemps.add(new IrVariableDeclaration(expDestruct.getSimplifiedExp().getExpType(), tmpName));
-            
-            // Assign lhs subtree to temporary
-            IrIdentifier expTmp = new IrIdentifier(tmpName);
-            expTmp.setExpType(expDestruct.getSimplifiedExp().getExpType());
-            tempOps.add(new IrAssignment(expTmp, IrAssignmentOp.ASSIGN, expDestruct.getSimplifiedExp()));
-            exp = expTmp;
-        }
+        // Atomize exp
+        DestructIr expAtom = atomize(expDestruct.getSimplifiedExp());
+        expDestruct = mergeDestructs(expDestruct, expAtom);
         
-        // Simplify expression
-        simplifiedExp = new IrUnaryExpression(node.getOp(), exp);
-        simplifiedExp.setExpType(expType);
-        return new DestructIr(new IrBlock(newTemps, tempOps), simplifiedExp);
+        IrExpression simplifiedExp = new IrUnaryExpression(node.getOp(), expAtom.getSimplifiedExp());
+        simplifiedExp.setExpType(node.getExpType());
+        DestructIr nodeDestruct = new DestructIr(simplifiedExp);
+        
+        return mergeDestructs(expDestruct, nodeDestruct);
     }
 
     @Override
@@ -288,47 +188,10 @@ public class IrFlattener implements IrVisitor<DestructIr> {
         throw new Error("Not supported");
     }
     
+    
     public String getTmpName() {
         return "_tmp" + tmpNum++;
     }
-
-//    private DestructIr destructArgs(IrCallExpression node) {
-//
-//        List<IrVariableDeclaration> newTemps = new ArrayList<IrVariableDeclaration>();
-//        List<IrStatement> tempOps = new ArrayList<IrStatement>();
-//        TypeDescriptor expType = node.getExpType();
-//        
-//        // Destruct arguments
-//        for (IrExpression arg : node.getArgs()) {
-//            
-//            // Breakdown argument
-//            DestructIr argDestr = arg.accept(this);
-//            try {
-//                IrBlock argBlock = argDestr.getDestructBlock();
-//                for (IrVariableDeclaration tmpDecl : argBlock.getVarDecl()) {
-//                    newTemps.add(tmpDecl);
-//                }
-//                for (IrStatement tmpStm : argBlock.getStatements()) {
-//                    tempOps.add(tmpStm);
-//                }
-//                // TODO set arg to last
-//            } catch (NoSuchFieldException e) {
-//                // Argument is atomic or base expression
-//            }
-//            
-//            // Add temporary if not atomic
-//            if (!arg.isAtom()) {
-//                
-//                String tmpName = getTmpName();
-//                newTemps.add(new IrVariableDeclaration(arg.getExpType(), tmpName));
-//                
-//                IrIdentifier argTmp = new IrIdentifier(tmpName);
-//                argTmp.setExpType(arg.getExpType());
-//                tempOps.add(new IrAssignment(argTmp, IrAssignmentOp.ASSIGN, arg));
-//                // TODO Set argument
-//            }
-//        }
-//    }
     
     private DestructIr mergeDestructs(DestructIr destr1, DestructIr destr2) {
         List<IrVariableDeclaration> newTemps = new ArrayList<IrVariableDeclaration>();

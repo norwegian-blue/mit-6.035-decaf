@@ -9,24 +9,17 @@ import ir.IrVisitor;
  * @author Nicola
  */
 public class IrCalloutExpression extends IrCallExpression {
-    private final String calloutName;
-    private final List<IrExpression> args;
     
-    public IrCalloutExpression(String calloutName, List<IrExpression> args) {
-        this.calloutName = calloutName;
-        this.args = args;
-    }
-    
-    public List<IrExpression> getArgs() {
-        return this.args;
+    public IrCalloutExpression(String calloutName, List<IrExpression> arguments) {
+        super(calloutName, arguments);
     }
     
     @Override
     public String toString() {
-        String str = "Callout " + calloutName;
+        String str = "Callout " + this.getName();
         String arguments = "";
       
-        for (IrExpression arg : this.args) {
+        for (IrExpression arg : this.getArgs()) {
             arguments += arg.toString() + "\n";
         }
 

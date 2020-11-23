@@ -9,29 +9,18 @@ import ir.IrVisitor;
  * @author Nicola
  */
 public class IrMethodCallExpression extends IrCallExpression{
-    private final String methodName;
-    private final List<IrExpression> arguments;
     
     public IrMethodCallExpression(String methodName, List<IrExpression> arguments) {
-        this.methodName = methodName;
-        this.arguments = arguments;
+        super(methodName, arguments);
     }
     
     @Override
     public String toString() {
         String args = "";
-        for (IrExpression arg : arguments) {
+        for (IrExpression arg : this.getArgs()) {
             args += arg.toString() + "\n";
         }
-        return "function " + methodName + "(\n" + Ir.indent(args) + ")";
-    }
-    
-    public List<IrExpression> getArgs() {
-        return this.arguments;
-    }
-    
-    public String getName() {
-        return this.methodName;
+        return "function " + this.getName() + "(\n" + Ir.indent(args) + ")";
     }
     
     @Override
