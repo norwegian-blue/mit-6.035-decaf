@@ -29,6 +29,10 @@ public class CfgExitNode extends CfgLineNode {
         }
     }
     
+    public void setReturnExp(IrExpression exp) {
+        this.returnExp = exp;
+    }
+    
     @Override
     public String nodeString() {
         return "NODE EXIT";
@@ -37,6 +41,11 @@ public class CfgExitNode extends CfgLineNode {
     @Override
     public boolean hasNext() {
         return false;
+    }
+    
+    @Override
+    public <T> T accept(NodeVisitor<T> v) {
+        return v.visit(this);
     }
     
 }

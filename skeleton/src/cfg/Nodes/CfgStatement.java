@@ -20,4 +20,17 @@ public class CfgStatement extends CfgLineNode {
         return "NODE STMT";
     }
     
+    @Override
+    public <T> T accept(NodeVisitor<T> v) {
+        return v.visit(this);
+    }
+    
+    public IrStatement getStatement() {
+        return this.stat;
+    }
+    
+    public void setStatement(IrStatement newStat) {
+        this.stat = newStat;
+    }
+    
 }

@@ -15,5 +15,10 @@ public class CfgNoOp extends CfgLineNode {
     public String nodeString() {
         return "NODE NOOP";
     }
+
+    @Override
+    public <T> T accept(NodeVisitor<T> v) {
+        return null;
+    }
     
 }

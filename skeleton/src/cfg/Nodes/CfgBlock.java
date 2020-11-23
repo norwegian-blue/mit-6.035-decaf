@@ -98,5 +98,10 @@ public class CfgBlock extends Node {
     public String getBlockName() {
         return "BLOCK " + blockName;
     }
+    
+    @Override
+    public <T> T accept(NodeVisitor<T> v) {
+        return v.visit(this);
+    }
 
 }

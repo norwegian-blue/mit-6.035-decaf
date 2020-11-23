@@ -19,4 +19,18 @@ public class CfgCondBranch extends CfgBranchNode {
     public String nodeString() {
         return "NODE CMP";
     }
+    
+    @Override
+    public <T> T accept(NodeVisitor<T> v) {
+        return v.visit(this);
+    }
+    
+    public IrExpression getCond() {
+        return this.cond;
+    }
+    
+    public void setCond(IrExpression newCond) {
+        this.cond = newCond;
+    }
+    
 }

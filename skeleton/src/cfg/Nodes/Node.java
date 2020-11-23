@@ -33,6 +33,10 @@ public abstract class Node {
         return this.parentNodes;
     }
     
+    public void clearParents() {
+        this.parentNodes = new HashSet<Node>();
+    }
+    
     public Node[] getChildren() {
         return childNodes;
     }
@@ -129,5 +133,12 @@ public abstract class Node {
     public void lock() {};
     
     public void unlock() {};
+    
+    public abstract <T> T accept(NodeVisitor<T> v);
+    
+    @Override
+    public int hashCode() {
+        return 1;
+    }
     
 }

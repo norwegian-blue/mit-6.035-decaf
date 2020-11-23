@@ -117,5 +117,9 @@ public abstract class CFG {
     private boolean isVisited(Node node) {
         return visited.contains(node);
     }
+    
+    public Set<Node> getNodes() {
+        return this.nodes; 
+    }
         
 }

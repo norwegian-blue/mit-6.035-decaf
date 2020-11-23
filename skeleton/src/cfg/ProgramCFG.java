@@ -27,7 +27,9 @@ public class ProgramCFG {
     }
     
     public void flatten() {
-        //TODO implement tree flattener --> create temporary variables
+        for (String methodName : methods.keySet()) {
+            methods.get(methodName).flatten();
+        }
     }
     
     public void blockify() {

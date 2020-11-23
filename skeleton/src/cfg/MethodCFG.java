@@ -1,7 +1,9 @@
 package cfg;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 
 import cfg.Nodes.*;
 import ir.Declaration.IrVariableDeclaration;
@@ -61,6 +63,14 @@ public class MethodCFG extends CFG {
         }
         
         return block;
+    }
+    
+    public void flatten() {
+        NodeFlattener flattener = new NodeFlattener(this);  
+        for (Node node : this.getNodes()) {
+            node.accept(flattener);
+        }
+        this.removeNoOps();
     }
     
 }

@@ -14,5 +14,5 @@ public abstract class CfgLineNode extends Node {
         }
         return nodeStr;
     }
-    
+   
 }

@@ -21,4 +21,9 @@ public class CfgEntryNode extends CfgLineNode {
     public String nodeString() {
         return "NODE ENTRY";
     }
+    
+    @Override
+    public <T> T accept(NodeVisitor<T> v) {
+        return v.visit(this);
+    }
 }
