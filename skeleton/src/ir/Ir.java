@@ -7,7 +7,7 @@ public abstract class Ir {
     
     protected static boolean printAsTree = true;
     
-    public static void printAsTree(boolean asTree) {
+    public static void setTreePrint(boolean asTree) {
         printAsTree = asTree;
     }
     

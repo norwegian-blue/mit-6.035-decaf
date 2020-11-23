@@ -35,7 +35,11 @@ public class CfgExitNode extends CfgLineNode {
     
     @Override
     public String nodeString() {
-        return "NODE EXIT";
+        String str = "NODE EXIT";
+        if (printIr && this.returnsExp()) {
+            str += ": return " + returnExp.toString();
+        }
+        return str;
     }
     
     @Override

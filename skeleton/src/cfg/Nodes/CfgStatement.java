@@ -17,7 +17,11 @@ public class CfgStatement extends CfgLineNode {
     
     @Override
     public String nodeString() {
-        return "NODE STMT";
+        String str = "NODE STMT";
+        if (printIr) {
+            str += ": " + stat.toString();
+        }
+        return str;
     }
     
     @Override
