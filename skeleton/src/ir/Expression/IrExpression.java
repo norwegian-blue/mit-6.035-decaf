@@ -29,4 +29,13 @@ public abstract class IrExpression extends Ir {
     public boolean isNotExp() {
         return false;
     }
+    
+    @Override
+    public boolean isExp() {
+        return true;
+    }
+    
+    public boolean isAtom() {
+        return false;
+    }
 }

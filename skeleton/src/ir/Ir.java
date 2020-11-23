@@ -32,5 +32,13 @@ public abstract class Ir {
     
     public boolean isClass() {
         return false;
-    }    
+    }
+    
+    public boolean isExp() {
+        return false;
+    }
+    
+    public boolean isStm() {
+        return false;
+    }
 }

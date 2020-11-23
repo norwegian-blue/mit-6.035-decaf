@@ -21,4 +21,5 @@ public class IrBooleanLiteral extends IrLiteral {
     public <T> T accept(IrVisitor<T> v) {
         return v.visit(this);
     }
+
 }

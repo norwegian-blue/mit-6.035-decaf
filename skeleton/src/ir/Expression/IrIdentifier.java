@@ -45,4 +45,13 @@ public class IrIdentifier extends IrExpression {
     public <T> T accept(IrVisitor<T> v) {
         return v.visit(this);
     }
+    
+    @Override
+    public boolean isAtom() {
+        if (this.isArrayElement()) {
+            return this.getInd().isAtom();
+        } else {
+            return true;
+        }
+    }
 }
