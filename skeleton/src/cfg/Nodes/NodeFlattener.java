@@ -1,12 +1,15 @@
 package cfg.Nodes;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import cfg.MethodCFG;
 import ir.DestructIr;
 import ir.IrFlattener;
 import ir.Declaration.*;
+import ir.Expression.IrIdentifier;
 import ir.Statement.*;
+import semantic.TypeDescriptor;
 
 /**
  * @author Nicola
@@ -65,20 +68,35 @@ public class NodeFlattener implements NodeVisitor<Void> {
         // Returns expression --> flatten expression 
         DestructIr flattenedIr = node.getReturnExp().accept(flattener);
         IrBlock destructBlock;
+        TypeDescriptor returnType = node.getReturnExp().getExpType();
         
         // Check if expression was simplified
         try {
-            destructBlock = flattenedIr.getDestructBlock();
+            destructBlock = flattenedIr.getDestructBlock();            
+            // Include simplified nodes
+            for (IrVariableDeclaration tmpDecl : destructBlock.getVarDecl()) {
+                this.currentMethod.addLocal(tmpDecl);
+            }
+            adjoinStatements(node, destructBlock.getStatements());
+            node.setReturnExp(flattenedIr.getSimplifiedExp());
         } catch (NoSuchFieldException e) {
-            return null;
+            // Expression is atom or basic expression
         }
         
-        // Include simplified nodes
-        for (IrVariableDeclaration tmpDecl : destructBlock.getVarDecl()) {
-            this.currentMethod.addLocal(tmpDecl);
+        // Make return expression atomic
+        if (!node.getReturnExp().isAtom()) {
+            String tmpName = flattener.getTmpName();
+            this.currentMethod.addLocal(new IrVariableDeclaration(returnType, tmpName));
+            IrIdentifier returnVar = new IrIdentifier(tmpName);
+            IrStatement tmpReturn = new IrAssignment(returnVar, 
+                                                     IrAssignment.IrAssignmentOp.ASSIGN,
+                                                     node.getReturnExp());
+            List<IrStatement> tmpList = new ArrayList<IrStatement>();
+            tmpList.add(tmpReturn);
+            adjoinStatements(node, tmpList);
+            node.setReturnExp(returnVar);
         }
-        adjoinStatements(node, destructBlock.getStatements());
-        node.setReturnExp(flattenedIr.getSimplifiedExp());
+        
         return null;
     }
 

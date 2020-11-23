@@ -7,6 +7,7 @@ import ir.Declaration.*;
 import ir.Expression.*;
 import ir.Statement.*;
 import ir.Statement.IrAssignment.IrAssignmentOp;
+import semantic.TypeDescriptor;
 
 /**
  * @author Nicola
@@ -48,6 +49,7 @@ public class IrFlattener implements IrVisitor<DestructIr> {
                
         List<IrVariableDeclaration> newTemps = new ArrayList<IrVariableDeclaration>();
         List<IrStatement> tempOps = new ArrayList<IrStatement>();
+        TypeDescriptor expType = node.getExpType();
         IrExpression lhs = node.getLHS();
         IrExpression rhs = node.getRHS();
         IrBinaryExpression simplifiedExp;
@@ -78,6 +80,7 @@ public class IrFlattener implements IrVisitor<DestructIr> {
             
             // Assign lhs subtree to temporary
             IrIdentifier lhsTmp = new IrIdentifier(tmpName);
+            lhsTmp.setExpType(lhsDestruct.getSimplifiedExp().getExpType());
             tempOps.add(new IrAssignment(lhsTmp, IrAssignmentOp.ASSIGN, lhsDestruct.getSimplifiedExp()));
             lhs = lhsTmp;
         }
@@ -104,12 +107,14 @@ public class IrFlattener implements IrVisitor<DestructIr> {
             
             // Assign lhs subtree to temporary
             IrIdentifier rhsTmp = new IrIdentifier(tmpName);
+            rhsTmp.setExpType(rhsDestruct.getSimplifiedExp().getExpType());
             tempOps.add(new IrAssignment(rhsTmp, IrAssignmentOp.ASSIGN, rhsDestruct.getSimplifiedExp()));
             rhs = rhsTmp;
         }
         
         // Simplify expression
         simplifiedExp = new IrBinaryExpression(node.getOp(), lhs, rhs);
+        simplifiedExp.setExpType(expType);
         return new DestructIr(new IrBlock(newTemps, tempOps), simplifiedExp);
         
     }
@@ -146,6 +151,7 @@ public class IrFlattener implements IrVisitor<DestructIr> {
     public DestructIr visit(IrUnaryExpression node) {
         List<IrVariableDeclaration> newTemps = new ArrayList<IrVariableDeclaration>();
         List<IrStatement> tempOps = new ArrayList<IrStatement>();
+        TypeDescriptor expType = node.getExpType();
         IrExpression exp = node.getExp();
         IrUnaryExpression simplifiedExp;
         
@@ -175,12 +181,14 @@ public class IrFlattener implements IrVisitor<DestructIr> {
             
             // Assign lhs subtree to temporary
             IrIdentifier expTmp = new IrIdentifier(tmpName);
+            expTmp.setExpType(expDestruct.getSimplifiedExp().getExpType());
             tempOps.add(new IrAssignment(expTmp, IrAssignmentOp.ASSIGN, expDestruct.getSimplifiedExp()));
             exp = expTmp;
         }
         
         // Simplify expression
         simplifiedExp = new IrUnaryExpression(node.getOp(), exp);
+        simplifiedExp.setExpType(expType);
         return new DestructIr(new IrBlock(newTemps, tempOps), simplifiedExp);
     }
 
@@ -231,37 +239,9 @@ public class IrFlattener implements IrVisitor<DestructIr> {
     @Override
     public DestructIr visit(IrReturnStatement node) {
         throw new Error("Not supported");
-        //TODO cleanup if not needed
-//        List<IrVariableDeclaration> newTemps = new ArrayList<IrVariableDeclaration>();
-//        List<IrStatement> tempOps = new ArrayList<IrStatement>();
-//        IrExpression exp = node.getReturnExp();
-//        IrExpression simplifiedExp;
-//        
-//        if (!node.returnsValue() || exp.isAtom()) {
-//            return new DestructIr(node);
-//        }
-//                       
-//        // Destruct expression
-//        DestructIr expDestruct = exp.accept(this);
-//        IrBlock expBlock;
-//        try { 
-//            expBlock = expDestruct.getDestructBlock();
-//        } catch(NoSuchFieldException e) {
-//            throw new Error("Should not happen for non-atomic child");   
-//        }
-//        for (IrVariableDeclaration tmpDecl : expBlock.getVarDecl()) {
-//            newTemps.add(tmpDecl);
-//        }
-//        for (IrStatement tmpStm : expBlock.getStatements()) {
-//            tempOps.add(tmpStm);
-//        }
-//        
-//        // Simplify expression
-//        simplifiedExp = expDestruct.getSimplifiedExp();
-//        return new DestructIr(new IrBlock(newTemps, tempOps), simplifiedExp);
     }
     
-    private String getTmpName() {
+    public String getTmpName() {
         return "_tmp" + tmpNum++;
     }
 
