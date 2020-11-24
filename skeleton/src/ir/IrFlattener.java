@@ -151,8 +151,25 @@ public class IrFlattener implements IrVisitor<DestructIr> {
     // Statements
     @Override
     public DestructIr visit(IrAssignment node) {
-        // TODO destruct assignment
-        return null;
+        
+        // Destruct location and assign expression
+        DestructIr locationDestruct = node.getLocation().accept(this);
+        DestructIr expDestruct = node.getExpression().accept(this);
+        DestructIr blockDestruct = mergeDestructs(locationDestruct, expDestruct);
+        
+        // Atomize expression
+        DestructIr expAtom = atomize(expDestruct.getSimplifiedExp());
+        blockDestruct = mergeDestructs(blockDestruct, expAtom);
+        
+        IrAssignment newAssign = new IrAssignment((IrIdentifier)locationDestruct.getSimplifiedExp(), 
+                                                  node.getOp(), expAtom.getSimplifiedExp());
+        
+        try {
+            IrBlock block = blockDestruct.getDestructBlock();
+            return new DestructIr(block, newAssign);
+        } catch (NoSuchFieldException e) {
+            return new DestructIr(newAssign);
+        }
     }
 
     @Override

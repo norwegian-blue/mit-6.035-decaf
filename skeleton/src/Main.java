@@ -15,7 +15,8 @@ import decaf.GrammarLexer;
 import decaf.GrammarParser;
 import ir.*;
 import ir.Declaration.IrClassDeclaration;
-import cfg.CfgProgram;
+import cfg.ProgramCFG;
+import cfg.Nodes.Node;
 
 class Main {
     public static void main(String[] args) {
@@ -138,19 +139,32 @@ class Main {
                 program.accept(new IrRenamer());    
                 assert(program.accept(check));
                 if (CLI.debug) {
+                    Ir.setTreePrint(false);
                     System.out.println("################# Variable renaming (no duplicate names) #################");
                     System.out.print(program.toString() + "\n");
                 }
-
+                
                 // Create Control Flow Graph
-                CfgProgram controlFlow = new CfgProgram(program);
+                ProgramCFG controlFlow = new ProgramCFG(program);
                 if (CLI.debug) {
+                    Node.setPrintIr(true);
                     System.out.println("################# Control Flow Graph #################");
                     System.out.println(controlFlow.toString());
                 }
-                    
-                // TODO: controlFlow.flatten();
-                // TODO: controlFlow.blockify();
+                               
+                // Flatten Ir & introduce temporaries
+                controlFlow.flatten();
+                if (CLI.debug) {
+                    System.out.println("########### Control Flow Graph (flattened) ##########");
+                    System.out.println(controlFlow.toString());
+                }
+                
+                // Group nodes in blocks
+                controlFlow.blockify();
+                if (CLI.debug) {
+                    System.out.println("############ Blockified Control Flow Graph ############");
+                    System.out.println(controlFlow.toString());
+                }
                 
                 // Assemble
                 // TODO: assembler
