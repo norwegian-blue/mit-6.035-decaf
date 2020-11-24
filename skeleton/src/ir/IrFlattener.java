@@ -7,7 +7,6 @@ import ir.Declaration.*;
 import ir.Expression.*;
 import ir.Statement.*;
 import ir.Statement.IrAssignment.IrAssignmentOp;
-import semantic.TypeDescriptor;
 
 /**
  * @author Nicola
@@ -75,8 +74,7 @@ public class IrFlattener implements IrVisitor<DestructIr> {
 
     @Override
     public DestructIr visit(IrCalloutExpression node) {
-        // TODO destruct callout expression
-        return null;
+        return destructCall(node);
     }
 
     @Override
@@ -86,40 +84,45 @@ public class IrFlattener implements IrVisitor<DestructIr> {
 
     @Override
     public DestructIr visit(IrIdentifier node) {
-        // TODO destruct array
-        return new DestructIr(node);
+        if (node.isAtom()) {
+            return new DestructIr(node);
+        }
+        
+        // Destruct and atomize index expression
+        DestructIr destructInd = node.getInd().accept(this);
+        DestructIr atomInd = atomize(destructInd.getSimplifiedExp());
+        destructInd = mergeDestructs(destructInd, atomInd);
+        
+        IrIdentifier newNode = new IrIdentifier(node.getId(), atomInd.getSimplifiedExp());
+        newNode.setExpType(node.getExpType());
+        DestructIr destructNode = new DestructIr(newNode);
+        return mergeDestructs(destructInd, destructNode);
     }
 
     @Override
     public DestructIr visit(IrMethodCallExpression node) {
-        // TODO destruct method call expression
-        return null;
-//        List<IrVariableDeclaration> newTemps = new ArrayList<IrVariableDeclaration>();
-//        List<IrStatement> tempOps = new ArrayList<IrStatement>();
-//        TypeDescriptor expType = node.getExpType();
-//        
-//        // Destruct arguments
-//        List<DestructIr> argsDestruct = destructArgs(node);
-//        for (DestructIr argDestr : argsDestruct) {
-//            // Breakdown arguments
-//            try {
-//                IrBlock argBlock = argDestr.getDestructBlock();
-//                for (IrVariableDeclaration tmpDecl : argBlock.getVarDecl()) {
-//                    newTemps.add(tmpDecl);
-//                }
-//                for (IrStatement tmpStm : argBlock.getStatements()) {
-//                    tempOps.add(tmpStm);
-//                }
-//            } catch (NoSuchFieldException e) {
-//                continue;
-//            }
-//        }
-//
-//        if (!node.returnsVal()) {
-//            return new DestructIr(node);
-//        }
-//        
-        //
+        return destructCall(node);
+    }
+    
+    private DestructIr destructCall(IrCallExpression node) {
+        
+        DestructIr callDestruct = new DestructIr(node);
+        int i = 0;
+        
+        // Destruct and atomize arguments
+        for (IrExpression arg : node.getArgs()) {
+            // Destruct argument
+            DestructIr argDestruct = arg.accept(this);
+            callDestruct = mergeDestructs(callDestruct, argDestruct);
+            
+            // Atomize argument
+            DestructIr argAtom = atomize(argDestruct.getSimplifiedExp());
+            callDestruct = mergeDestructs(callDestruct, argAtom);
+            node.getArgs().set(i, argAtom.getSimplifiedExp());
+            i++;
+        }
+        
+        return callDestruct;
     }
 
     @Override
@@ -179,8 +182,14 @@ public class IrFlattener implements IrVisitor<DestructIr> {
 
     @Override
     public DestructIr visit(IrInvokeStatement node) {
-        // TODO destruct invoke statement
-        return null;
+        DestructIr destructInvoke = node.getMethod().accept(this);
+        
+        try {
+            IrBlock destructBlock = destructInvoke.getDestructBlock();
+            return new DestructIr(destructBlock, node);
+        } catch (NoSuchFieldException e) {
+            return new DestructIr(node);
+        }
     }
 
     @Override

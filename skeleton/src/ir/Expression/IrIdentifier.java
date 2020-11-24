@@ -60,10 +60,6 @@ public class IrIdentifier extends IrExpression {
     
     @Override
     public boolean isAtom() {
-        if (this.isArrayElement()) {
-            return this.getInd().isAtom();
-        } else {
-            return true;
-        }
+        return !this.isArrayElement();
     }
 }
