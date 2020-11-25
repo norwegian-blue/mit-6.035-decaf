@@ -3,6 +3,10 @@ import org.antlr.v4.runtime.tree.ParseTreeWalker;
 
 import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.tree.ParseTree;
+
+import java.io.FileOutputStream;
+import java.io.PrintStream;
+
 import org.antlr.v4.runtime.CharStream;
 import org.antlr.v4.runtime.RecognitionException;
 import org.antlr.v4.runtime.CommonTokenStream;
@@ -17,6 +21,7 @@ import ir.*;
 import ir.Declaration.IrClassDeclaration;
 import cfg.ProgramCFG;
 import cfg.Nodes.Node;
+import codegen.AssemblyProgram;
 
 class Main {
     public static void main(String[] args) {
@@ -85,7 +90,7 @@ class Main {
                 }
                 
         	} else if (CLI.target == CLI.INTER || CLI.target == CLI.ASSEMBLY) {
-        	    
+        	            	    
                 //****************************************************** 
                 // INTERPRETER 
                 //******************************************************     
@@ -167,8 +172,10 @@ class Main {
                 }
                 
                 // Assemble
-                // TODO: assembler
-                System.out.println("Done");
+                AssemblyProgram prog = new AssemblyProgram();
+                
+                PrintStream outputStream = new PrintStream(new FileOutputStream(CLI.outfile));
+                prog.printToFile(outputStream);
         	}
         	
         } catch(Exception e) {
