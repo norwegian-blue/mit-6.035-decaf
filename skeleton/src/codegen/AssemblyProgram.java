@@ -1,9 +1,10 @@
 package codegen;
 
+import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.List;
 
-import codegen.instructions.*;
+import codegen.Instructions.*;
 
 /**
  * @author Nicola
@@ -57,5 +58,9 @@ public class AssemblyProgram {
         }
         
         return prog;
+    }
+    
+    public void printToFile(PrintStream os) {
+        os.println(this.toCode());
     }
 }
