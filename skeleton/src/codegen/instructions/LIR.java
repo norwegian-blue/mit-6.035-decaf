@@ -1,4 +1,4 @@
-package codegen;
+package codegen.instructions;
 
 /**
  * @author Nicola
@@ -7,5 +7,9 @@ package codegen;
 public abstract class LIR {
 
     public abstract String toCode();
+    
+    public boolean isLabel() {
+        return false;
+    }
 
 }

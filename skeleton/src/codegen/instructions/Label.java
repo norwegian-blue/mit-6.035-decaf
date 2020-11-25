@@ -1,4 +1,4 @@
-package codegen;
+package codegen.instructions;
 
 /**
  * @author Nicola
@@ -19,7 +19,12 @@ public class Label extends LIR {
     
     @Override
     public String toCode() {
-        return "." + this.labelName;
+        return this.labelName + ":";
+    }
+    
+    @Override
+    public boolean isLabel() {
+        return true;
     }
     
 }

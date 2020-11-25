@@ -1,9 +1,8 @@
-package codegen;
+package codegen.instructions;
 
 /**
  * @author Nicola
  */
-
 public class Register extends Exp {
         
     public static enum Registers {
@@ -38,8 +37,7 @@ public class Register extends Exp {
     
     @Override
     public String toCode() {
-        //TODO: implement conversion to assembly
-        return "";
+        return "%" + regName.name();
     }
     
 }

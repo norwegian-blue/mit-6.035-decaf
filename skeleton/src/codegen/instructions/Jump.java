@@ -1,4 +1,4 @@
-package codegen;
+package codegen.instructions;
 
 /**
  * @author Nicola
@@ -6,6 +6,7 @@ package codegen;
 
 public class Jump extends LIR {
     
+    // TODO recheck
     private final Label destLabel;
     
     public Jump(Label destLabel) {
