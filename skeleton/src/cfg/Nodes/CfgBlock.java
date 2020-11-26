@@ -41,6 +41,10 @@ public class CfgBlock extends Node {
         return lastNode;
     }
     
+    public List<Node> getBlockNodes() {
+        return this.blockNodes;
+    }
+    
     @Override
     public boolean isFork() {
         return lastNode.isFork();

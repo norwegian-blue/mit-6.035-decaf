@@ -9,7 +9,7 @@ import ir.IrVisitor;
 import ir.Declaration.*;
 import ir.Expression.*;
 import ir.Statement.*;
-import semantic.BaseTypeDescriptor;
+import semantic.*;
 
 public class CFGCreator implements IrVisitor<DestructNodes> {
     
@@ -19,11 +19,24 @@ public class CFGCreator implements IrVisitor<DestructNodes> {
     
     public static MethodCFG BuildMethodCFG(IrMethodDeclaration method) {
         CFGCreator creator = new CFGCreator();
-        Node root = method.accept(creator).getBeginNode();
-        MethodCFG CFG = new MethodCFG(root, method.getId());
-        for (IrVariableDeclaration local : locals) {
-            CFG.addLocal(local);
+        Node root = method.accept(creator).getBeginNode(); 
+        
+        // Get method parameters
+        List<ParameterDescriptor> parDesc = new ArrayList<ParameterDescriptor>();
+        for (IrParameterDeclaration par : method.getParameters()) {
+            parDesc.add(new ParameterDescriptor(par.getId(), par.getType()));
         }
+        
+        // Get locals
+        List<LocalDescriptor> localDesc = new ArrayList<LocalDescriptor>();
+        for (IrVariableDeclaration local : locals) {
+            localDesc.add(new LocalDescriptor(local.getId(), local.getType()));
+        }
+        
+        // Get method descriptor
+        MethodDescriptor methodDesc = new MethodDescriptor(method.getId(), method.getType(), parDesc, localDesc);
+        MethodCFG CFG = new MethodCFG(root, methodDesc);
+
         //System.out.println("############## RAW CFG ##############\n" + CFG + "\n");
         CFG.removeNoOps();
         return CFG;

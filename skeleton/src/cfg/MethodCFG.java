@@ -5,7 +5,10 @@ import java.util.LinkedList;
 import java.util.List;
 
 import cfg.Nodes.*;
+import codegen.*;
+import codegen.Instructions.*;
 import ir.Declaration.IrVariableDeclaration;
+import semantic.*;
 
 /**
  * @author Nicola
@@ -13,24 +16,41 @@ import ir.Declaration.IrVariableDeclaration;
 
 public class MethodCFG extends CFG {
 
-    private List<IrVariableDeclaration> locals = new ArrayList<IrVariableDeclaration>();
-    private String name;
+    private MethodDescriptor methodDesc;
     
-    public MethodCFG(Node root, String name) {
+    public MethodCFG(Node root, MethodDescriptor methodDesc) {
         super(root);
-        this.name = name;
+        this.methodDesc = methodDesc;
     }
     
     public void addLocal(IrVariableDeclaration local) {
-        this.locals.add(local);
+        this.methodDesc.addLocal(new LocalDescriptor(local.getId(), local.getType()));
     }
     
     public MethodCFG blockify() {
         CfgBlock.resetCounter();
-        MethodCFG methodBlock = new MethodCFG(this.blockifyTree(this.root), name);
-        methodBlock.locals = this.locals;
-        //System.out.println(methodBlock);
+        MethodCFG methodBlock = new MethodCFG(this.blockifyTree(this.root), this.methodDesc);
         return methodBlock;
+    }
+    
+    public void assemble(AssemblyProgram prog, SymbolTable table) {
+
+        try {
+            table.put(this.methodDesc.getId(), this.methodDesc);
+            table.beginScope();
+            for (ParameterDescriptor par : this.methodDesc.getPars()) {
+                table.put(par.getId(), par);
+            }
+            for (LocalDescriptor local : this.methodDesc.getLocals()) {
+                table.put(local.getId(), local);
+            }
+        } catch (DuplicateKeyException e) {
+            throw new Error("Unexpected error");
+        }
+               
+        CodeGenerator codegen = new CodeGenerator(prog, table, methodDesc.getId());
+        this.root.accept(codegen);
+        table.endScope();
     }
     
     protected CfgBlock blockifyTree(Node node) {
@@ -41,7 +61,7 @@ public class MethodCFG extends CFG {
         }
         
         // Blockify tree
-        CfgBlock block = new CfgBlock(node, name);
+        CfgBlock block = new CfgBlock(node, this.methodDesc.getId());
                
         while (block.hasNext()) {
             

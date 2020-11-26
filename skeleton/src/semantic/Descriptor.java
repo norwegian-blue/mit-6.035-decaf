@@ -8,6 +8,7 @@ public abstract class Descriptor {
     protected String name;
     protected TypeDescriptor type;
     private String alias;
+    private int offset;
     
     public Descriptor(String name, TypeDescriptor type) {
         this.name = name;
@@ -33,6 +34,22 @@ public abstract class Descriptor {
     
     public void setAlias(String alias) {
         this.alias = alias;
+    }
+    
+    public String getId() {
+        return name;
+    }
+    
+    public int getSize() {
+        return this.type.getSize();
+    }
+    
+    public void setOffset(int offset) {
+        this.offset = offset;
+    }
+    
+    public int getOffset() {
+        return this.offset;
     }
 
 }
