@@ -99,8 +99,13 @@
     <exec executable="${tests}/semantic-hidden/test.sh"/>
   </target>
 
+  <target name="test_codegen" depends="jar">
+    <exec executable="${tests}/codegen/test.sh"/>
+    <exec executable="${tests}/codegen-hidden/test.sh"/>
+  </target>
+
   <target name="integration_tests" 
-	  depends="test_scanner, test_parser, test_semantic">
+	  depends="test_scanner, test_parser, test_semantic, test_codegen">
   </target>
   
  <!-- to clean, delete everything in the java, classes, and dist

@@ -25,4 +25,20 @@ public class BaseTypeDescriptor extends TypeDescriptor {
             return thatType.typeName.equals(this.typeName);
         }
     }
+    
+    @Override
+    public int getSize() {
+        int size;
+        switch (this.typeName) {
+        case "BOOL":
+            size = 1;
+            break;
+        case "INT":
+            size = 8;
+            break;
+        default:
+            throw new Error("Undefined size for type " + this.typeName);
+        }
+        return size;
+    }
 }

@@ -11,10 +11,10 @@ for file in `dirname $0`/input/*.dcf; do
   bin='tmp'
 
   # compile to assembly
-  if runassembler $file $asm 2>&1 >/dev/null; then
+  if runassembler $file $asm 2>&1 > /dev/null; then
     
     # assemble code and run
-    if gcc -no-pie -o $bin $asm 2>&1 >/dev/null; then
+    if gcc -no-pie -o $bin $asm 2>&1 > /dev/null; then
       output='out';
       ./$bin > $output;
       exitcode=$?

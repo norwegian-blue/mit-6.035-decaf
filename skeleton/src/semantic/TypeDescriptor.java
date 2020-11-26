@@ -26,4 +26,9 @@ public abstract class TypeDescriptor {
     public int getLength() {
         return 1;
     }
+    
+    // Defaults to 64 bit
+    public int getSize() {
+        return 8;
+    }
 }

@@ -172,10 +172,17 @@ class Main {
                 }
                 
                 // Assemble
-                AssemblyProgram prog = new AssemblyProgram();
+                AssemblyProgram prog = controlFlow.assemble();
+                
+                if (CLI.debug) {
+                    System.out.println("############## Assembly code ###############\n");
+                    System.out.println(prog.toCode());
+                }
                 
                 PrintStream outputStream = new PrintStream(new FileOutputStream(CLI.outfile));
                 prog.printToFile(outputStream);
+                
+                
         	}
         	
         } catch(Exception e) {
