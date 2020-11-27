@@ -24,5 +24,18 @@ public class StringLiteral extends Exp {
         str += "\t.string \"" + stringContent + "\"";
         return str;
     }
+    
+    @Override
+    public boolean isString() {
+        return true;
+    }
 
+    public String getId() {
+        return stringId;
+    }
+    
+    public String getValue() {
+        return stringContent;
+    }
+    
 }

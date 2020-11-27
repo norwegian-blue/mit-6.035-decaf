@@ -10,6 +10,6 @@ public class Enter extends LIR {
     
     @Override
     public String toCode() {
-        return "enter\t$" + localNum + ", $0";
+        return "\tenter\t$" + localNum + ", $0";
     }
 }

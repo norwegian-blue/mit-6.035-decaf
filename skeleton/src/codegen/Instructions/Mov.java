@@ -15,7 +15,7 @@ public class Mov extends LIR {
 
     @Override
     public String toCode() {
-        return "mov\t" + src.toCode() + ", " + dest.toCode();
+        return "\tmovq\t" + src.toCode() + ", " + dest.toCode();
     }
     
 }

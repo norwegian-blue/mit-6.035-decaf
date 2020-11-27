@@ -4,7 +4,6 @@ import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.List;
 
-import cfg.ProgramCFG;
 import codegen.Instructions.*;
 
 /**
@@ -19,21 +18,7 @@ public class AssemblyProgram {
     public AssemblyProgram() {
         instructions = new ArrayList<LIR>();
         globals = new ArrayList<Global>();
-        strings = new ArrayList<StringLiteral>();
-        
-//        StringLiteral helloWorld = new StringLiteral("Hello, World.\\n", "hello");
-//        
-//        strings.add(helloWorld);
-//        
-//        instructions.add(new Label("main"));
-//        instructions.add(new Enter(0));
-//        instructions.add(new Mov(helloWorld, new Register(Register.Registers.rdi)));
-//        instructions.add(new Mov(new Literal(0), new Register(Register.Registers.rax)));
-//        instructions.add(new Call("printf"));
-//        instructions.add(new Mov(new Literal(0), new Register(Register.Registers.rax)));
-//        instructions.add(new Leave());
-//        instructions.add(new Return());
-    
+        strings = new ArrayList<StringLiteral>();   
     }
     
     public void addInstruction(LIR newInstruction) {
@@ -51,15 +36,9 @@ public class AssemblyProgram {
     public String toCode() {
         String prog;
         prog = "\t.section .text\n";
-        prog += "\t.globl main\n";
         
         for (LIR inst : instructions) {
-            if (inst.isLabel()) {
-                prog += inst.toCode();
-            } else {
-                prog += "\t" + inst.toCode();
-            }
-            prog += "\n";
+            prog += inst.toCode() + "\n";
         }
         
         for (StringLiteral str : strings) {

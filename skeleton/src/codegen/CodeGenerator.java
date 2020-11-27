@@ -1,9 +1,10 @@
 package codegen;
 
+import java.util.List;
+
 import cfg.Nodes.*;
-import codegen.Instructions.Enter;
-import codegen.Instructions.Label;
-import codegen.Instructions.NewLine;
+import codegen.Instructions.*;
+import ir.Statement.*;
 import semantic.KeyNotFoundException;
 import semantic.LocalDescriptor;
 import semantic.MethodDescriptor;
@@ -19,11 +20,13 @@ public class CodeGenerator implements NodeVisitor<Void> {
     private AssemblyProgram prog;
     private SymbolTable table;
     private String currentMethod;
+    private InstructionAssembler instructionAssembler;
     
     public CodeGenerator(AssemblyProgram prog, SymbolTable table, String currentMethod) {
         this.prog = prog;
         this.table = table;
         this.currentMethod = currentMethod;
+        this.instructionAssembler = new InstructionAssembler(table, currentMethod);
     }
 
     @Override
@@ -79,24 +82,64 @@ public class CodeGenerator implements NodeVisitor<Void> {
         
         // Preamble
         prog.addInstruction(new NewLine());
-        prog.addInstruction(new Label(methodDesc.getId()));   
-        if (stackTop > 8) {
-            prog.addInstruction(new Enter(stackTop-8));
+        if (methodDesc.getId().equals("main")) {
+            prog.addInstruction(new MainDirective());
         }
+        prog.addInstruction(new Label(methodDesc.getId()));   
+        prog.addInstruction(new Enter(stackTop-8));
         
         // Move parameters on stack
+        int i = 0;
+        for (ParameterDescriptor par : methodDesc.getPars()) {
+            Local parLocal = new Local(par.getOffset());
+            Exp parSrc = Call.getParamAtIndex(++i);
+            prog.addInstruction(new Mov(parSrc, parLocal));
+        }
         return null;
     }
 
     @Override
     public Void visit(CfgExitNode node) {
-        // TODO Auto-generated method stub
+        // TODO return value
+        
+        // Get current method descriptor
+        MethodDescriptor methodDesc;
+        try {
+            methodDesc = (MethodDescriptor) table.get(currentMethod);
+        } catch (KeyNotFoundException e) { 
+            throw new Error("unexpected error");
+        }
+        
+        // Return 0 on main successful exit
+        if (methodDesc.getId().equals("main")) {
+            prog.addInstruction(new Mov(new Literal(0), new Register(Register.Registers.rax)));
+        }
+        
+        // Return to caller
+        prog.addInstruction(new Leave());
+        prog.addInstruction(new Return());
+        
         return null;
     }
 
     @Override
     public Void visit(CfgStatement node) {
-        // TODO Auto-generated method stub
+        
+        IrStatement stat = node.getStatement();
+        List<LIR> instructions = stat.accept(instructionAssembler);
+        
+        if (instructions == null) {
+            return null;
+        }
+        
+        for (LIR instr : instructions) {
+            if (instr.isString()) {
+                this.prog.addString((StringLiteral)instr);
+            } else {
+                this.prog.addInstruction(instr);
+            }
+        }
+        
         return null;
     }
 

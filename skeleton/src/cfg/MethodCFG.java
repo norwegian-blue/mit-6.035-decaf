@@ -1,12 +1,10 @@
 package cfg;
 
-import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
 import cfg.Nodes.*;
 import codegen.*;
-import codegen.Instructions.*;
 import ir.Declaration.IrVariableDeclaration;
 import semantic.*;
 

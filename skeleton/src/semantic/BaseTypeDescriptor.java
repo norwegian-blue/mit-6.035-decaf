@@ -31,7 +31,8 @@ public class BaseTypeDescriptor extends TypeDescriptor {
         int size;
         switch (this.typeName) {
         case "BOOL":
-            size = 1;
+            // TODO check if possible to use just 1 Byte
+            size = 8;
             break;
         case "INT":
             size = 8;

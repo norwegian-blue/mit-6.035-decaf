@@ -7,7 +7,7 @@ public class Leave extends LIR {
 
     @Override
     public String toCode() {
-        return "leave";
+        return "\tleave";
     }
 
 }

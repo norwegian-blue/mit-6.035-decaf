@@ -11,5 +11,9 @@ public abstract class LIR {
     public boolean isLabel() {
         return false;
     }
+    
+    public boolean isString() {
+        return false;
+    }
 
 }

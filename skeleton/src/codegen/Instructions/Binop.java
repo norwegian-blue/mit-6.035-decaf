@@ -6,9 +6,9 @@ package codegen.Instructions;
 
 public class Binop extends LIR {
     
-    private static Exp lhs;
-    private static Exp rhs;
-    private static BinOperator operator;
+    private Exp lhs;
+    private Exp rhs;
+    private BinOperator operator;
     
     public enum BinOperator {
         PLUS,
@@ -21,17 +21,10 @@ public class Binop extends LIR {
         this.operator = operator;
         
     }
-    
-    @Override
-    public String toString() {
-        // TODO 
-        return null;
-    }
-
+   
     @Override
     public String toCode() {
-        // TODO Auto-generated method stub
-        return null;
+        return "\tadd\t" + lhs.toCode() + ", " + rhs.toCode();
     }
 
 }

@@ -14,7 +14,7 @@ public class IrStringLiteral extends IrLiteral {
     }
     
     public String eval() {
-        return this.value;
+        return this.value.substring(1, this.value.length()-1);
     }
     
     @Override
@@ -26,4 +26,5 @@ public class IrStringLiteral extends IrLiteral {
     public String toString() {
         return this.value.replaceAll("\\%", "\\%\\%");
     }
+    
 }
