@@ -55,9 +55,11 @@ public class InstructionAssembler implements IrVisitor<List<LIR>> {
     public List<LIR> visit(IrBinaryExpression node) {
         List<LIR> instrList = new ArrayList<LIR>();
         
+        // Assemble left & right hand sides
         List<LIR> lhs = node.getLHS().accept(this);
         List<LIR> rhs = node.getRHS().accept(this);
         
+        // Move operands to registers %r10 and %r11
         Exp lhsSrc = (Exp) lhs.get(0);
         Exp rhsSrc = (Exp) rhs.get(0);
         Exp lhsDst = new Register(Register.Registers.r10);
@@ -65,7 +67,9 @@ public class InstructionAssembler implements IrVisitor<List<LIR>> {
         
         instrList.add(new Mov(lhsSrc, lhsDst));
         instrList.add(new Mov(rhsSrc, rhsDst));
-        instrList.add(new Binop(Binop.BinOperator.PLUS, lhsDst, rhsDst));
+        
+        // Do arithmetics and store results in %r11
+        instrList.add(new Binop(node.getOp(), lhsDst, rhsDst));
         
         return instrList;
     }
@@ -108,6 +112,7 @@ public class InstructionAssembler implements IrVisitor<List<LIR>> {
     public List<LIR> visit(IrIdentifier node) {
         List<LIR> instrList = new ArrayList<LIR>();
         if (node.isArrayElement()) {
+            // TODO handle array
             return null;
         } else {
             Descriptor nodeDesc;
@@ -171,7 +176,13 @@ public class InstructionAssembler implements IrVisitor<List<LIR>> {
         Exp dst;
         if (node.getLocation().isAtom()) {
             dst = (Exp) destList.get(destList.size()-1);
-            instrList.add(new Mov(src, dst));
+            
+            if (node.getExpression().isAtom()) {
+                instrList.add(new Mov(src, new Register(Register.Registers.r11)));
+                instrList.add(new Mov(new Register(Register.Registers.r11), dst));
+            } else {
+                instrList.add(new Mov(src, dst));
+            }   
         }
         
         return instrList;

@@ -69,7 +69,7 @@ public class CodeGenerator implements NodeVisitor<Void> {
             }
             stackTop += parDesc.getSize();
         }
-        
+               
         // Assign storage for locals
         for (LocalDescriptor local : methodDesc.getLocals()) {
             try {
@@ -79,7 +79,7 @@ public class CodeGenerator implements NodeVisitor<Void> {
             }
             stackTop += local.getSize();
         }
-        
+
         // Preamble
         prog.addInstruction(new NewLine());
         if (methodDesc.getId().equals("main")) {

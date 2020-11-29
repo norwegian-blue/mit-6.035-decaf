@@ -142,7 +142,7 @@ class Main {
                 
                 // Rename to unique identifiers
                 program.accept(new IrRenamer());    
-                assert(program.accept(check));
+                program.accept(check);
                 if (CLI.debug) {
                     Ir.setTreePrint(false);
                     System.out.println("################# Variable renaming (no duplicate names) #################");
