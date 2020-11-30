@@ -15,6 +15,11 @@ public class BinOp extends LIR {
         this.operation = operation;
         
     }
+    
+    @Override
+    public String toString() {
+        return operation + "\t" + lhs.toString() + ", " + rhs.toString();
+    }
    
     @Override
     public String toCode() {

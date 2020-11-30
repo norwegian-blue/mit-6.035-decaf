@@ -114,6 +114,7 @@ public class InstructionAssembler implements IrVisitor<List<LIR>> {
             throw new Error("Unrecognized operation");
         }
         
+        instrList.add(r11);
         return instrList;
     }
 
@@ -159,18 +160,24 @@ public class InstructionAssembler implements IrVisitor<List<LIR>> {
     @Override
     public List<LIR> visit(IrIdentifier node) {
         List<LIR> instrList = new ArrayList<LIR>();
-        if (node.isArrayElement()) {
-            // TODO handle array
-            return null;
+
+        Descriptor nodeDesc;
+
+        try {
+            nodeDesc = table.get(node.getId());
+        } catch (KeyNotFoundException e) {
+            throw new Error("Unexpected exception");
+        }
+        
+        // Handle array element
+        if (!node.isArrayElement()) {
+            instrList.add(new Local(nodeDesc.getOffset()));
         } else {
-            Descriptor nodeDesc;
-            try {
-                nodeDesc = table.get(node.getId());
-                instrList.add(new Local(nodeDesc.getOffset()));
-            } catch (KeyNotFoundException e) {
-                throw new Error("Unexpected exception");
-            }
+            Exp ind = (Exp)node.getInd().accept(this).get(0);
+            instrList.add(new Mov(ind, Register.r11()));
+            instrList.add(new Global(nodeDesc.getId(), Register.r11()));
         }  
+        
         return instrList;
     }
 
@@ -226,37 +233,30 @@ public class InstructionAssembler implements IrVisitor<List<LIR>> {
     @Override
     public List<LIR> visit(IrAssignment node) {
         
-        // TODO support increase/decrease
         List<LIR> instrList = new ArrayList<LIR>();
         
         List<LIR> expList = node.getExpression().accept(this);
         List<LIR> destList = node.getLocation().accept(this);
         
-        // Source --> either a value or the result of an operation (stored in r11)
+        // Source
         Exp src;
-        if (node.getExpression().isAtom()) {
-            src = (Exp) expList.get(expList.size()-1);
-        } else {
-            for (LIR inst : expList) {
-                instrList.add(inst);
+        src = (Exp) expList.get(expList.size()-1);
+        if (!node.getExpression().isAtom()) {
+            for (int i = 0; i < expList.size()-1; i++) {
+                instrList.add(expList.get(i));
             }
-            src = Register.r11();
         }
+        instrList.add(new Mov(src, Register.r10()));
         
         // Assign to local or global (array) 
-        Exp dst;
-        if (node.getLocation().isAtom()) {
-            dst = (Exp) destList.get(destList.size()-1);
-            
-            if (node.getExpression().isAtom()) {
-                instrList.add(new Mov(src, Register.r11()));
-                instrList.add(new Mov(Register.r11(), dst));
-            } else {
-                instrList.add(new Mov(src, dst));
-            }   
+        Exp dst = (Exp) destList.get(destList.size()-1);
+        if (!node.getLocation().isAtom()) {
+            for (int i = 0; i < destList.size()-1; i++) {
+                instrList.add(destList.get(i));
+            }
         }
-        // TODO support array assignment
-        
+        instrList.add(new Mov(Register.r10(), dst));
+    
         return instrList;
     }
 

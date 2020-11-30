@@ -12,6 +12,11 @@ public class Mov extends LIR {
         this.src = src;
         this.dest = dest;
     }
+    
+    @Override
+    public String toString() {
+        return "move\t" + src.toString() + ", " + dest.toString();
+    }
 
     @Override
     public String toCode() {

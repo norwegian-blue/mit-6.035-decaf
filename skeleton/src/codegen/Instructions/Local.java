@@ -14,7 +14,8 @@ public class Local extends Exp {
     
     @Override
     public String toString() {
-        return "BP + " + offset;
+        String sign = (offset>0) ? "+" : "";
+        return "BP" + sign + offset;
     }
     
     @Override
