@@ -12,5 +12,10 @@ public class FieldDescriptor extends Descriptor {
     @Override
     public String toString() {
         return "[FIELD] " + this.type.toString() + " " + this.name; 
-    }    
+    }  
+    
+    @Override
+    public boolean isGlobal() {
+        return true;
+    }
 }

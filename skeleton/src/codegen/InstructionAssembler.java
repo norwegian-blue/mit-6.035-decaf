@@ -170,9 +170,14 @@ public class InstructionAssembler implements IrVisitor<List<LIR>> {
             throw new Error("Unexpected exception");
         }
         
+        
         // Handle array element
         if (!node.isArrayElement()) {
-            instrList.add(new Local(nodeDesc.getOffset()));
+            if (nodeDesc.isGlobal()) {
+                instrList.add(new Global(nodeDesc.getId()));
+            } else {
+                instrList.add(new Local(nodeDesc.getOffset()));
+            }
         } else {
             Exp ind = (Exp)node.getInd().accept(this).get(0);
             instrList.add(new Mov(ind, Register.r11()));

@@ -126,7 +126,7 @@ public class CFGCreator implements IrVisitor<DestructNodes> {
     // Statements
 
     @Override
-    public DestructNodes visit(IrAssignment node) {
+    public DestructNodes visit(IrAssignment node) {       
         return new DestructNodes(new CfgStatement(node));
     }
 

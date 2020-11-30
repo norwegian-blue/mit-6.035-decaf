@@ -17,9 +17,18 @@ public class Global extends Exp {
         this.offset = new Literal(0);
     }
     
+    // Global array
     public Global(String name, Exp offset) {
         this.name = name;
         this.offset = offset;
+        this.elSize = 0;
+        this.lenght = 0;
+    }
+    
+    // Global scalar
+    public Global(String name) {
+        this.name = name;
+        this.offset = null;
         this.elSize = 0;
         this.lenght = 0;
     }
@@ -31,7 +40,11 @@ public class Global extends Exp {
     
     @Override
     public String toCode() {
-        return name + "(, " + offset.toCode() + ", 8)";
+        if (this.offset == null) {
+            return name + "(%rip)";
+        } else {
+            return name + "(, " + offset.toCode() + ", 8)";
+        }
     }
     
     public String toAllocation() {

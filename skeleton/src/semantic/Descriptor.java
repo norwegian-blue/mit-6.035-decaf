@@ -51,5 +51,9 @@ public abstract class Descriptor {
     public int getOffset() {
         return this.offset;
     }
+    
+    public boolean isGlobal() {
+        return false;
+    }
 
 }

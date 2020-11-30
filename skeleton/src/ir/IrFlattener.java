@@ -154,6 +154,27 @@ public class IrFlattener implements IrVisitor<DestructIr> {
     @Override
     public DestructIr visit(IrAssignment node) {
         
+        // Break down INC / DEC assignments
+        if (node.getOp() == IrAssignment.IrAssignmentOp.INC) {
+            IrExpression newExp = new IrBinaryExpression(IrBinaryExpression.BinaryOperator.PLUS,
+                                                         node.getLocation(),
+                                                         node.getExpression());
+            newExp.setExpType(node.getExpression().getExpType());
+            IrAssignment newAssign = new IrAssignment(node.getLocation(),
+                                                      IrAssignment.IrAssignmentOp.ASSIGN,
+                                                      newExp);
+            return newAssign.accept(this);
+        } else if (node.getOp() == IrAssignment.IrAssignmentOp.DEC) {
+            IrExpression newExp = new IrBinaryExpression(IrBinaryExpression.BinaryOperator.MINUS,
+                                                         node.getLocation(),
+                                                         node.getExpression());
+            newExp.setExpType(node.getExpression().getExpType());
+            IrAssignment newAssign = new IrAssignment(node.getLocation(),
+                                                      IrAssignment.IrAssignmentOp.ASSIGN,
+                                                      newExp);
+            return newAssign.accept(this);
+        }
+        
         // Destruct location and assign expression
         DestructIr locationDestruct = node.getLocation().accept(this);
         DestructIr expDestruct = node.getExpression().accept(this);
