@@ -28,7 +28,7 @@ public class Call extends LIR {
         case 6:
             return Register.r9();
         default:
-            return new Local((i-6)*8);
+            return new Local(8+(i-6)*8);
         }
     }
     

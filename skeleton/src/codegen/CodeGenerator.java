@@ -102,7 +102,7 @@ public class CodeGenerator implements NodeVisitor<Void> {
         // Assign storage for parameters
         for (ParameterDescriptor parDesc : methodDesc.getPars()) {
             try {
-                table.get(parDesc.getId()).setOffset(stackTop);
+                table.get(parDesc.getId()).setOffset(-stackTop);
             } catch (KeyNotFoundException e) {
                 throw new Error("unexpected error");
             }
@@ -112,7 +112,7 @@ public class CodeGenerator implements NodeVisitor<Void> {
         // Assign storage for locals
         for (LocalDescriptor local : methodDesc.getLocals()) {
             try {
-                table.get(local.getId()).setOffset(stackTop);
+                table.get(local.getId()).setOffset(-stackTop);
             } catch (KeyNotFoundException e) {
                 throw new Error("unexpected error");
             }
@@ -144,7 +144,6 @@ public class CodeGenerator implements NodeVisitor<Void> {
 
     @Override
     public Void visit(CfgExitNode node) {
-        // TODO return value
         
         // Get current method descriptor
         MethodDescriptor methodDesc;
@@ -154,9 +153,13 @@ public class CodeGenerator implements NodeVisitor<Void> {
             throw new Error("unexpected error");
         }
         
-        // Return 0 on main successful exit
+        // Return 0 on main successful exit or return value if needed
         if (methodDesc.getId().equals("main")) {
             prog.addInstruction(new Mov(new Literal(0), Register.rax()));
+        } else if (node.returnsExp()) {
+            List<LIR> instructions = node.getReturnExp().accept(instructionAssembler);
+            Exp src = (Exp)instructions.get(0);
+            prog.addInstruction(new Mov(src, Register.rax()));
         }
         
         // Return to caller

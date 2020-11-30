@@ -15,9 +15,11 @@ public class CFGCreator implements IrVisitor<DestructNodes> {
     
     private Stack<Node> loopContinue = new Stack<Node>();
     private Stack<Node> loopEnd = new Stack<Node>();
-    private static List<IrVariableDeclaration> locals = new ArrayList<IrVariableDeclaration>();
+    private static List<IrVariableDeclaration> locals;
     
     public static MethodCFG BuildMethodCFG(IrMethodDeclaration method) {
+        
+        locals = new ArrayList<IrVariableDeclaration>();
         CFGCreator creator = new CFGCreator();
         Node root = method.accept(creator).getBeginNode(); 
         

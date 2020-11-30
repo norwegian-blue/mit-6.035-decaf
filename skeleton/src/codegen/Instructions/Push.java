@@ -13,6 +13,6 @@ public class Push extends LIR {
     
     @Override
     public String toCode() {
-        return "\tpush\t" + exp.toCode();
+        return "\tpushq\t" + exp.toCode();
     }
 }

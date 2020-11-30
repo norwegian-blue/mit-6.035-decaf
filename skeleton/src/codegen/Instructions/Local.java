@@ -19,7 +19,7 @@ public class Local extends Exp {
     
     @Override
     public String toCode() {
-        return "-" + offset + "(%rbp)";
+        return offset + "(%rbp)";
     }
     
 }

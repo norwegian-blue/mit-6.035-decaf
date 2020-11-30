@@ -109,7 +109,7 @@ public class IrFlattener implements IrVisitor<DestructIr> {
         DestructIr callDestruct = new DestructIr(node);
         int i = 0;
         
-        // Destruct and atomize arguments
+        // Destruct and atomize arguments   
         for (IrExpression arg : node.getArgs()) {
             // Destruct argument
             DestructIr argDestruct = arg.accept(this);
@@ -122,6 +122,8 @@ public class IrFlattener implements IrVisitor<DestructIr> {
             i++;
         }
         
+        DestructIr updatedCall = new DestructIr(node);
+        callDestruct = mergeDestructs(callDestruct, updatedCall);
         return callDestruct;
     }
 

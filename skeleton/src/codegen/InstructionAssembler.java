@@ -226,7 +226,7 @@ public class InstructionAssembler implements IrVisitor<List<LIR>> {
     @Override
     public List<LIR> visit(IrAssignment node) {
         
-        // TODO support different assignments
+        // TODO support increase/decrease
         List<LIR> instrList = new ArrayList<LIR>();
         
         List<LIR> expList = node.getExpression().accept(this);
@@ -255,6 +255,7 @@ public class InstructionAssembler implements IrVisitor<List<LIR>> {
                 instrList.add(new Mov(src, dst));
             }   
         }
+        // TODO support array assignment
         
         return instrList;
     }
@@ -310,7 +311,7 @@ public class InstructionAssembler implements IrVisitor<List<LIR>> {
                 instrList.add(src);
             }
 
-            if (i < 6) {    // Move to register
+            if (i <= 6) {    // Move to register
                 Exp dst = Call.getParamAtIndex(i);
                 instrList.add(new Mov(src, dst));
             } else {        // Move to stack
