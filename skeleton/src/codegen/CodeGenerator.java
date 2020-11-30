@@ -45,9 +45,10 @@ public class CodeGenerator implements NodeVisitor<Void> {
         // Do not label if first
         if (!isFirst) {
             prog.addInstruction(new Label(node.getBlockName()));
+        } else {
+            isFirst = false;
         }        
-        isFirst = false;
-        
+
         // Assemble operations
         for (Node atomNode : node.getBlockNodes()) {
             atomNode.accept(this);
@@ -61,7 +62,9 @@ public class CodeGenerator implements NodeVisitor<Void> {
             prog.addInstruction(new Comp(new Register(Register.Registers.r10), new Register(Register.Registers.r11)));
             prog.addInstruction(new Jump(trueBlock.getBlockName(), "eq"));
             falseBlock.accept(this);
-            trueBlock.accept(this);
+            if (!trueBlock.isVisited()){
+                trueBlock.accept(this);
+            }
         } else if (node.hasNext()) {
             CfgBlock nextBlock = node.getNextBlock();
             nextBlock.accept(this);

@@ -253,7 +253,7 @@ public class CFGCreator implements IrVisitor<DestructNodes> {
             
             CfgCondBranch b2 = shortCircuit(c2, trueBranch, falseBranch);
             DestructNodes B2 = new DestructNodes(b2);
-            branch = shortCircuit(c1, B2, trueBranch);
+            branch = shortCircuit(c1, trueBranch, B2);
             
         } else if (cond.isNotExp()) {
             IrExpression c = ((IrUnaryExpression)cond).getExp();
