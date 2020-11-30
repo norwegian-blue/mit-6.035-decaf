@@ -146,6 +146,7 @@ public class InstructionAssembler implements IrVisitor<List<LIR>> {
                 
         // Call function
         instrList.add(new Call(calloutName));
+        instrList.add(Register.r11());
         
         return instrList;
     }
@@ -192,6 +193,7 @@ public class InstructionAssembler implements IrVisitor<List<LIR>> {
                 
         // Call function
         instrList.add(new Call(methodName));
+        instrList.add(Register.r11());
         
         return instrList;
     }
@@ -287,7 +289,9 @@ public class InstructionAssembler implements IrVisitor<List<LIR>> {
 
     @Override
     public List<LIR> visit(IrInvokeStatement node) {
-        return node.getMethod().accept(this);
+        List<LIR> invokeList = node.getMethod().accept(this);
+        invokeList.remove(invokeList.size()-1);
+        return invokeList;
     }
 
     @Override

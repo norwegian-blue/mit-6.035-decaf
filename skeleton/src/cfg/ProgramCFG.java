@@ -10,6 +10,7 @@ import ir.Declaration.*;
 import semantic.DuplicateKeyException;
 import semantic.FieldDescriptor;
 import semantic.SymbolTable;
+import semantic.TypeDescriptor;
 
 /**
  * @author Nicola
@@ -49,7 +50,7 @@ public class ProgramCFG {
         
         // Add globals
         for (IrFieldDeclaration glb : globals) {
-            prog.addGlobal(new Global(glb.getId(), glb.getType().getSize()));
+            prog.addGlobal(new Global(glb.getId(), glb.getType().getLength(), glb.getType().getSize()));
             try {
                 table.put(glb.getId(), new FieldDescriptor(glb.getId(), glb.getType()));
             } catch (DuplicateKeyException e) {

@@ -77,6 +77,7 @@ public class CodeGenerator implements NodeVisitor<Void> {
         
         IrExpression exp = node.getCond();
         List<LIR> instructions = exp.accept(instructionAssembler);
+        instructions.remove(instructions.size()-1);
         
         for (LIR instr : instructions) {
             this.prog.addInstruction(instr);

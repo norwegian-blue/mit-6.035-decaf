@@ -6,19 +6,22 @@ package codegen.Instructions;
 public class Global extends Exp {
 
     private final String name;
-    private final int size;
+    private final int lenght;
+    private final int elSize;
     private final Exp offset;
     
-    public Global(String name, int size) {
+    public Global(String name, int lenght, int elSize) {
         this.name = name;
-        this.size = size;
+        this.elSize = elSize;
+        this.lenght = lenght;
         this.offset = new Literal(0);
     }
     
     public Global(String name, Exp offset) {
         this.name = name;
         this.offset = offset;
-        this.size = 0;
+        this.elSize = 0;
+        this.lenght = 0;
     }
     
     @Override
@@ -32,7 +35,7 @@ public class Global extends Exp {
     }
     
     public String toAllocation() {
-        return ".comm\t" + name + ", " + size + ", 8";
+        return ".comm\t" + name + ", " + lenght + ", 8";
     }
 
 }
