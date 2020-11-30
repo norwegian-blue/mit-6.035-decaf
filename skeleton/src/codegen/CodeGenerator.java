@@ -58,8 +58,8 @@ public class CodeGenerator implements NodeVisitor<Void> {
         if (node.isFork()) {
             CfgBlock trueBlock = node.getTrueBlock();
             CfgBlock falseBlock = node.getFalseBlock();
-            prog.addInstruction(new Mov(new Literal(1), new Register(Register.Registers.r10)));
-            prog.addInstruction(new Comp(new Register(Register.Registers.r10), new Register(Register.Registers.r11)));
+            prog.addInstruction(new Mov(new Literal(1), Register.r10()));
+            prog.addInstruction(new Comp(Register.r10(), Register.r11()));
             prog.addInstruction(new Jump(trueBlock.getBlockName(), "eq"));
             falseBlock.accept(this);
             if (!trueBlock.isVisited()){
@@ -132,7 +132,12 @@ public class CodeGenerator implements NodeVisitor<Void> {
         for (ParameterDescriptor par : methodDesc.getPars()) {
             Local parLocal = new Local(par.getOffset());
             Exp parSrc = Call.getParamAtIndex(++i);
-            prog.addInstruction(new Mov(parSrc, parLocal));
+            if (parSrc.isReg()) {
+                prog.addInstruction(new Mov(parSrc, parLocal));
+            } else {
+                prog.addInstruction(new Mov(parSrc, Register.r11()));
+                prog.addInstruction(new Mov(Register.r11(), parLocal));
+            }
         }
         return null;
     }
@@ -151,7 +156,7 @@ public class CodeGenerator implements NodeVisitor<Void> {
         
         // Return 0 on main successful exit
         if (methodDesc.getId().equals("main")) {
-            prog.addInstruction(new Mov(new Literal(0), new Register(Register.Registers.rax)));
+            prog.addInstruction(new Mov(new Literal(0), Register.rax()));
         }
         
         // Return to caller

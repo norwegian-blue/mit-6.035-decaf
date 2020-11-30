@@ -16,17 +16,17 @@ public class Call extends LIR {
     public static Exp getParamAtIndex(int i) {
         switch (i) {
         case 1:
-            return new Register(Register.Registers.rdi);
+            return Register.rdi();
         case 2:
-            return new Register(Register.Registers.rsi);
+            return Register.rsi();
         case 3:
-            return new Register(Register.Registers.rdx);
+            return Register.rdx();
         case 4:
-            return new Register(Register.Registers.rcx);
+            return Register.rcx();
         case 5:
-            return new Register(Register.Registers.r8);
+            return Register.r8();
         case 6:
-            return new Register(Register.Registers.r9);
+            return Register.r9();
         default:
             return new Local((i-6)*8);
         }

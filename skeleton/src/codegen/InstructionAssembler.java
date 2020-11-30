@@ -55,8 +55,8 @@ public class InstructionAssembler implements IrVisitor<List<LIR>> {
     @Override
     public List<LIR> visit(IrBinaryExpression node) {
         List<LIR> instrList = new ArrayList<LIR>();
-        Register r10 = new Register(Register.Registers.r10);
-        Register r11 = new Register(Register.Registers.r11);
+        Register r10 = Register.r10();
+        Register r11 = Register.r11();
         
         // Assemble left & right hand sides
         List<LIR> lhs = node.getLHS().accept(this);
@@ -83,14 +83,14 @@ public class InstructionAssembler implements IrVisitor<List<LIR>> {
             break;
         case DIVIDE:
         case MOD:
-            instrList.add(new Mov(new Literal(0), new Register(Register.Registers.rdx)));
-            instrList.add(new Mov(r10, new Register(Register.Registers.rax)));
+            instrList.add(new Mov(new Literal(0), Register.rdx()));
+            instrList.add(new Mov(r10, Register.rax()));
             instrList.add(new Command("cqto"));
             instrList.add(new UnOp("idiv", r11));
             if (node.getOp().equals(BinaryOperator.DIVIDE)) {
-                instrList.add(new Mov(new Register(Register.Registers.rax), r11));
+                instrList.add(new Mov(Register.rax(), r11));
             }else {
-                instrList.add(new Mov(new Register(Register.Registers.rdx), r11));
+                instrList.add(new Mov(Register.rdx(), r11));
             }
             break;
         case AND:
@@ -137,7 +137,7 @@ public class InstructionAssembler implements IrVisitor<List<LIR>> {
         
         // Set %rax to 0 if calling printf function
         if (calloutName.equals("printf")) {
-            instrList.add(new Mov(new Literal(0), new Register(Register.Registers.rax)));
+            instrList.add(new Mov(new Literal(0), Register.rax()));
         }
         
         // Prepare arguments
@@ -192,7 +192,7 @@ public class InstructionAssembler implements IrVisitor<List<LIR>> {
     @Override
     public List<LIR> visit(IrUnaryExpression node) {
         List<LIR> instrList = new ArrayList<LIR>();
-        Register r11 = new Register(Register.Registers.r11);
+        Register r11 = Register.r11();
         
         // Assemble right hand sides
         List<LIR> exp = node.getExp().accept(this);
@@ -240,7 +240,7 @@ public class InstructionAssembler implements IrVisitor<List<LIR>> {
             for (LIR inst : expList) {
                 instrList.add(inst);
             }
-            src = new Register(Register.Registers.r11);
+            src = Register.r11();
         }
         
         // Assign to local or global (array) 
@@ -249,8 +249,8 @@ public class InstructionAssembler implements IrVisitor<List<LIR>> {
             dst = (Exp) destList.get(destList.size()-1);
             
             if (node.getExpression().isAtom()) {
-                instrList.add(new Mov(src, new Register(Register.Registers.r11)));
-                instrList.add(new Mov(new Register(Register.Registers.r11), dst));
+                instrList.add(new Mov(src, Register.r11()));
+                instrList.add(new Mov(Register.r11(), dst));
             } else {
                 instrList.add(new Mov(src, dst));
             }   
