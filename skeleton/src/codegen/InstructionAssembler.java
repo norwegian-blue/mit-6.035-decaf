@@ -7,6 +7,7 @@ import codegen.Instructions.*;
 import ir.IrVisitor;
 import ir.Declaration.*;
 import ir.Expression.*;
+import ir.Expression.IrBinaryExpression.BinaryOperator;
 import ir.Statement.*;
 import semantic.Descriptor;
 import semantic.KeyNotFoundException;
@@ -54,6 +55,8 @@ public class InstructionAssembler implements IrVisitor<List<LIR>> {
     @Override
     public List<LIR> visit(IrBinaryExpression node) {
         List<LIR> instrList = new ArrayList<LIR>();
+        Register r10 = new Register(Register.Registers.r10);
+        Register r11 = new Register(Register.Registers.r11);
         
         // Assemble left & right hand sides
         List<LIR> lhs = node.getLHS().accept(this);
@@ -62,22 +65,67 @@ public class InstructionAssembler implements IrVisitor<List<LIR>> {
         // Move operands to registers %r10 and %r11
         Exp lhsSrc = (Exp) lhs.get(0);
         Exp rhsSrc = (Exp) rhs.get(0);
-        Exp lhsDst = new Register(Register.Registers.r10);
-        Exp rhsDst = new Register(Register.Registers.r11);
         
-        instrList.add(new Mov(lhsSrc, lhsDst));
-        instrList.add(new Mov(rhsSrc, rhsDst));
+        instrList.add(new Mov(lhsSrc, r10));
+        instrList.add(new Mov(rhsSrc, r11));
         
-        // Do arithmetics and store results in %r11
-        instrList.add(new Binop(node.getOp(), lhsDst, rhsDst));
+        // Do arithmetics and store results in %r11        
+        switch (node.getOp()) {
+        case PLUS:           
+            instrList.add(new BinOp("add", r10, r11));
+            break;
+        case MINUS:
+            instrList.add(new BinOp("sub", r11, r10));
+            instrList.add(new Mov(r10, r11));
+            break;
+        case TIMES:
+            instrList.add(new BinOp("imul", r10, r11));
+            break;
+        case DIVIDE:
+        case MOD:
+            instrList.add(new Mov(new Literal(0), new Register(Register.Registers.rdx)));
+            instrList.add(new Mov(r10, new Register(Register.Registers.rax)));
+            instrList.add(new Command("cqto"));
+            instrList.add(new UnOp("idiv", r11));
+            if (node.getOp().equals(BinaryOperator.DIVIDE)) {
+                instrList.add(new Mov(new Register(Register.Registers.rax), r11));
+            }else {
+                instrList.add(new Mov(new Register(Register.Registers.rdx), r11));
+            }
+            break;
+        case AND:
+            instrList.add(new BinOp("and", r10, r11));
+            break;
+        case OR:
+            instrList.add(new BinOp("or", r10, r11));
+            break;
+        case GT:
+        case LT:
+        case GE:
+        case LE:
+        case EQ:
+        case NEQ:
+            instrList.add(new Comp(r11, r10));
+            instrList.add(new Mov(new Literal(1), r10));
+            instrList.add(new Mov(new Literal(0), r11));
+            instrList.add(new CMov(node.getOp(), r10, r11));
+            break;
+        default:
+            throw new Error("Unrecognized operation");
+        }
         
         return instrList;
     }
 
     @Override
     public List<LIR> visit(IrBooleanLiteral node) {
-        // TODO Auto-generated method stub
-        return null;
+        List<LIR> instrList = new ArrayList<LIR>();
+        if (node.eval()) {
+            instrList.add(new Literal(1));
+        } else {
+            instrList.add(new Literal(0));
+        }
+        return instrList;
     }
 
     @Override
@@ -143,8 +191,29 @@ public class InstructionAssembler implements IrVisitor<List<LIR>> {
 
     @Override
     public List<LIR> visit(IrUnaryExpression node) {
-        // TODO Auto-generated method stub
-        return null;
+        List<LIR> instrList = new ArrayList<LIR>();
+        Register r11 = new Register(Register.Registers.r11);
+        
+        // Assemble right hand sides
+        List<LIR> exp = node.getExp().accept(this);
+        
+        // Move operand to registers %r11
+        Exp expSrc = (Exp) exp.get(0);
+        instrList.add(new Mov(expSrc, r11));
+        
+        // Do arithmetics and store results in %r11        
+        switch (node.getOp()) {
+        case MINUS:
+            instrList.add(new UnOp("neg", r11));
+            break;
+        case NOT:
+            instrList.add(new BinOp("xorq", new Literal(1), r11));
+            break;
+        default:
+            throw new Error("Unexpected operator");
+        }
+        
+        return instrList;
     }
 
     @Override
@@ -156,6 +225,8 @@ public class InstructionAssembler implements IrVisitor<List<LIR>> {
 
     @Override
     public List<LIR> visit(IrAssignment node) {
+        
+        // TODO support different assignments
         List<LIR> instrList = new ArrayList<LIR>();
         
         List<LIR> expList = node.getExpression().accept(this);

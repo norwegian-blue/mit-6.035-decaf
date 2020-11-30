@@ -55,27 +55,27 @@ public class CfgBlock extends Node {
         return lastNode.hasNext();
     }
     
-    public Node getNextBlock() {
+    public CfgBlock getNextBlock() {
         if (this.isFork()) {
             throw new Error("not supported for fork blocks");
         } else {
-            return this.getLastNode().getNextBranch().getParentBlock();
+            return (CfgBlock)this.getLastNode().getNextBranch().getParentBlock();
         }
     }
     
-    public Node getTrueBlock() {
+    public CfgBlock getTrueBlock() {
         if (!this.isFork()) {
             throw new Error("not supported for line blocks");
         } else {
-            return this.getLastNode().getTrueBranch().getParentBlock();
+            return (CfgBlock)this.getLastNode().getTrueBranch().getParentBlock();
         }
     }
     
-    public Node getFalseBlock() {
+    public CfgBlock getFalseBlock() {
         if (!this.isFork()) {
             throw new Error("not supported for line blocks");
         } else {
-            return this.getLastNode().getFalseBranch().getParentBlock();
+            return (CfgBlock)this.getLastNode().getFalseBranch().getParentBlock();
         }
     }
 
@@ -96,11 +96,11 @@ public class CfgBlock extends Node {
     
     @Override
     public String nodeString() {
-        return getBlockName();
+        return "BLOCK " + getBlockName();
     }
     
     public String getBlockName() {
-        return "BLOCK " + blockName;
+        return blockName;
     }
     
     @Override

@@ -6,21 +6,24 @@ package codegen.Instructions;
 
 public class Jump extends LIR {
     
-    // TODO recheck
-    private final Label destLabel;
+    private final String destLabel;
+    private String cond;
     
-    public Jump(Label destLabel) {
+    public Jump(String destLabel, String cond) {
         this.destLabel = destLabel;
+        this.cond = cond;
     }
-    
-    @Override
-    public String toString() {
-        return "JMP -> " + destLabel.toString();
-    }
-    
+        
     @Override
     public String toCode() {
-        return "jmp " + destLabel.toCode();
+        switch (cond) {
+        case "none":
+            return "\tjmp\t" + destLabel;
+        case "eq":
+            return "\tje\t" + destLabel;
+        default:
+            throw new Error("Unsupported condition");
+        }
     }
     
 }

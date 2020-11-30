@@ -4,6 +4,7 @@ import java.util.List;
 
 import cfg.Nodes.*;
 import codegen.Instructions.*;
+import ir.Expression.IrExpression;
 import ir.Statement.*;
 import semantic.KeyNotFoundException;
 import semantic.LocalDescriptor;
@@ -21,28 +22,63 @@ public class CodeGenerator implements NodeVisitor<Void> {
     private SymbolTable table;
     private String currentMethod;
     private InstructionAssembler instructionAssembler;
+    private boolean isFirst;
     
     public CodeGenerator(AssemblyProgram prog, SymbolTable table, String currentMethod) {
         this.prog = prog;
         this.table = table;
         this.currentMethod = currentMethod;
         this.instructionAssembler = new InstructionAssembler(table, currentMethod);
+        isFirst = true;
     }
 
     @Override
     public Void visit(CfgBlock node) {
         
+        // Skip if visited already
+        if (node.isVisited()) {
+            prog.addInstruction(new Jump(node.getBlockName(), "none"));
+            return null;
+        }
+        node.visit();
+        
+        // Do not label if first
+        if (!isFirst) {
+            prog.addInstruction(new Label(node.getBlockName()));
+        }        
+        isFirst = false;
+        
+        // Assemble operations
         for (Node atomNode : node.getBlockNodes()) {
             atomNode.accept(this);
         }
         
-        // TODO Handle out transition
+        // Handle transition
+        if (node.isFork()) {
+            CfgBlock trueBlock = node.getTrueBlock();
+            CfgBlock falseBlock = node.getFalseBlock();
+            prog.addInstruction(new Mov(new Literal(1), new Register(Register.Registers.r10)));
+            prog.addInstruction(new Comp(new Register(Register.Registers.r10), new Register(Register.Registers.r11)));
+            prog.addInstruction(new Jump(trueBlock.getBlockName(), "eq"));
+            falseBlock.accept(this);
+            trueBlock.accept(this);
+        } else if (node.hasNext()) {
+            CfgBlock nextBlock = node.getNextBlock();
+            nextBlock.accept(this);
+        }
         return null;
     }
 
     @Override
     public Void visit(CfgCondBranch node) {
-        // TODO Auto-generated method stub
+        
+        IrExpression exp = node.getCond();
+        List<LIR> instructions = exp.accept(instructionAssembler);
+        
+        for (LIR instr : instructions) {
+            this.prog.addInstruction(instr);
+        }
+        
         return null;
     }
 
@@ -142,7 +178,5 @@ public class CodeGenerator implements NodeVisitor<Void> {
         
         return null;
     }
-
-    
     
 }

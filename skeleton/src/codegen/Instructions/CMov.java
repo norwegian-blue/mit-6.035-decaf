@@ -1,23 +1,15 @@
 package codegen.Instructions;
 
+import ir.Expression.IrBinaryExpression.BinaryOperator;
+
 /**
  * @author Nicola
  */
 public class CMov extends Mov {
 
-    private final Condition cond;
-    
-    public static enum Condition {
-        GT,
-        LT,
-        GE,
-        LE,
-        EQ, 
-        NE
-    }
+    private final BinaryOperator cond;
         
-    
-    public CMov(Condition cond, Exp src, Exp dest) {
+    public CMov(BinaryOperator cond, Exp src, Exp dest) {
         super(src, dest);
         this.cond = cond;
     }
@@ -43,13 +35,13 @@ public class CMov extends Mov {
         case EQ:
             sfx = "e";
             break;
-        case NE:
+        case NEQ:
             sfx = "ne";
             break;
         default:
-            throw new Error("Undefined condition");
+            throw new Error("Undefined comparison operator");
         }
         
-        return "cmov" + sfx + "\t" + this.src.toCode() + ", " + this.dest.toCode();
+        return "\tcmov" + sfx + "\t" + this.src.toCode() + ", " + this.dest.toCode();
     }
 }

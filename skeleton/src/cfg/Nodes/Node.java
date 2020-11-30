@@ -10,6 +10,7 @@ import java.util.Set;
 public abstract class Node {
     
     protected static boolean printIr = false;
+    private boolean visited = false;
     
     public static void setPrintIr(boolean print) {
         printIr = print;
@@ -141,5 +142,13 @@ public abstract class Node {
     public void unlock() {};
     
     public abstract <T> T accept(NodeVisitor<T> v);
+    
+    public void visit() {
+        visited = true;
+    }
+    
+    public boolean isVisited() {
+        return visited;
+    }
     
 }
