@@ -146,6 +146,7 @@ public class InstructionAssembler implements IrVisitor<List<LIR>> {
                 
         // Call function
         instrList.add(new Call(calloutName));
+        instrList.add(new Mov(Register.rax(), Register.r11()));
         instrList.add(Register.r11());
         
         return instrList;
@@ -228,6 +229,7 @@ public class InstructionAssembler implements IrVisitor<List<LIR>> {
             throw new Error("Unexpected operator");
         }
         
+        instrList.add(r11);
         return instrList;
     }
 

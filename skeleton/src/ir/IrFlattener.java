@@ -7,6 +7,7 @@ import ir.Declaration.*;
 import ir.Expression.*;
 import ir.Statement.*;
 import ir.Statement.IrAssignment.IrAssignmentOp;
+import semantic.BaseTypeDescriptor;
 
 /**
  * @author Nicola
@@ -177,7 +178,11 @@ public class IrFlattener implements IrVisitor<DestructIr> {
         
         // Destruct location and assign expression
         DestructIr locationDestruct = node.getLocation().accept(this);
-        DestructIr expDestruct = node.getExpression().accept(this);
+        IrExpression exp = node.getExpression();
+        if (exp.getExpType() == BaseTypeDescriptor.undefined) {
+            exp.setExpType(node.getLocation().getExpType());
+        }
+        DestructIr expDestruct = exp.accept(this);
         DestructIr blockDestruct = mergeDestructs(locationDestruct, expDestruct);
         
         // Atomize expression
