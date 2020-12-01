@@ -1,3 +1,4 @@
+class Program {
 int A[100];
 int y;
 void clobbery ( ) {
@@ -5,11 +6,12 @@ void clobbery ( ) {
 }
 void main ( ) {
   int i;
-  for ( i = 0, 30 ) {
+  for i = 0, 30 {
     int j;
-    for ( j = 0, y + 1 ) {
+    for j = 0, y + 1 {
       A[2*i + j] = 1;
       clobbery ( );
     }
   }
+}
 }

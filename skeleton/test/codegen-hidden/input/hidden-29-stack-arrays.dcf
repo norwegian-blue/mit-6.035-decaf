@@ -1,26 +1,26 @@
-callout printf;
+class Program {
+int A[10];
 
 void test(int d)
 {
-  int A[10];
   int i;
 
   if (d == 4) { return ; }
-  for (i = 0, 10)
+  for i = 0, 10 
   {
     A[i] = i % d;  
   }
 
   test(d + 1);
-  printf("result should be: ");
-  for(i = 0, 10 ) {
-    printf ( "%d ", A[i] );
+  callout("printf", "result should be: ");
+  for i = 0, 10 {
+    callout("printf", "%d ", A[i] );
   }
-  printf("\n");
+  callout("printf", "\n");
 }
 
 void main () {
   test(1);
 }
 
-
+}
