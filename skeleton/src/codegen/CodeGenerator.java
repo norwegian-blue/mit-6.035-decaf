@@ -145,6 +145,13 @@ public class CodeGenerator implements NodeVisitor<Void> {
                 prog.addInstruction(new Mov(Register.r11(), parLocal));
             }
         }
+        
+        // Initialize locals to zero
+        for (LocalDescriptor local : methodDesc.getLocals()) {
+            Local varLocal = new Local(local.getOffset());
+            prog.addInstruction(new Mov(new Literal(0), varLocal));
+        }
+        
         return null;
     }
 
