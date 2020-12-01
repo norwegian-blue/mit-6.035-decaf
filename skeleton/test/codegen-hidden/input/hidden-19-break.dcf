@@ -1,11 +1,12 @@
-callout printf;
+class Program {
 void main ( ) {
   int i;
-  for ( i = 1, 10 ) {
+  for i = 1, 10 {
     if ( i == 7 ) {
       break;
     }
-    printf ( "%d ", i );
+    callout("printf", "%d ", i );
   }
-  printf ( "\n" );
+  callout("printf", "\n" );
+}
 }

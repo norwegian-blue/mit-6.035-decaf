@@ -1,14 +1,15 @@
-callout printf;
+class Program {
 void main ( ) {
   int i;
   i = 0;
-  while ( i < 10 ) {
+  for  i = 0 , 10 {
     if ( i == 7 ) {
       i = i + 1;
       continue;
     }
-    printf ( "%d ", i );
+    callout("printf", "%d ", i );
     i = i + 1;
   }
-  printf ( "\n" );
+  callout ("printf", "\n" );
+}
 }
