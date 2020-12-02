@@ -48,7 +48,7 @@ public class Global extends Exp {
     }
     
     public String toAllocation() {
-        return ".comm\t" + name + ", " + lenght + ", 8";
+        return ".comm\t" + name + ", " + lenght*elSize + ", 8";
     }
 
 }
