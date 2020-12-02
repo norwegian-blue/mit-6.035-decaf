@@ -12,7 +12,6 @@ import ir.Statement.*;
 import semantic.Descriptor;
 import semantic.KeyNotFoundException;
 import semantic.SymbolTable;
-import semantic.TypeDescriptor;
 
 /**
  * @author Nicola
@@ -188,7 +187,6 @@ public class InstructionAssembler implements IrVisitor<List<LIR>> {
             } catch (KeyNotFoundException e) {
                 throw new Error("Unexpected error");
             }
-            TypeDescriptor tmp = node.getExpType();
             instrList.addAll(checkArrayBounds(ind, len));
             instrList.add(new Mov(ind, Register.r11()));
             instrList.add(new Global(nodeDesc.getId(), Register.r11()));
