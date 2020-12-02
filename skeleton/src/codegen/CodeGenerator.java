@@ -195,6 +195,8 @@ public class CodeGenerator implements NodeVisitor<Void> {
         for (LIR instr : instructions) {
             if (instr.isString()) {
                 this.prog.addString((StringLiteral)instr);
+            } else if (instr.isErrorHandler()) {
+                this.prog.addErrorHandler((ErrorHandle)instr);
             } else {
                 this.prog.addInstruction(instr);
             }

@@ -12,6 +12,7 @@ import ir.Statement.*;
 import semantic.Descriptor;
 import semantic.KeyNotFoundException;
 import semantic.SymbolTable;
+import semantic.TypeDescriptor;
 
 /**
  * @author Nicola
@@ -181,6 +182,14 @@ public class InstructionAssembler implements IrVisitor<List<LIR>> {
             }
         } else {
             Exp ind = (Exp)node.getInd().accept(this).get(0);
+            int len = 0;
+            try {
+                len = table.get(node.getId()).getType().getLength();
+            } catch (KeyNotFoundException e) {
+                throw new Error("Unexpected error");
+            }
+            TypeDescriptor tmp = node.getExpType();
+            instrList.addAll(checkArrayBounds(ind, len));
             instrList.add(new Mov(ind, Register.r11()));
             instrList.add(new Global(nodeDesc.getId(), Register.r11()));
         }  
@@ -330,6 +339,29 @@ public class InstructionAssembler implements IrVisitor<List<LIR>> {
                 instrList.add(new Push(src));
             }            
         }
+    }
+    
+    
+    private List<LIR> checkArrayBounds(Exp ind, int lenght) {
+        List<LIR> checkInstr = new ArrayList<LIR>();
+        ErrorHandle boundErr = ErrorHandle.outOfBounds();
+        
+        checkInstr.add(new Push(Register.r10()));
+        
+        // Check lower bound
+        checkInstr.add(new Mov(ind, Register.r10()));
+        checkInstr.add(new Comp(new Literal(0), Register.r10()));
+        checkInstr.add(new Jump(boundErr.getLabel(), "lt"));
+        
+        // Check upper bound
+        checkInstr.add(new Mov(ind, Register.r10()));
+        checkInstr.add(new Comp(new Literal(lenght), Register.r10()));
+        checkInstr.add(new Jump(boundErr.getLabel(), "ge"));
+        
+        checkInstr.add(new Pop(Register.r10()));        
+        checkInstr.add(boundErr);
+        
+        return checkInstr;
     }
 
 }

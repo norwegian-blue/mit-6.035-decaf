@@ -21,6 +21,10 @@ public class Jump extends LIR {
             return "\tjmp\t" + destLabel;
         case "eq":
             return "\tje\t" + destLabel;
+        case "lt":
+            return "\tjl\t" + destLabel;
+        case "ge":
+            return "\tjge\t" + destLabel;
         default:
             throw new Error("Unsupported condition");
         }

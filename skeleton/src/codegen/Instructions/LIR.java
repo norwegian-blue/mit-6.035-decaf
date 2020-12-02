@@ -16,4 +16,8 @@ public abstract class LIR {
         return false;
     }
 
+    public boolean isErrorHandler() {
+        return false;
+    }
+
 }

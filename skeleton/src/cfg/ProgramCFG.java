@@ -10,7 +10,6 @@ import ir.Declaration.*;
 import semantic.DuplicateKeyException;
 import semantic.FieldDescriptor;
 import semantic.SymbolTable;
-import semantic.TypeDescriptor;
 
 /**
  * @author Nicola
