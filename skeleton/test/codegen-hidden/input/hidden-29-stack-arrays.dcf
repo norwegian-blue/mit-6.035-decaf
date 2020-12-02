@@ -11,12 +11,12 @@ void test(int d)
     A[i] = i % d;  
   }
 
-  test(d + 1);
   callout("printf", "result should be: ");
   for i = 0, 10 {
     callout("printf", "%d ", A[i] );
   }
   callout("printf", "\n");
+  test(d + 1);
 }
 
 void main () {
