@@ -1,2 +1,3 @@
-expecting an error next:
-*** RUNTIME ERROR ***: No return value from non-void method "foo"
+Method should return 5: 5
+Method should trigger runtime error:
+*** RUNTIME ERROR ***: No return value from non-void method 

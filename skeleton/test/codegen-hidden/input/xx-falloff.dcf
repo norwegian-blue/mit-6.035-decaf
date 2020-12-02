@@ -1,10 +1,16 @@
 class Program {
-// This should produce a runtime error
-int a;
-int foo ( ) {
-}
-void main ( ) {
-  callout("printf", "expecting an error next:\n" );
-  a = foo ( );
-}
+    
+    // Broken method does not return value for b == TRUE
+    // Issue not spotted at semantic check
+    int broken(boolean b) {
+	if (!b) {
+	    return 5;
+	}
+    }	    
+
+    void main() {
+	callout("printf", "Method should return 5: %d\n", broken(false));
+	callout("printf", "Method should trigger runtime error: ");	
+	callout("printf", "%d\n", broken(true));
+    }
 }
