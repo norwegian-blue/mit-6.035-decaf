@@ -6,6 +6,7 @@ import cfg.Nodes.*;
 import codegen.Instructions.*;
 import ir.Expression.IrExpression;
 import ir.Statement.*;
+import semantic.BaseTypeDescriptor;
 import semantic.KeyNotFoundException;
 import semantic.LocalDescriptor;
 import semantic.MethodDescriptor;
@@ -167,17 +168,29 @@ public class CodeGenerator implements NodeVisitor<Void> {
         }
         
         // Return 0 on main successful exit or return value if needed
+        // also check if control may be falling off
+        boolean falloff = false;
         if (methodDesc.getId().equals("main")) {
             prog.addInstruction(new Mov(new Literal(0), Register.rax()));
-        } else if (node.returnsExp()) {
-            List<LIR> instructions = node.getReturnExp().accept(instructionAssembler);
-            Exp src = (Exp)instructions.get(0);
-            prog.addInstruction(new Mov(src, Register.rax()));
+        } else if (methodDesc.getType() != BaseTypeDescriptor.VOID) {
+            if (node.returnsExp()) {
+                List<LIR> instructions = node.getReturnExp().accept(instructionAssembler);
+                Exp src = (Exp)instructions.get(0);
+                prog.addInstruction(new Mov(src, Register.rax()));
+            } else {
+                falloff = true;
+            }
         }
         
-        // Return to caller
-        prog.addInstruction(new Leave());
-        prog.addInstruction(new Return());
+        // Return to caller or throw runtime error
+        if (falloff) {
+            ErrorHandle fall = ErrorHandle.fallOver();
+            prog.addInstruction(new Jump(fall.getLabel(), "none"));
+            prog.addErrorHandler(fall);
+        } else {
+            prog.addInstruction(new Leave());
+            prog.addInstruction(new Return());
+        }
         
         return null;
     }
