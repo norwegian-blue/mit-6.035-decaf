@@ -18,4 +18,9 @@ public abstract class IrLiteral extends IrExpression {
         return true;
     }
 
+    @Override
+    public boolean isLiteral() {
+        return true;
+    }
+    
 }

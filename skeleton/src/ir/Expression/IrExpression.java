@@ -38,4 +38,9 @@ public abstract class IrExpression extends Ir {
     public boolean isAtom() {
         return false;
     }
+    
+    public boolean isLiteral() {
+        return false;
+    }
+    
 }

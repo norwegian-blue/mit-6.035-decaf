@@ -10,7 +10,7 @@ import ir.Expression.*;
 public class IrAssignment extends IrStatement {
     private final IrIdentifier location;
     private final IrAssignmentOp assignOp;
-    private final IrExpression expr;
+    private IrExpression expr;
     
     public enum IrAssignmentOp {
         ASSIGN,
@@ -34,6 +34,10 @@ public class IrAssignment extends IrStatement {
     
     public IrExpression getExpression() {
         return this.expr;
+    }
+    
+    public void setExpression(IrExpression expr) {
+        this.expr = expr;
     }
     
     @Override
