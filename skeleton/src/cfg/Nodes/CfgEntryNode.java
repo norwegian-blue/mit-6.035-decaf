@@ -18,7 +18,7 @@ public class CfgEntryNode extends CfgLineNode {
     }
     
     @Override
-    public String nodeString() {
+    public String toString() {
         return "NODE ENTRY";
     }
     

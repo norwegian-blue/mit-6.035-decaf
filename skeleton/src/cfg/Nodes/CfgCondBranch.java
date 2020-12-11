@@ -16,11 +16,9 @@ public class CfgCondBranch extends CfgBranchNode {
     }
     
     @Override
-    public String nodeString() {
-        String str = "NODE CMP";
-        if (printIr) {
-            str += " (" + cond.toString() + ")";
-        }
+    public String toString() {
+        String str = "NODE CMP\t";
+        str += " (" + cond.toString() + ")";
         return str;
     }
     

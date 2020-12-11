@@ -9,12 +9,7 @@ import java.util.Set;
 
 public abstract class Node {
     
-    protected static boolean printIr = false;
     private boolean visited = false;
-    
-    public static void setPrintIr(boolean print) {
-        printIr = print;
-    }
     
     protected Set<Node> parentNodes = new HashSet<Node>();
     protected Node childNodes[];
@@ -119,7 +114,7 @@ public abstract class Node {
         return true;
     }
     
-    public abstract String nodeString();
+    //public abstract String nodeString();
     
     public boolean hasParentBlock() {
         return parentBlock != null;

@@ -20,7 +20,6 @@ import decaf.GrammarParser;
 import ir.*;
 import ir.Declaration.IrClassDeclaration;
 import cfg.ProgramCFG;
-import cfg.Nodes.Node;
 import codegen.AssemblyProgram;
 
 class Main {
@@ -152,23 +151,22 @@ class Main {
                 // Create Control Flow Graph
                 ProgramCFG controlFlow = new ProgramCFG(program);
                 if (CLI.debug) {
-                    Node.setPrintIr(true);
-                    System.out.println("################# Control Flow Graph #################");
-                    System.out.println(controlFlow.toString());
+                    //System.out.println("################# Control Flow Graph #################");
+                    //System.out.println(controlFlow);
                 }
                                
                 // Flatten Ir & introduce temporaries
                 controlFlow.flatten();
                 if (CLI.debug) {
-                    System.out.println("########### Control Flow Graph (flattened) ##########");
-                    System.out.println(controlFlow.toString());
+                    //System.out.println("########### Control Flow Graph (flattened) ##########");
+                    //System.out.println(controlFlow);
                 }
                 
                 // Group nodes in blocks
                 controlFlow.blockify();
                 if (CLI.debug) {
                     System.out.println("############ Blockified Control Flow Graph ############");
-                    System.out.println(controlFlow.toString());
+                    System.out.println(controlFlow);
                 }
                 
                 // Assemble

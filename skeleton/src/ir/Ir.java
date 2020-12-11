@@ -15,7 +15,15 @@ public abstract class Ir {
     private int column_number;
     
     public static String indent(String input) {
-        return input.replaceAll("(?m)^", "  ");
+        return Ir.indent(input, 1);
+    }
+    
+    public static String indent(String input, int i) {
+        String ind = "";
+        while (i-- > 0) {
+            ind += "  ";
+        }
+        return input.replaceAll("(?m)^", ind);
     }
 
     public int getLineNum() {

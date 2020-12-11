@@ -12,7 +12,7 @@ public class CfgNoOp extends CfgLineNode {
     }
     
     @Override
-    public String nodeString() {
+    public String toString() {
         return "NODE NOOP";
     }
 

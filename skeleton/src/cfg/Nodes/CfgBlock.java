@@ -3,6 +3,8 @@ package cfg.Nodes;
 import java.util.ArrayList;
 import java.util.List;
 
+import ir.Ir;
+
 /**
  * @author Nicola
  */
@@ -79,24 +81,40 @@ public class CfgBlock extends Node {
         }
     }
 
-    @Override
-    public String toString() {
-        String blockStr = this.nodeString();
-        if (this.isFork()) {
-            blockStr += ":" +
-                        "\n\tTrueBranch:  " + this.getTrueBlock().nodeString() +
-                        "\n\tFalseBranch: " + this.getFalseBlock().nodeString();
-        } else if (this.hasNext()) {
-            blockStr += " -> " + this.getNextBlock().nodeString();
-        } else {
-            blockStr += " -> RETURN";
-        }
-        return blockStr;
-    }
+//    @Override
+//    public String toString() {
+//        String blockStr = this.nodeString();
+//        if (this.isFork()) {
+//            blockStr += ":" +
+//                        "\n\tTrueBranch:  " + this.getTrueBlock().nodeString() +
+//                        "\n\tFalseBranch: " + this.getFalseBlock().nodeString();
+//        } else if (this.hasNext()) {
+//            blockStr += " -> " + this.getNextBlock().nodeString();
+//        } else {
+//            blockStr += " -> RETURN";
+//        }
+//        return blockStr;
+//    }
     
     @Override
-    public String nodeString() {
-        return "BLOCK " + getBlockName();
+    public String toString() {
+        String blockStr = "BLOCK " + getBlockName();
+        String nodeStr = "";
+        // Print nodes
+        for (Node node : blockNodes) {
+            nodeStr += "\n" + node.toString();
+        }        
+        blockStr += Ir.indent(nodeStr, 2) + "\n";
+        
+        // Print next block
+        if (this.isFork()) {
+            blockStr += "\t\tCOND T --> " + this.getTrueBlock().getBlockName() + "\n" + 
+                        "\t\tCOND F --> " + this.getFalseBlock().getBlockName() + "\n";
+        } else if (this.hasNext()) {
+            blockStr += "\t\tGOTO   --> " + this.getNextBlock().getBlockName() + "\n";
+        }
+        
+        return blockStr;
     }
     
     public String getBlockName() {
