@@ -9,7 +9,7 @@ import ir.Expression.IrCallExpression;
  */
 public class IrInvokeStatement extends IrStatement {
     
-    private final IrCallExpression methodCall;
+    private IrCallExpression methodCall;
     
     public IrInvokeStatement(IrCallExpression methodCall) {
         this.methodCall = methodCall;
@@ -17,6 +17,10 @@ public class IrInvokeStatement extends IrStatement {
     
     public IrCallExpression getMethod() {
         return this.methodCall;
+    }
+    
+    public void setMethod(IrCallExpression method) {
+        this.methodCall = method;
     }
     
     @Override

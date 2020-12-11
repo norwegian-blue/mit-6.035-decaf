@@ -1,5 +1,7 @@
 package cfg.Optimization;
 
+import java.util.List;
+
 import ir.IrVisitor;
 import ir.Declaration.*;
 import ir.Expression.*;
@@ -103,7 +105,9 @@ public class ConstantExpressionEvaluation implements IrVisitor<IrExpression>{
             }
         }
         
-        return node;
+        IrExpression newExp = new IrBinaryExpression(node.getOp(), lhs, rhs);
+        newExp.setExpType(node.getExpType());
+        return newExp;
     }
 
     @Override
@@ -113,8 +117,11 @@ public class ConstantExpressionEvaluation implements IrVisitor<IrExpression>{
 
     @Override
     public IrExpression visit(IrCalloutExpression node) {
-        // TODO Auto-generated method stub
-        return null;
+        List<IrExpression> args = node.getArgs();
+        for (int i = 0; i < args.size(); i++) {
+            args.set(i, args.get(i).accept(this));
+        }        
+        return node;
     }
 
     @Override
@@ -129,14 +136,21 @@ public class ConstantExpressionEvaluation implements IrVisitor<IrExpression>{
 
     @Override
     public IrExpression visit(IrMethodCallExpression node) {
-        // TODO Auto-generated method stub
-        return null;
+        List<IrExpression> args = node.getArgs();
+        for (int i = 0; i < args.size(); i++) {
+            args.set(i, args.get(i).accept(this));
+        }        
+        return node;
     }
 
     @Override
     public IrExpression visit(IrUnaryExpression node) {
-        // TODO Auto-generated method stub
-        return null;
+        IrExpression rhs = node.getExp().accept(this);
+        if (node.getOp() == IrUnaryExpression.UnaryOperator.NOT && rhs.isLiteral()) {
+            boolean boolVar = !((IrBooleanLiteral)rhs).eval();
+            return new IrBooleanLiteral(String.valueOf(boolVar));
+        }
+        return new IrUnaryExpression(node.getOp(), rhs);
     }
 
     @Override
@@ -170,25 +184,29 @@ public class ConstantExpressionEvaluation implements IrVisitor<IrExpression>{
 
     @Override
     public IrExpression visit(IrForStatement node) {
-        // TODO Auto-generated method stub
+        node.setStartExp(node.getStartExp().accept(this));
+        node.setEndExp(node.getEndExp().accept(this));
+        node.getLoopBlock().accept(this);
         return null;
     }
 
     @Override
     public IrExpression visit(IrIfStatement node) {
-        // TODO Auto-generated method stub
+        node.setCondition(node.getCondition().accept(this));
+        node.getThenBlock().accept(this);
+        node.getElseBlock().accept(this);
         return null;
     }
 
     @Override
     public IrExpression visit(IrInvokeStatement node) {
-        // TODO Auto-generated method stub
+        node.setMethod((IrCallExpression)node.getMethod().accept(this));
         return null;
     }
 
     @Override
     public IrExpression visit(IrReturnStatement node) {
-        // TODO Auto-generated method stub
+        node.setReturnExp(node.getReturnExp().accept(this));
         return null;
     }
     

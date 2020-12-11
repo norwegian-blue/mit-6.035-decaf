@@ -5,7 +5,7 @@ import ir.IrVisitor;
 import ir.Expression.IrExpression;
 
 public class IrIfStatement extends IrStatement {
-    private final IrExpression condition;
+    private IrExpression condition;
     private final IrBlock thenBlock;
     private final IrBlock elseBlock;
     
@@ -23,6 +23,10 @@ public class IrIfStatement extends IrStatement {
     
     public IrExpression getCondition() {
         return this.condition;
+    }
+    
+    public void setCondition(IrExpression condition) {
+        this.condition = condition;
     }
     
     public IrBlock getThenBlock() {

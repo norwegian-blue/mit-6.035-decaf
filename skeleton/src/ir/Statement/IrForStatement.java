@@ -9,8 +9,8 @@ import ir.Expression.*;
  */
 public class IrForStatement extends IrStatement {
     private final IrIdentifier loopVar;
-    private final IrExpression startExpr;
-    private final IrExpression endExpr;
+    private IrExpression startExpr;
+    private IrExpression endExpr;
     private final IrBlock loopBlock;
     
     public IrForStatement(IrIdentifier loopVar, IrExpression startExpr, IrExpression endExpr, IrBlock loopBlock) {
@@ -28,8 +28,16 @@ public class IrForStatement extends IrStatement {
         return this.startExpr;
     }
     
+    public void setStartExp(IrExpression startExpr) {
+        this.startExpr = startExpr;
+    }
+    
     public IrExpression getEndExp() {
         return this.endExpr;
+    }
+    
+    public void setEndExp(IrExpression endExp) {
+        this.endExpr = endExp;
     }
     
     public IrBlock getLoopBlock() {

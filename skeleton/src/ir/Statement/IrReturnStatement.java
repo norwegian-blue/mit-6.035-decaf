@@ -8,7 +8,7 @@ import ir.Expression.IrExpression;
  * @author Nicola
  */
 public class IrReturnStatement extends IrStatement {    
-    private final IrExpression returnExpr;
+    private IrExpression returnExpr;
     private final boolean returnsVal;
     
     public IrReturnStatement(IrExpression returnExpr) {
@@ -23,6 +23,10 @@ public class IrReturnStatement extends IrStatement {
     
     public IrExpression getReturnExp() {
         return this.returnExpr;
+    }
+    
+    public void setReturnExp(IrExpression returnExp) {
+        this.returnExpr = returnExp;
     }
     
     public boolean returnsValue() {
