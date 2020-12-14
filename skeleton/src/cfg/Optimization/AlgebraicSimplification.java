@@ -48,6 +48,8 @@ public class AlgebraicSimplification extends ExpressionSimplifier {
                 return rhs;
             } else if (rhs.isLiteral() && ((IrIntLiteral)rhs).eval() == 0) {
                 return lhs;
+            } else if (rhs.equals(lhs)) {
+                return new IrIntLiteral("0");
             }
         case MOD:
             if (lhs.isLiteral() && ((IrIntLiteral)lhs).eval() == 0) {
@@ -111,7 +113,7 @@ public class AlgebraicSimplification extends ExpressionSimplifier {
         if (unExp.getExp().isNotExp() && unExp.isNotExp()) {
             return ((IrUnaryExpression)unExp.getExp()).getExp();
         } else if (unExp.getExp().isUnaryMinus() && unExp.isUnaryMinus()) {
-            return ((IrUnaryExpression)unExp.getExp()).getExp();
+            return ((IrUnaryExpression)unExp    .getExp()).getExp();
         }
         return node;
     }

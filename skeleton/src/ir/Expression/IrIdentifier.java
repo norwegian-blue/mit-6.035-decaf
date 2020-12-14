@@ -62,4 +62,14 @@ public class IrIdentifier extends IrExpression {
     public boolean isAtom() {
         return !this.isArrayElement();
     }
+    
+    @Override 
+    public boolean equals(Object that) {
+        if (!(that instanceof IrIdentifier)) {
+            return false;
+        }
+        IrIdentifier thatId = (IrIdentifier)that;
+        
+        return this.idName.equals(thatId.idName);
+    }
 }
