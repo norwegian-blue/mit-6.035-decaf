@@ -50,4 +50,9 @@ public class IrUnaryExpression extends IrExpression {
     public boolean isNotExp() {
         return (this.op == UnaryOperator.NOT);
     }
+    
+    @Override
+    public boolean isUnaryMinus() {
+        return (this.op == UnaryOperator.MINUS);
+    }
 }

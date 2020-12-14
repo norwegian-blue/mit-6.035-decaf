@@ -30,6 +30,10 @@ public abstract class IrExpression extends Ir {
         return false;
     }
     
+    public boolean isUnaryMinus() {
+        return false;
+    }
+    
     @Override
     public boolean isExp() {
         return true;
