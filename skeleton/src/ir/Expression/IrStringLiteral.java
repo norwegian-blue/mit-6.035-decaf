@@ -27,4 +27,9 @@ public class IrStringLiteral extends IrLiteral {
         return this.value.replaceAll("\\%", "\\%\\%");
     }
     
+    @Override
+    public expKind getExpKind() {
+        return IrExpression.expKind.STRING;
+    }
+    
 }

@@ -10,6 +10,17 @@ public abstract class IrExpression extends Ir {
     
     private TypeDescriptor expType = BaseTypeDescriptor.undefined;
     
+    public enum expKind {
+            BIN,
+            BOOL,
+            CALL,
+            ID,
+            INT,
+            METH,
+            STRING,
+            UN
+    }
+            
     public void setExpType(TypeDescriptor type) {
         this.expType = type;
     }
@@ -41,6 +52,10 @@ public abstract class IrExpression extends Ir {
     
     public boolean isAtom() {
         return false;
+    }
+    
+    public expKind getExpKind() {
+        throw new UnsupportedOperationException();
     }
     
     public boolean isLiteral() {

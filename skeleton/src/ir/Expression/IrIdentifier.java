@@ -72,4 +72,9 @@ public class IrIdentifier extends IrExpression {
         
         return this.idName.equals(thatId.idName);
     }
+    
+    @Override
+    public expKind getExpKind() {
+        return IrExpression.expKind.ID;
+    }
 }

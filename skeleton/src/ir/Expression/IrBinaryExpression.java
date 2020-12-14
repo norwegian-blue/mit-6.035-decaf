@@ -73,4 +73,9 @@ public class IrBinaryExpression extends IrExpression {
     public boolean isOrExp() {
         return (this.operator == BinaryOperator.OR);
     }
+    
+    @Override
+    public expKind getExpKind() {
+        return IrExpression.expKind.BIN;
+    }
 }

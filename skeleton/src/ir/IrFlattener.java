@@ -7,7 +7,6 @@ import ir.Declaration.*;
 import ir.Expression.*;
 import ir.Statement.*;
 import ir.Statement.IrAssignment.IrAssignmentOp;
-import semantic.BaseTypeDescriptor;
 
 /**
  * @author Nicola
@@ -179,18 +178,38 @@ public class IrFlattener implements IrVisitor<DestructIr> {
         // Destruct location and assign expression
         DestructIr locationDestruct = node.getLocation().accept(this);
         IrExpression exp = node.getExpression();
-        if (exp.getExpType() == BaseTypeDescriptor.undefined) {
+        if (exp.getExpKind().equals(IrExpression.expKind.CALL)) {
             exp.setExpType(node.getLocation().getExpType());
         }
         DestructIr expDestruct = exp.accept(this);
         DestructIr blockDestruct = mergeDestructs(locationDestruct, expDestruct);
         
+        // Check if binary of atoms or unary of atom (do not simplify further)
+        boolean tmpNeeded = true;
+        if (expDestruct.getSimplifiedExp().getExpKind().equals(IrExpression.expKind.BIN)) {
+            IrBinaryExpression binExp = (IrBinaryExpression) expDestruct.getSimplifiedExp();
+            if (binExp.getLHS().isAtom() && binExp.getRHS().isAtom()) {
+                tmpNeeded = false;
+            }
+        } else if (expDestruct.getSimplifiedExp().getExpKind().equals(IrExpression.expKind.UN)){
+            IrUnaryExpression unExp = (IrUnaryExpression) expDestruct.getSimplifiedExp();
+            if (unExp.getExp().isAtom()) {
+                tmpNeeded = false;
+            }
+        }
+        
         // Atomize expression
-        DestructIr expAtom = atomize(expDestruct.getSimplifiedExp());
+        DestructIr expAtom;
+        if (tmpNeeded) {
+            expAtom = atomize(expDestruct.getSimplifiedExp());
+        } else {
+            expAtom = new DestructIr(expDestruct.getSimplifiedExp());
+        }
         blockDestruct = mergeDestructs(blockDestruct, expAtom);
         
-        IrAssignment newAssign = new IrAssignment((IrIdentifier)locationDestruct.getSimplifiedExp(), 
-                                                  node.getOp(), expAtom.getSimplifiedExp());
+        IrAssignment newAssign;
+        newAssign = new IrAssignment((IrIdentifier)locationDestruct.getSimplifiedExp(), 
+                                     node.getOp(), expAtom.getSimplifiedExp());
         
         try {
             IrBlock block = blockDestruct.getDestructBlock();

@@ -38,4 +38,9 @@ public class IrIntLiteral extends IrLiteral {
     public <T> T accept(IrVisitor<T> v) {
         return v.visit(this);
     }
+    
+    @Override
+    public expKind getExpKind() {
+        return IrExpression.expKind.INT;
+    }
 }

@@ -55,4 +55,9 @@ public class IrUnaryExpression extends IrExpression {
     public boolean isUnaryMinus() {
         return (this.op == UnaryOperator.MINUS);
     }
+    
+    @Override
+    public expKind getExpKind() {
+        return IrExpression.expKind.UN;
+    }
 }

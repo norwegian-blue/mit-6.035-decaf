@@ -53,4 +53,9 @@ public class IrCalloutExpression extends IrCallExpression {
     public <T> T accept(IrVisitor<T> v) {
         return v.visit(this);
     }
+    
+    @Override
+    public expKind getExpKind() {
+        return IrExpression.expKind.CALL;
+    }
 }
