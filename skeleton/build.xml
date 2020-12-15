@@ -104,8 +104,13 @@
     <exec executable="${tests}/codegen-hidden/test.sh"/>
   </target>
 
+  <target name="test_dataflow" depends="jar">
+    <exec executable="${tests}/dataflow/test.sh"/>
+    <exec executable="${tests}/dataflow-hidden/test.sh"/>
+  </target>
+
   <target name="integration_tests" 
-	  depends="test_scanner, test_parser, test_semantic, test_codegen">
+	  depends="test_scanner, test_parser, test_semantic, test_codegen, test_dataflow">
   </target>
   
  <!-- to clean, delete everything in the java, classes, and dist
