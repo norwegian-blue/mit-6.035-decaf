@@ -20,12 +20,15 @@ import decaf.GrammarParser;
 import ir.*;
 import ir.Declaration.IrClassDeclaration;
 import cfg.ProgramCFG;
+import cfg.Optimization.AlgebraicSimplification;
+import cfg.Optimization.ConstantExpressionEvaluation;
 import codegen.AssemblyProgram;
 
 class Main {
     public static void main(String[] args) {
         try {
-        	CLI.parse (args, new String[0]);
+            String[] optimizations = {"cse", "cp", "dce"};
+        	CLI.parse (args, optimizations);
         	
         	CharStream inputStream = args.length == 0 ?
                     CharStreams.fromStream(System.in) : CharStreams.fromFileName(CLI.infile);
@@ -72,7 +75,7 @@ class Main {
         	        }
         		}
         		
-        	} else if (CLI.target == CLI.PARSE || CLI.target == CLI.DEFAULT) {
+        	} else if (CLI.target == CLI.PARSE) {
         	    
          		GrammarLexer lexer = new GrammarLexer(inputStream);
         		CommonTokenStream tokens = new CommonTokenStream(lexer);
@@ -88,7 +91,7 @@ class Main {
                     throw new Error("Syntax error");
                 }
                 
-        	} else if (CLI.target == CLI.INTER || CLI.target == CLI.ASSEMBLY) {
+        	} else if (CLI.target == CLI.INTER || CLI.target == CLI.ASSEMBLY || CLI.target == CLI.DEFAULT) {
         	            	    
                 //****************************************************** 
                 // INTERPRETER 
@@ -146,27 +149,37 @@ class Main {
                     Ir.setTreePrint(false);
                     System.out.println("################# Variable renaming (no duplicate names) #################");
                     System.out.print(program.toString() + "\n");
+                    
+                    // Apply algebraic/constants simplification if any optimization is active
+                    if (anyTrue(CLI.opts)) {
+                        program.accept(new AlgebraicSimplification());
+                        program.accept(new ConstantExpressionEvaluation());
+                    }
+                        
+                    System.out.println("################# Constant Evaluation #################");
+                    System.out.print(program.toString() + "\n");
                 }
                 
                 // Create Control Flow Graph
                 ProgramCFG controlFlow = new ProgramCFG(program);
-                if (CLI.debug) {
-                    //System.out.println("################# Control Flow Graph #################");
-                    //System.out.println(controlFlow);
-                }
                                
                 // Flatten Ir & introduce temporaries
                 controlFlow.flatten();
-                if (CLI.debug) {
-                    //System.out.println("########### Control Flow Graph (flattened) ##########");
-                    //System.out.println(controlFlow);
-                }
                 
                 // Group nodes in blocks
                 controlFlow.blockify();
                 if (CLI.debug) {
                     System.out.println("############ Blockified Control Flow Graph ############");
                     System.out.println(controlFlow);
+                }
+                
+                // Optimization
+                if (anyTrue(CLI.opts)) {
+                    controlFlow.optimize(CLI.opts);
+                    if (CLI.debug) {
+                        System.out.println("############ Optimized Control Flow Graph ############");
+                        System.out.println(controlFlow);
+                    }
                 }
                 
                 // Assemble
@@ -188,6 +201,13 @@ class Main {
             System.out.println(CLI.infile+" "+e);
             System.exit(1);
         }
+    }
+    
+    private static boolean anyTrue(boolean[] cond) {
+        for (boolean check : cond) {
+            if (check); return true;
+        }
+        return false;
     }
 }
 

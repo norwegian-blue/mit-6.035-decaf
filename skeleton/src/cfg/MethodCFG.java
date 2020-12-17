@@ -4,8 +4,10 @@ import java.util.LinkedList;
 import java.util.List;
 
 import cfg.Nodes.*;
+import cfg.Optimization.CSE;
 import codegen.*;
 import ir.Declaration.IrVariableDeclaration;
+import ir.Expression.IrIdentifier;
 import semantic.*;
 
 /**
@@ -23,6 +25,10 @@ public class MethodCFG extends CFG {
     
     public void addLocal(IrVariableDeclaration local) {
         this.methodDesc.addLocal(new LocalDescriptor(local.getId(), local.getType()));
+    }
+    
+    public void addLocal(IrIdentifier tmp) {
+        this.methodDesc.addLocal(new LocalDescriptor(tmp.getId(), tmp.getExpType()));
     }
     
     public MethodCFG blockify() {
@@ -89,6 +95,58 @@ public class MethodCFG extends CFG {
             node.accept(flattener);
         }
         this.removeNoOps();
+    }
+    
+    public void optimize(boolean[] optList) {
+        
+        // Throw error if not blockified
+        if (!(this.root instanceof CfgBlock)) {
+            throw new Error("Can only optimize blockified CFGs");
+        }
+        
+        // Get active optimization
+        boolean do_cse = optList[0];
+        boolean do_cp = optList[1];
+        boolean do_dce = optList[2];
+        boolean do_any = do_cse | do_cp | do_dce;
+        
+        boolean loop = true;
+        while (loop) {
+            loop = false;
+            
+            // Algebraic + Constant simplification
+            if (do_any) {
+                // TODO
+            }
+            
+            // Global Common Subexpression Elimination
+            if (do_cse) {
+                CSE cse = new CSE(getNextTmp());
+                loop |= cse.doCSE(this);
+                for (IrIdentifier newTmp : cse.getNewTmps()) {
+                    this.addLocal(newTmp);
+                }
+            }
+            
+            // Global Copy Propagation
+            // TODO
+            
+            // Dead Code Elimination
+            // TODO            
+        }
+    }
+    
+    public int getNextTmp() {
+        int tmpInd = 1;
+        for (LocalDescriptor local : this.methodDesc.getLocals()) {
+            String localId = local.getId();
+            if (localId.startsWith("_tmp")) {
+                String strNum = localId.substring(4);
+                int intNum = Integer.parseInt(strNum);
+                tmpInd = (intNum >= tmpInd) ? intNum+1 : tmpInd;
+            }
+        }
+        return tmpInd;
     }
     
 }

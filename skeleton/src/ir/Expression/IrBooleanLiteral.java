@@ -26,5 +26,19 @@ public class IrBooleanLiteral extends IrLiteral {
     public expKind getExpKind() {
         return IrExpression.expKind.BOOL;
     }
+    
+    @Override
+    public boolean equals(Object that) {
+        if (!(that instanceof IrBooleanLiteral)) {
+            return false;
+        }
+        IrBooleanLiteral thatBool = (IrBooleanLiteral)that;
+        return this.value.equals(thatBool.value);
+    }
+    
+    @Override
+    public int hashCode() {
+        return this.value.hashCode();
+    }
 
 }

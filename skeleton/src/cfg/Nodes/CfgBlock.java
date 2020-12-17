@@ -80,21 +80,6 @@ public class CfgBlock extends Node {
             return (CfgBlock)this.getLastNode().getFalseBranch().getParentBlock();
         }
     }
-
-//    @Override
-//    public String toString() {
-//        String blockStr = this.nodeString();
-//        if (this.isFork()) {
-//            blockStr += ":" +
-//                        "\n\tTrueBranch:  " + this.getTrueBlock().nodeString() +
-//                        "\n\tFalseBranch: " + this.getFalseBlock().nodeString();
-//        } else if (this.hasNext()) {
-//            blockStr += " -> " + this.getNextBlock().nodeString();
-//        } else {
-//            blockStr += " -> RETURN";
-//        }
-//        return blockStr;
-//    }
     
     @Override
     public String toString() {
@@ -124,6 +109,23 @@ public class CfgBlock extends Node {
     @Override
     public <T> T accept(NodeVisitor<T> v) {
         return v.visit(this);
+    }
+    
+    public void prepend(Node original, Node newPredecessor) {
+        original.prepend(newPredecessor);
+        
+        List<Node> newNodes = new ArrayList<Node>();
+        for (Node node : this.blockNodes) {
+            if (node.equals(original)) {
+                newNodes.add(newPredecessor);
+            }
+            newNodes.add(node);
+        }
+        this.blockNodes = newNodes;
+        
+        if (original == firstNode) {
+            firstNode = newPredecessor;
+        }
     }
 
 }

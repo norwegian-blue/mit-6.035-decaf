@@ -74,4 +74,10 @@ public class ProgramCFG {
         return graph;
     }
     
+    public void optimize(boolean[] optList) {
+        for (String method: methods.keySet()) {
+            methods.get(method).optimize(optList);
+        }
+    }
+    
 }

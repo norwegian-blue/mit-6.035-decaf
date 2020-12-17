@@ -3,6 +3,8 @@ package cfg.Nodes;
 import java.util.HashSet;
 import java.util.Set;
 
+import ir.Expression.IrExpression;
+
 /**
  * @author Nicola
  */
@@ -120,9 +122,9 @@ public abstract class Node {
         return parentBlock != null;
     }
     
-    public Node getParentBlock() {
+    public CfgBlock getParentBlock() {
         if (this.hasParentBlock()) {
-            return parentBlock;
+            return (CfgBlock)parentBlock;
         } else {
             throw new Error("Node does not have parent block");
         }
@@ -146,4 +148,31 @@ public abstract class Node {
         return visited;
     }
     
+    public void prepend(Node newPredecessor) {
+        newPredecessor.setNextBranch(this);
+        
+        // Reconnect parent nodes
+        for (Node parent : this.getParents()) {
+            Node[] children = parent.getChildren();
+            for (int i = 0; i < children.length; i++) {
+                if (children[i].equals(this)) {
+                    children[i] = newPredecessor;
+                    newPredecessor.addParentNode(parent);
+                }
+            }
+        }
+        
+        // Reconnect to new predecessor
+        this.clearParents();
+        this.addParentNode(newPredecessor);
+    }
+    
+    public IrExpression getExp() {
+        throw new UnsupportedOperationException();
+    }
+    
+    public void setExp(IrExpression exp) {
+        throw new UnsupportedOperationException();
+    }
+        
 }

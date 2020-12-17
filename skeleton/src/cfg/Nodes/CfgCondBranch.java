@@ -35,4 +35,14 @@ public class CfgCondBranch extends CfgBranchNode {
         this.cond = newCond;
     }
     
+    @Override
+    public IrExpression getExp() {
+        return this.getCond();
+    }
+    
+    @Override
+    public void setExp(IrExpression exp) {
+        this.setCond(exp);
+    }
+    
 }

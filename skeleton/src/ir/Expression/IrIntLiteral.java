@@ -43,4 +43,18 @@ public class IrIntLiteral extends IrLiteral {
     public expKind getExpKind() {
         return IrExpression.expKind.INT;
     }
+    
+    @Override
+    public boolean equals(Object that) {
+        if (!(that instanceof IrIntLiteral)) {
+            return false;
+        }
+        IrIntLiteral thatInt = (IrIntLiteral)that;
+        return this.value.equals(thatInt.value);
+    }
+    
+    @Override
+    public int hashCode() {
+        return this.value.hashCode();
+    }
 }

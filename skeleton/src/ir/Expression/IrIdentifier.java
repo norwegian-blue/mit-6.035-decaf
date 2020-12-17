@@ -77,4 +77,9 @@ public class IrIdentifier extends IrExpression {
     public expKind getExpKind() {
         return IrExpression.expKind.ID;
     }
+    
+    @Override
+    public int hashCode() {
+        return this.idName.hashCode();
+    }
 }

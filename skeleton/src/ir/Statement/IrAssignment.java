@@ -57,4 +57,9 @@ public class IrAssignment extends IrStatement {
         return v.visit(this);
     }
     
+    @Override
+    public boolean isAssignment() {
+        return true;
+    }
+    
 }

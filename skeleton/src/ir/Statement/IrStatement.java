@@ -11,4 +11,8 @@ public abstract class IrStatement extends Ir {
     public boolean isStm() {
         return true;
     }
+    
+    public boolean isAssignment() {
+        return false;
+    }
 }

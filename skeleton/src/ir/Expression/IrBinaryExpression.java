@@ -78,4 +78,21 @@ public class IrBinaryExpression extends IrExpression {
     public expKind getExpKind() {
         return IrExpression.expKind.BIN;
     }
+    
+    @Override
+    public boolean equals(Object that) {
+        if (!(that instanceof IrBinaryExpression)) {
+            return false;
+        }
+        IrBinaryExpression thatExp = (IrBinaryExpression)that;
+        boolean check = (this.operator == thatExp.operator) && 
+                        ((this.leftHandSide.equals(thatExp.leftHandSide) && this.rightHandSide.equals(thatExp.rightHandSide)) ||
+                         (this.leftHandSide.equals(thatExp.rightHandSide) && this.rightHandSide.equals(thatExp.leftHandSide)));
+        return check;
+    }
+    
+    @Override
+    public int hashCode() {
+        return this.operator.hashCode() + this.leftHandSide.hashCode() + this.rightHandSide.hashCode();
+    }
 }

@@ -1,5 +1,7 @@
 package cfg.Nodes;
 
+import ir.Expression.IrExpression;
+import ir.Statement.IrAssignment;
 import ir.Statement.IrStatement;
 
 /**
@@ -33,6 +35,24 @@ public class CfgStatement extends CfgLineNode {
     
     public void setStatement(IrStatement newStat) {
         this.stat = newStat;
+    }
+    
+    @Override
+    public void setExp(IrExpression exp) {
+        if (this.getStatement().isAssignment()) {
+            ((IrAssignment)this.getStatement()).setExpression(exp);
+        } else {
+            throw new UnsupportedOperationException();
+        }
+    }
+    
+    @Override 
+    public IrExpression getExp() {
+        if (this.getStatement().isAssignment()) {
+            return ((IrAssignment)this.getStatement()).getExpression();
+        } else {
+            throw new UnsupportedOperationException();
+        }
     }
     
 }
