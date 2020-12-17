@@ -75,8 +75,30 @@ public class CSE {
 
         @Override
         public Boolean visit(CfgCondBranch node) {
-            // TODO Auto-generated method stub
-            return false;
+            
+            IrExpression exp = node.getExp();
+            // Perform CSE
+            boolean check = false;
+            if (!aeb.available(exp)) {      // Expression is not available --> add
+                aeb.addExpr(exp, node);
+            } else if (!aeb.isNull(exp)) {  // Expression is available and in use --> replace
+                node.setExp(aeb.getTmp(exp));
+                check = true;
+            } else {                        // Expression is available and not in use --> add temporary and replace
+                aeb.addTmp(exp);
+                IrIdentifier tmp = aeb.getTmp(exp);
+                Node origin = aeb.getNode(exp);
+
+                CfgStatement newNode = new CfgStatement(new IrAssignment(tmp, IrAssignment.IrAssignmentOp.ASSIGN, exp));
+                newNode.setParentBlock(node.getParentBlock());
+                origin.getParentBlock().prepend(origin, newNode);
+
+                origin.setExp(tmp);
+                node.setExp(tmp);
+                check = true;
+            }
+            
+            return check;
         }
 
         @Override

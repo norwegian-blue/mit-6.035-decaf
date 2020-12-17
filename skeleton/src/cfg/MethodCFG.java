@@ -116,7 +116,7 @@ public class MethodCFG extends CFG {
             
             // Algebraic + Constant simplification
             if (do_any) {
-                // TODO
+                // TODO algebraic simplification
             }
             
             // Global Common Subexpression Elimination
@@ -129,10 +129,10 @@ public class MethodCFG extends CFG {
             }
             
             // Global Copy Propagation
-            // TODO
+            // TODO global copy propagation
             
             // Dead Code Elimination
-            // TODO            
+            // TODO dead code elimination
         }
     }
     
