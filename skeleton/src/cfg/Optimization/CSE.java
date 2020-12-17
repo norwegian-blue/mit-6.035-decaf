@@ -9,6 +9,7 @@ import cfg.MethodCFG;
 import cfg.Nodes.*;
 import ir.Expression.*;
 import ir.Statement.IrAssignment;
+import ir.Statement.IrInvokeStatement;
 
 /**
  * @author Nicola
@@ -38,6 +39,9 @@ public class CSE {
             change |= block.accept(local);
             this.newTmps.addAll(local.getNewTmps());
         }
+        
+        // Global 
+        // TODO implement global CSE
         
         return change;
     }
@@ -88,43 +92,66 @@ public class CSE {
         @Override
         public Boolean visit(CfgStatement node) {
             
-            // Skip on non-assignments
-            // TODO handle method call
+            // Skip on non-assignments (and destroy available expressions on method call)
             if (!node.getStatement().isAssignment()) {
+                if (node.getStatement().isInvokeStatement()) {
+                    IrInvokeStatement stat = (IrInvokeStatement) node.getStatement();
+                    if (stat.getMethod().getExpKind() == IrExpression.expKind.METH) {
+                        aeb.reset();
+                    }
+                }
                 return false;
             }
                         
             IrAssignment ass = (IrAssignment)node.getStatement();
             IrExpression exp = ass.getExpression();
             
-            // Skip call
-            // TODO handle method calls and others
-            if (exp.getExpKind() != IrExpression.expKind.BIN) {
-                return false;
+            // Reset on method call and ignore atomic expressions
+            boolean skipCSE = false;
+            switch (exp.getExpKind()) {
+            case METH:
+                aeb.reset();
+            case BOOL:
+            case CALL:
+            case ID:
+            case INT:
+            case STRING:
+                skipCSE = true;
+            case BIN:
+            case UN:
+                break;
+            default:
+                throw new Error("unexpected type");
             }
             
             // Perform CSE
-            if (!aeb.available(exp)) {      // Expression is not available --> add
-                aeb.addExpr(exp, node);
-                return false;
-            } else if (!aeb.isNull(exp)) {  // Expression is available and in use --> replace
-                ass.setExpression(aeb.getTmp(exp));
-                return true;
-            } else {                        // Expression is available and not in use --> add temporary and replace
-                aeb.addTmp(exp);
-                IrIdentifier tmp = aeb.getTmp(exp);
-                Node origin = aeb.getNode(exp);
-                
-                CfgStatement newNode = new CfgStatement(new IrAssignment(tmp, IrAssignment.IrAssignmentOp.ASSIGN, exp));
-                newNode.setParentBlock(node.getParentBlock());
-                origin.getParentBlock().prepend(origin, newNode);
-                
-                origin.setExp(tmp);
-                ass.setExpression(tmp);
-                return true;
+            boolean check = false;
+            if (!skipCSE) {
+                if (!aeb.available(exp)) {      // Expression is not available --> add
+                    aeb.addExpr(exp, node);
+                } else if (!aeb.isNull(exp)) {  // Expression is available and in use --> replace
+                    ass.setExpression(aeb.getTmp(exp));
+                    check = true;
+                } else {                        // Expression is available and not in use --> add temporary and replace
+                    aeb.addTmp(exp);
+                    IrIdentifier tmp = aeb.getTmp(exp);
+                    Node origin = aeb.getNode(exp);
+
+                    CfgStatement newNode = new CfgStatement(new IrAssignment(tmp, IrAssignment.IrAssignmentOp.ASSIGN, exp));
+                    newNode.setParentBlock(node.getParentBlock());
+                    origin.getParentBlock().prepend(origin, newNode);
+
+                    origin.setExp(tmp);
+                    ass.setExpression(tmp);
+                    check = true;
+                }
             }
             
+            // Clear re-assigned variables
+            IrIdentifier var = ass.getLocation();
+            aeb.clear(var);
             
+            return check;
         }
     }
     
@@ -194,7 +221,20 @@ public class CSE {
         private String getTmpName() {
             return "_tmp" + this.tmpStart++;
         }
-            
+        
+        public void reset() {
+            this.expToTmpMap = new HashMap<IrExpression, IrIdentifier>();
+            this.expToNodeMap = new HashMap<IrExpression, Node>();
+        }
+        
+        public void clear(IrIdentifier var) {
+            for (IrExpression exp : expToNodeMap.keySet()) {
+                if (exp.contains(var)) {
+                    expToNodeMap.remove(exp);
+                    expToTmpMap.remove(exp);
+                }
+            }
+        }
         
     }
     

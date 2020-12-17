@@ -95,4 +95,9 @@ public class IrBinaryExpression extends IrExpression {
     public int hashCode() {
         return this.operator.hashCode() + this.leftHandSide.hashCode() + this.rightHandSide.hashCode();
     }
+    
+    @Override
+    public boolean contains(IrIdentifier var) {
+        return this.leftHandSide.equals(var) || this.rightHandSide.equals(var);
+    }
 }

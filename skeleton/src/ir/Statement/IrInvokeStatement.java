@@ -40,4 +40,9 @@ public class IrInvokeStatement extends IrStatement {
     public <T> T accept(IrVisitor<T> v) {
         return v.visit(this);
     }
+    
+    @Override
+    public boolean isInvokeStatement() {
+        return true;
+    }
 }

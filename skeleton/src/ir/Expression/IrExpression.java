@@ -62,4 +62,8 @@ public abstract class IrExpression extends Ir {
         return false;
     }
     
+    public boolean contains(IrIdentifier var) {
+        return false;
+    }
+    
 }

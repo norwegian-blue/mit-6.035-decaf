@@ -60,4 +60,25 @@ public class IrUnaryExpression extends IrExpression {
     public expKind getExpKind() {
         return IrExpression.expKind.UN;
     }
+    
+    @Override
+    public boolean equals(Object that) {
+        if (!(that instanceof IrUnaryExpression)) {
+            return false;
+        }
+        IrUnaryExpression thatExp = (IrUnaryExpression)that;
+        boolean check = (this.op == thatExp.op) && 
+                        (this.expr.equals(thatExp.expr));
+        return check;
+    }
+    
+    @Override
+    public int hashCode() {
+        return this.op.hashCode() + this.expr.hashCode();
+    }
+    
+    @Override
+    public boolean contains(IrIdentifier exp) {
+        return this.expr.equals(exp);
+    }
 }

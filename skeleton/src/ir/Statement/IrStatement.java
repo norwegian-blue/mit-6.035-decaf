@@ -15,4 +15,8 @@ public abstract class IrStatement extends Ir {
     public boolean isAssignment() {
         return false;
     }
+    
+    public boolean isInvokeStatement() {
+        return false;
+    }
 }

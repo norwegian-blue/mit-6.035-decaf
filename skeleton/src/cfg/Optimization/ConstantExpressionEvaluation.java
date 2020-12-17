@@ -83,7 +83,7 @@ public class ConstantExpressionEvaluation extends ExpressionSimplifier {
             boolean boolVar = !((IrBooleanLiteral)rhs).eval();
             return new IrBooleanLiteral(String.valueOf(boolVar));
         }
-        return new IrUnaryExpression(node.getOp(), rhs);
+        return node;
     }
     
 }

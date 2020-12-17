@@ -105,7 +105,7 @@ public class AlgebraicSimplification extends ExpressionSimplifier {
         exp.setExpType(node.getExpType());
         
         if (!exp.isNotExp() && !exp.isUnaryMinus()) {
-            return exp;
+            return node;
         }
         
         IrUnaryExpression unExp = (IrUnaryExpression) exp;
@@ -113,7 +113,7 @@ public class AlgebraicSimplification extends ExpressionSimplifier {
         if (unExp.getExp().isNotExp() && unExp.isNotExp()) {
             return ((IrUnaryExpression)unExp.getExp()).getExp();
         } else if (unExp.getExp().isUnaryMinus() && unExp.isUnaryMinus()) {
-            return ((IrUnaryExpression)unExp    .getExp()).getExp();
+            return ((IrUnaryExpression)unExp.getExp()).getExp();
         }
         return node;
     }
