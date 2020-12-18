@@ -21,7 +21,8 @@ public class CfgExitNode extends CfgLineNode {
         return returnExp != null;
     }
     
-    public IrExpression getReturnExp() {
+    @Override
+    public IrExpression getExp() {
         if (returnsExp()) {
             return this.returnExp;
         } else {
@@ -29,7 +30,8 @@ public class CfgExitNode extends CfgLineNode {
         }
     }
     
-    public void setReturnExp(IrExpression exp) {
+    @Override
+    public void setExp(IrExpression exp) {
         this.returnExp = exp;
     }
     
@@ -55,5 +57,5 @@ public class CfgExitNode extends CfgLineNode {
     @Override
     public void setNextBranch(Node node) {
     }
-    
+        
 }

@@ -4,7 +4,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 import cfg.Nodes.*;
-import cfg.Optimization.CSE;
+import cfg.Optimization.*;
 import codegen.*;
 import ir.Declaration.IrVariableDeclaration;
 import ir.Expression.IrIdentifier;
@@ -116,13 +116,16 @@ public class MethodCFG extends CFG {
             
             // Algebraic + Constant simplification
             if (do_any) {
-                // TODO algebraic simplification
+                ConstantExpressionEvaluation con = new ConstantExpressionEvaluation();
+                AlgebraicSimplification alg = new AlgebraicSimplification();
+                con.simplify(this);
+                alg.simplify(this);
             }
             
             // Global Common Subexpression Elimination
             if (do_cse) {
                 CSE cse = new CSE(getNextTmp());
-                loop |= cse.doCSE(this);
+                loop |= cse.optimize(this);
                 for (IrIdentifier newTmp : cse.getNewTmps()) {
                     this.addLocal(newTmp);
                 }

@@ -29,7 +29,7 @@ public class CSE {
         return this.newTmps;
     }
     
-    public boolean doCSE(MethodCFG cfg){
+    public boolean optimize(MethodCFG cfg){
         
         boolean change = false;
         

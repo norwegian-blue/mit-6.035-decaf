@@ -66,9 +66,9 @@ public class NodeFlattener implements NodeVisitor<Void> {
         }
             
         // Returns expression --> flatten expression 
-        DestructIr flattenedIr = node.getReturnExp().accept(flattener);
+        DestructIr flattenedIr = node.getExp().accept(flattener);
         IrBlock destructBlock;
-        TypeDescriptor returnType = node.getReturnExp().getExpType();
+        TypeDescriptor returnType = node.getExp().getExpType();
         
         // Check if expression was simplified
         try {
@@ -78,23 +78,23 @@ public class NodeFlattener implements NodeVisitor<Void> {
                 this.currentMethod.addLocal(tmpDecl);
             }
             adjoinStatements(node, destructBlock.getStatements());
-            node.setReturnExp(flattenedIr.getSimplifiedExp());
+            node.setExp(flattenedIr.getSimplifiedExp());
         } catch (NoSuchFieldException e) {
             // Expression is atom or basic expression
         }
         
         // Make return expression atomic
-        if (!node.getReturnExp().isAtom()) {
+        if (!node.getExp().isAtom()) {
             String tmpName = flattener.getTmpName();
             this.currentMethod.addLocal(new IrVariableDeclaration(returnType, tmpName));
             IrIdentifier returnVar = new IrIdentifier(tmpName);
             IrStatement tmpReturn = new IrAssignment(returnVar, 
                                                      IrAssignment.IrAssignmentOp.ASSIGN,
-                                                     node.getReturnExp());
+                                                     node.getExp());
             List<IrStatement> tmpList = new ArrayList<IrStatement>();
             tmpList.add(tmpReturn);
             adjoinStatements(node, tmpList);
-            node.setReturnExp(returnVar);
+            node.setExp(returnVar);
         }
         
         return null;

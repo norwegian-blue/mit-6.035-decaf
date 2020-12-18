@@ -2,6 +2,14 @@ package cfg.Optimization;
 
 import java.util.List;
 
+import cfg.MethodCFG;
+import cfg.Nodes.CfgBlock;
+import cfg.Nodes.CfgCondBranch;
+import cfg.Nodes.CfgEntryNode;
+import cfg.Nodes.CfgExitNode;
+import cfg.Nodes.CfgStatement;
+import cfg.Nodes.Node;
+import cfg.Nodes.NodeVisitor;
 import ir.IrVisitor;
 import ir.Declaration.*;
 import ir.Expression.*;
@@ -12,6 +20,13 @@ import ir.Statement.*;
  */
 
 public class ExpressionSimplifier implements IrVisitor<IrExpression>{
+    
+    public void simplify(MethodCFG cfg) {
+        BlockSimplifier local = new BlockSimplifier(this);
+        for (Node block : cfg.getNodes()) {
+            block.accept(local);
+        }
+    }
     
     @Override
     public IrExpression visit(IrClassDeclaration node) {
@@ -140,6 +155,50 @@ public class ExpressionSimplifier implements IrVisitor<IrExpression>{
     @Override
     public IrExpression visit(IrUnaryExpression node) {
         throw new UnsupportedOperationException();
+    }
+    
+    
+    
+    private class BlockSimplifier implements NodeVisitor<Void> {
+        
+        private IrVisitor<IrExpression> visitor;
+        
+        public BlockSimplifier(IrVisitor<IrExpression> visitor) {
+            this.visitor = visitor;
+        }
+
+        @Override
+        public Void visit(CfgBlock node) {
+            for (Node subNode : node.getBlockNodes()) {
+                subNode.accept(this);
+            }
+            return null;
+        }
+
+        @Override
+        public Void visit(CfgCondBranch node) {
+            node.setExp(node.getExp().accept(this.visitor));
+            return null;
+        }
+
+        @Override
+        public Void visit(CfgEntryNode node) {
+            return null;
+        }
+
+        @Override
+        public Void visit(CfgExitNode node) {
+            if (node.returnsExp()) {
+                node.setExp(node.getExp().accept(this.visitor));
+            }
+            return null;
+        }
+
+        @Override
+        public Void visit(CfgStatement node) {
+            node.setExp(node.getExp().accept(this.visitor));
+            return null;
+        }
     }
 
 }

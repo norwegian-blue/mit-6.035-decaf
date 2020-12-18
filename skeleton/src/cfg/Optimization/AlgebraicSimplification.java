@@ -7,7 +7,7 @@ import ir.Expression.*;
  */
 
 public class AlgebraicSimplification extends ExpressionSimplifier {
-        
+            
     @Override
     public IrExpression visit(IrBinaryExpression node) {
               

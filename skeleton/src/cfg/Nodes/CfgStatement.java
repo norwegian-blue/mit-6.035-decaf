@@ -1,7 +1,9 @@
 package cfg.Nodes;
 
+import ir.Expression.IrCallExpression;
 import ir.Expression.IrExpression;
 import ir.Statement.IrAssignment;
+import ir.Statement.IrInvokeStatement;
 import ir.Statement.IrStatement;
 
 /**
@@ -42,7 +44,7 @@ public class CfgStatement extends CfgLineNode {
         if (this.getStatement().isAssignment()) {
             ((IrAssignment)this.getStatement()).setExpression(exp);
         } else {
-            throw new UnsupportedOperationException();
+            ((IrInvokeStatement)this.getStatement()).setMethod((IrCallExpression)exp);
         }
     }
     
@@ -51,7 +53,7 @@ public class CfgStatement extends CfgLineNode {
         if (this.getStatement().isAssignment()) {
             return ((IrAssignment)this.getStatement()).getExpression();
         } else {
-            throw new UnsupportedOperationException();
+            return ((IrInvokeStatement)this.getStatement()).getMethod();
         }
     }
     

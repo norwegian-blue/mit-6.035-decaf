@@ -174,7 +174,7 @@ public class CodeGenerator implements NodeVisitor<Void> {
             prog.addInstruction(new Mov(new Literal(0), Register.rax()));
         } else if (methodDesc.getType() != BaseTypeDescriptor.VOID) {
             if (node.returnsExp()) {
-                List<LIR> instructions = node.getReturnExp().accept(instructionAssembler);
+                List<LIR> instructions = node.getExp().accept(instructionAssembler);
                 Exp src = (Exp)instructions.get(0);
                 prog.addInstruction(new Mov(src, Register.rax()));
             } else {
