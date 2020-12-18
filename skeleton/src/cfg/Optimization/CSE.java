@@ -20,6 +20,9 @@ public class CSE {
     private int tmpStart;
     private List<IrIdentifier> newTmps;
     
+    private HashMap<CfgBlock, ExpressionLocation> AEin;
+    private HashMap<CfgBlock, ExpressionLocation> AEout;
+    
     public CSE(int tmpStart) {
         this.tmpStart = tmpStart;
         this.newTmps = new ArrayList<IrIdentifier>();
@@ -40,10 +43,16 @@ public class CSE {
             this.newTmps.addAll(local.getNewTmps());
         }
         
+        // Get available expressions
+        getAvailableExpressions(cfg);
+        
         // Global 
         // TODO implement global CSE
         
         return change;
+    }
+    
+    private void getAvailableExpressions(MethodCFG cfg) {
     }
 
     private class LocalCSE implements NodeVisitor<Boolean> {
@@ -258,6 +267,40 @@ public class CSE {
             }
         }
         
+    }
+    
+    
+    // Available expressions location (block and statement)
+    private class ExpressionLocation {
+        
+        private IrIdentifier tmp;
+        private List<BlockLocation> location;
+        
+        public ExpressionLocation(CfgBlock block, Node node) {
+            this.location.add(new BlockLocation(block, node));
+        }
+        
+        public void setTmp(IrIdentifier tmp) {
+            this.tmp = tmp;
+        }
+        
+        private class BlockLocation {
+            private CfgBlock block;
+            private Node node;
+            
+            public BlockLocation(CfgBlock block, Node node) {
+                this.block = block;
+                this.node = node;
+            }
+            
+            public CfgBlock getBlock() {
+                return this.block;
+            }
+            
+            public Node getNode() {
+                return this.node;
+            }
+        }
     }
     
 }
