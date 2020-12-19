@@ -2,8 +2,12 @@ package cfg.Optimization;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.Stack;
 
 import cfg.MethodCFG;
 import cfg.Nodes.*;
@@ -20,12 +24,14 @@ public class CSE {
     private int tmpStart;
     private List<IrIdentifier> newTmps;
     
-    private HashMap<CfgBlock, ExpressionLocation> AEin;
-    private HashMap<CfgBlock, ExpressionLocation> AEout;
+    private Map<CfgBlock, AvailableExpression> AEin;
+    private Map<CfgBlock, AvailableExpression> AEout;
     
     public CSE(int tmpStart) {
         this.tmpStart = tmpStart;
         this.newTmps = new ArrayList<IrIdentifier>();
+        this.AEin = new HashMap<CfgBlock, AvailableExpression>();
+        this.AEout = new HashMap<CfgBlock, AvailableExpression>();
     }
     
     public List<IrIdentifier> getNewTmps() {
@@ -50,10 +56,79 @@ public class CSE {
         // TODO implement global CSE
         
         return change;
-    }
+    }    
+    
+    
+    //////////////////////////////////////////////////////
+    //      AVAILABLE EXPRESSIONS DATAFLOW ANALYSIS     //
+    //////////////////////////////////////////////////////
     
     private void getAvailableExpressions(MethodCFG cfg) {
+    
+        // GEN and DEF
+        GenExpressionFinder GEN = new GenExpressionFinder();
+        DefinitionFinder DEF = new DefinitionFinder();
+        
+        // Initialize available outlet/inlet expressions to empty set for all blocks
+        for (Node block : cfg.getNodes()) {
+            AEin.put(block.getParentBlock(), new AvailableExpression());
+            AEout.put(block.getParentBlock(), new AvailableExpression());
+        }
+        
+        // Initialize list of blocks
+        Set<Node> changed = new HashSet<Node>(cfg.getNodes());
+        changed.remove(cfg.getRoot());
+        
+        // Process entry block
+        cfg.getRoot().accept(GEN);
+        AvailableExpression AEgen = new AvailableExpression(cfg.getRoot().getParentBlock(), GEN.getGenExpression());
+        AEout.put(cfg.getRoot().getParentBlock(), AEgen);
+        
+        // Iteratively solve dataflow equations
+        while(!changed.isEmpty()) {   
+            Node currentNode = changed.iterator().next();   
+            changed.remove(currentNode);
+            
+            // Available in = intersect parents
+            AvailableExpression AEin_n = null;
+            for (Node parent : currentNode.getParents()) {
+                AvailableExpression AEout_p = AEout.get(parent);
+                if (AEin_n == null) {
+                    AEin_n = new AvailableExpression(AEout_p);
+                } else {
+                    AEin_n.intersect(AEout_p);
+                }
+            }
+            AEin.put(currentNode.getParentBlock(), AEin_n);
+            
+            // Available out = Generated union (In-Killed)            
+            currentNode.accept(GEN);
+            currentNode.accept(DEF);
+            AvailableExpression AEgen_n = new AvailableExpression(currentNode.getParentBlock(), GEN.getGenExpression());
+            AvailableExpression AEout_n = new AvailableExpression(AEin_n);
+            for (IrIdentifier def : DEF.getDefinitions()) {
+                AEout_n.removeExpression(def);
+            }
+            AEout_n.union(AEgen_n);       
+            
+            // Re-iterate if changed         
+            if (!AEout_n.equals(AEout.get(currentNode.getParentBlock()))) {
+                for (Node child : currentNode.getChildren()) {
+                    if (child != null) {
+                        changed.add(child);
+                    }
+                }
+            }
+            AEout.put(currentNode.getParentBlock(), AEout_n);
+        }
+    
     }
+    
+    
+    
+    
+    
+    
 
     private class LocalCSE implements NodeVisitor<Boolean> {
         
@@ -259,10 +334,11 @@ public class CSE {
         }
         
         public void clear(IrIdentifier var) {
-            for (IrExpression exp : expToNodeMap.keySet()) {
+            Iterator<IrExpression> it = expToNodeMap.keySet().iterator();
+            while (it.hasNext()) {
+                IrExpression exp = it.next();
                 if (exp.contains(var)) {
-                    expToNodeMap.remove(exp);
-                    expToTmpMap.remove(exp);
+                    it.remove();
                 }
             }
         }
@@ -270,36 +346,129 @@ public class CSE {
     }
     
     
+    // Available Expression set
+    private class AvailableExpression {
+        
+        private Map<IrExpression, IrIdentifier> expToTmpMap;
+        private Map<IrExpression, ExpressionLocation> expToLocationMap;
+        
+        public AvailableExpression() {
+            this.expToLocationMap = new HashMap<IrExpression, ExpressionLocation>();
+            this.expToTmpMap = new HashMap<IrExpression, IrIdentifier>();
+        }
+        
+        public AvailableExpression(AvailableExpression that) {
+            this.expToLocationMap = new HashMap<IrExpression, ExpressionLocation>(that.expToLocationMap);
+            this.expToTmpMap = new HashMap<IrExpression, IrIdentifier>(that.expToTmpMap);
+        }
+        
+        public AvailableExpression(CfgBlock block, Map<IrExpression, Node> expMap) {
+            this.expToLocationMap = new HashMap<IrExpression, ExpressionLocation>();
+            this.expToTmpMap = new HashMap<IrExpression, IrIdentifier>();
+            this.addExpression(block, expMap);
+        }
+
+        public void addExpression(CfgBlock block, Map<IrExpression, Node> expMap) {
+            for (IrExpression exp : expMap.keySet()) {
+                expToLocationMap.put(exp, new ExpressionLocation(block, expMap.get(exp)));
+                expToTmpMap.put(exp, null);
+            }
+        }   
+        
+        public void removeExpression(IrIdentifier id) {
+            Iterator<IrExpression> it = this.expToLocationMap.keySet().iterator();
+            while (it.hasNext()) {
+                IrExpression exp = it.next();
+                if (exp.contains(id)) {
+                    it.remove();
+                }
+            }
+        }
+        
+        public void intersect(AvailableExpression that) {
+            Iterator<IrExpression> it = this.expToLocationMap.keySet().iterator();
+            while (it.hasNext()) {
+                IrExpression exp = it.next();
+                if (!that.expToLocationMap.containsKey(exp)) {
+                    this.expToTmpMap.remove(exp);
+                    it.remove();
+                }
+            }
+        }
+        
+        public void union(AvailableExpression that) {
+            for (IrExpression exp : that.expToLocationMap.keySet()) {
+                if (this.expToLocationMap.containsKey(exp)) {
+                    for (BlockLocation location : that.expToLocationMap.get(exp).getLocations()) {
+                        this.expToLocationMap.get(exp).addLocation(location.getBlock(), location.getNode());
+                    }
+                } else {
+                    this.expToLocationMap.put(exp, that.expToLocationMap.get(exp));
+                }
+                this.expToTmpMap.put(exp, that.expToTmpMap.get(exp));
+            }
+        }
+        
+        @Override
+        public boolean equals(Object that) {
+            if (!(that instanceof AvailableExpression)) {
+                return false;
+            }
+            AvailableExpression thatAE = (AvailableExpression)that;
+            
+            for (IrExpression exp : thatAE.expToLocationMap.keySet()) {
+                if (!this.expToLocationMap.containsKey(exp)) {
+                    return false;
+                }
+            }
+            return thatAE.expToLocationMap.size() == this.expToLocationMap.size();
+        }
+        
+        @Override
+        public String toString() {
+            String str = "[";
+            for (IrExpression exp : this.expToLocationMap.keySet()) {
+                str += exp.toString() + " ";
+            }
+            return str + "]";
+        }
+    }    
+    
     // Available expressions location (block and statement)
     private class ExpressionLocation {
         
-        private IrIdentifier tmp;
         private List<BlockLocation> location;
         
         public ExpressionLocation(CfgBlock block, Node node) {
+            this.location = new ArrayList<BlockLocation>();
+            this.addLocation(block, node);
+        }
+        
+        public void addLocation(CfgBlock block, Node node) {
             this.location.add(new BlockLocation(block, node));
         }
         
-        public void setTmp(IrIdentifier tmp) {
-            this.tmp = tmp;
+        public List<BlockLocation> getLocations() {
+            return location;
         }
         
-        private class BlockLocation {
-            private CfgBlock block;
-            private Node node;
-            
-            public BlockLocation(CfgBlock block, Node node) {
-                this.block = block;
-                this.node = node;
-            }
-            
-            public CfgBlock getBlock() {
-                return this.block;
-            }
-            
-            public Node getNode() {
-                return this.node;
-            }
+    }
+    
+    private class BlockLocation {
+        private CfgBlock block;
+        private Node node;
+        
+        public BlockLocation(CfgBlock block, Node node) {
+            this.block = block;
+            this.node = node;
+        }
+        
+        public CfgBlock getBlock() {
+            return this.block;
+        }
+        
+        public Node getNode() {
+            return this.node;
         }
     }
     

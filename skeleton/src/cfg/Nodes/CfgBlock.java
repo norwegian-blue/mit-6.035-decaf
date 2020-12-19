@@ -127,5 +127,10 @@ public class CfgBlock extends Node {
             firstNode = newPredecessor;
         }
     }
+    
+    @Override
+    public CfgBlock getParentBlock() {
+        return this;
+    }
 
 }

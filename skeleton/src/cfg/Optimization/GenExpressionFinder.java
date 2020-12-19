@@ -1,6 +1,7 @@
 package cfg.Optimization;
 
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 
 import cfg.Nodes.CfgBlock;
@@ -31,6 +32,7 @@ public class GenExpressionFinder implements NodeVisitor<Void>{
 
     @Override
     public Void visit(CfgBlock node) {
+        this.generatedExpressions = new HashMap<IrExpression, Node>();
         for (Node subNode : node.getBlockNodes()) {
             subNode.accept(this);
         }
@@ -99,9 +101,12 @@ public class GenExpressionFinder implements NodeVisitor<Void>{
     }
     
     private void clear(IrIdentifier id) {
-        for (IrExpression exp : this.generatedExpressions.keySet()) {
+        
+        Iterator<IrExpression> it = this.generatedExpressions.keySet().iterator();
+        while (it.hasNext()) {
+            IrExpression exp = it.next();
             if (exp.contains(id)) {
-                this.generatedExpressions.remove(exp);
+                it.remove();
             }
         }
     }
