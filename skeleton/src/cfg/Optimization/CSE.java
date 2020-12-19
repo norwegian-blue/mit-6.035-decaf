@@ -7,13 +7,13 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.Stack;
 
 import cfg.MethodCFG;
 import cfg.Nodes.*;
 import ir.Expression.*;
 import ir.Statement.IrAssignment;
 import ir.Statement.IrInvokeStatement;
+import semantic.TypeDescriptor;
 
 /**
  * @author Nicola
@@ -41,19 +41,24 @@ public class CSE {
     public boolean optimize(MethodCFG cfg){
         
         boolean change = false;
+        CSE_Block cse = new CSE_Block(this.tmpStart);  
         
         // Local
-        LocalCSE local = new LocalCSE(this.tmpStart);        
         for (Node block : cfg.getNodes()) {
-            change |= block.accept(local);
-            this.newTmps.addAll(local.getNewTmps());
-        }
+            cse.resetAvailableExpression();    // No initial guess available
+            change |= block.accept(cse);
+            this.newTmps.addAll(cse.getNewTmps());
+        }        
         
         // Get available expressions
         getAvailableExpressions(cfg);
         
-        // Global 
-        // TODO implement global CSE
+        // Global       
+        for (Node block : cfg.getNodes()) {
+            cse.setAvailableExpression(AEin.get(block));    // Get available expression for dataflow analysis
+            change |= block.accept(cse);
+            this.newTmps.addAll(cse.getNewTmps());
+        }
         
         return change;
     }    
@@ -109,7 +114,10 @@ public class CSE {
             for (IrIdentifier def : DEF.getDefinitions()) {
                 AEout_n.removeExpression(def);
             }
-            AEout_n.union(AEgen_n);       
+            AEgen_n.union(AEout_n);
+            AEout_n = AEgen_n;
+            //AEout_n.union(AEgen_n);       
+            
             
             // Re-iterate if changed         
             if (!AEout_n.equals(AEout.get(currentNode.getParentBlock()))) {
@@ -125,64 +133,76 @@ public class CSE {
     }
     
     
-    
-    
-    
-    
-
-    private class LocalCSE implements NodeVisitor<Boolean> {
+    private class CSE_Block implements NodeVisitor<Boolean> {
         
-        private AEB aeb;
+        private AvailableExpression aeb;
         private int tmpStart;
         private List<IrIdentifier> newTmps;
         
-        public LocalCSE(int tmpStart) {
+        public CSE_Block(int tmpStart) {
             this.tmpStart = tmpStart;
             this.newTmps = new ArrayList<IrIdentifier>();
+            this.aeb = new AvailableExpression();
+        }
+        
+        public void setAvailableExpression(AvailableExpression aeb) {
+            this.aeb = aeb;
+        }
+        
+        public void resetAvailableExpression() {
+            this.aeb = new AvailableExpression();
         }
         
         public List<IrIdentifier> getNewTmps() {
             return this.newTmps;
         }
+        
+        public IrIdentifier getNewTmp(TypeDescriptor type) {
+            String tmpName = "_tmp" + this.tmpStart++;
+            IrIdentifier tmp = new IrIdentifier(tmpName);
+            tmp.setExpType(type);
+            return tmp;
+        }
 
         @Override
         public Boolean visit(CfgBlock node) {
-            this.aeb = new AEB(this.tmpStart);
             boolean mod = false;
             for (Node blkNode : node.getBlockNodes()) {
                 mod |= blkNode.accept(this);
             }
-            this.tmpStart = aeb.getTmpStart();
-            this.newTmps = aeb.getNewTmps();
+            //this.tmpStart = aeb.getTmpStart();
+            //this.newTmps = aeb.getNewTmps();
             return mod;
         }
 
         @Override
         public Boolean visit(CfgCondBranch node) {
             
-            IrExpression exp = node.getExp();
-            // Perform CSE
-            boolean check = false;
-            if (!aeb.available(exp)) {      // Expression is not available --> add
-                aeb.addExpr(exp, node);
-            } else if (!aeb.isNull(exp)) {  // Expression is available and in use --> replace
-                node.setExp(aeb.getTmp(exp));
-                check = true;
-            } else {                        // Expression is available and not in use --> add temporary and replace
-                aeb.addTmp(exp);
-                IrIdentifier tmp = aeb.getTmp(exp);
-                Node origin = aeb.getNode(exp);
-
-                CfgStatement newNode = new CfgStatement(new IrAssignment(tmp, IrAssignment.IrAssignmentOp.ASSIGN, exp));
-                newNode.setParentBlock(node.getParentBlock());
-                origin.getParentBlock().prepend(origin, newNode);
-
-                origin.setExp(tmp);
-                node.setExp(tmp);
-                check = true;
-            }
+            return false;
             
-            return check;
+//            IrExpression exp = node.getExp();
+//            // Perform CSE
+//            boolean check = false;
+//            if (!aeb.available(exp)) {      // Expression is not available --> add
+//                aeb.addExpr(exp, node);
+//            } else if (!aeb.isNull(exp)) {  // Expression is available and in use --> replace
+//                node.setExp(aeb.getTmp(exp));
+//                check = true;
+//            } else {                        // Expression is available and not in use --> add temporary and replace
+//                aeb.addTmp(exp);
+//                IrIdentifier tmp = aeb.getTmp(exp);
+//                Node origin = aeb.getNode(exp);
+//
+//                CfgStatement newNode = new CfgStatement(new IrAssignment(tmp, IrAssignment.IrAssignmentOp.ASSIGN, exp));
+//                newNode.setParentBlock(node.getParentBlock());
+//                origin.getParentBlock().prepend(origin, newNode);
+//
+//                origin.setExp(tmp);
+//                node.setExp(tmp);
+//                check = true;
+//            }
+//            
+//            return check;
         }
 
         @Override
@@ -203,7 +223,7 @@ public class CSE {
                 if (node.getStatement().isInvokeStatement()) {
                     IrInvokeStatement stat = (IrInvokeStatement) node.getStatement();
                     if (stat.getMethod().getExpKind() == IrExpression.expKind.METH) {
-                        aeb.reset();
+                        this.resetAvailableExpression();
                     }
                 }
                 return false;
@@ -216,7 +236,7 @@ public class CSE {
             boolean skipCSE = false;
             switch (exp.getExpKind()) {
             case METH:
-                aeb.reset();
+                this.resetAvailableExpression();
             case BOOL:
             case CALL:
             case ID:
@@ -233,21 +253,27 @@ public class CSE {
             // Perform CSE
             boolean check = false;
             if (!skipCSE) {
-                if (!aeb.available(exp)) {      // Expression is not available --> add
-                    aeb.addExpr(exp, node);
-                } else if (!aeb.isNull(exp)) {  // Expression is available and in use --> replace
+                if (!aeb.available(exp)) {              // Expression is not available --> add
+                    aeb.addExpression(exp, node.getParentBlock(), node);
+                } else if (aeb.tmpAvailable(exp)) {     // Expression is available and in use --> replace
                     ass.setExpression(aeb.getTmp(exp));
                     check = true;
-                } else {                        // Expression is available and not in use --> add temporary and replace
-                    aeb.addTmp(exp);
-                    IrIdentifier tmp = aeb.getTmp(exp);
-                    Node origin = aeb.getNode(exp);
-
-                    CfgStatement newNode = new CfgStatement(new IrAssignment(tmp, IrAssignment.IrAssignmentOp.ASSIGN, exp));
-                    newNode.setParentBlock(node.getParentBlock());
-                    origin.getParentBlock().prepend(origin, newNode);
-
-                    origin.setExp(tmp);
+                } else {                                // Expression is available and not in use --> add temporary and replace
+                    IrIdentifier tmp = getNewTmp(exp.getExpType());
+                    aeb.addTmp(exp, tmp);
+                    
+                    // Update CS origin nodes   a = b+c;    -->     tmp = b+c;  a = tmp;
+                    for (BlockLocation location : aeb.getLocation(exp)) {
+                        CfgBlock originBlock = location.getBlock();
+                        Node origin = location.getNode();
+                        
+                        CfgStatement newNode = new CfgStatement(new IrAssignment(tmp, IrAssignment.IrAssignmentOp.ASSIGN, exp));
+                        newNode.setParentBlock(originBlock);
+                        origin.getParentBlock().prepend(origin, newNode);
+                        origin.setExp(tmp);
+                    }
+                    
+                    // Reassign current expression to new tmp
                     ass.setExpression(tmp);
                     check = true;
                 }
@@ -255,95 +281,18 @@ public class CSE {
             
             // Clear re-assigned variables
             IrIdentifier var = ass.getLocation();
-            aeb.clear(var);
+            aeb.removeExpression(var);
             
             return check;
         }
     }
     
     
-    private class AEB {
-        
-        private Map<IrExpression, IrIdentifier> expToTmpMap;
-        private Map<IrExpression, Node> expToNodeMap;
-        private List<IrIdentifier> newTmps;
-        private int tmpStart;
-        
-        public int getTmpStart() {
-            return this.tmpStart;
-        }
-        
-        public List<IrIdentifier> getNewTmps() {
-            return this.newTmps;
-        }
-        
-        public AEB(int tmpStart) {
-            this.expToTmpMap = new HashMap<IrExpression, IrIdentifier>();
-            this.expToNodeMap = new HashMap<IrExpression, Node>();
-            this.newTmps = new ArrayList<IrIdentifier>();
-            this.tmpStart = tmpStart;
-        }
-        
-        public void addExpr(IrExpression exp, Node node) {
-            expToTmpMap.put(exp, null);
-            expToNodeMap.put(exp, node);
-        }
-        
-        public boolean available(IrExpression exp) {
-            return expToTmpMap.containsKey(exp);
-        }
-        
-        public boolean isNull(IrExpression exp) {
-            if (!available(exp)) {
-                throw new Error("Cannot search non-available expression");
-            }
-            return expToTmpMap.get(exp) == null;
-        }
-        
-        public IrIdentifier getTmp(IrExpression exp) {
-            if (!available(exp) || isNull(exp)) {
-                throw new Error("No available temporary found");
-            }
-            return expToTmpMap.get(exp);
-        }
-        
-        public Node getNode(IrExpression exp) {
-            if (!available(exp)) {
-                throw new Error("No corresponding node found");
-            }
-            return expToNodeMap.get(exp);
-        }
-        
-        public void addTmp(IrExpression exp) {
-            if (!available(exp)) {
-                throw new Error("No corresponding exp found");
-            }
-            IrIdentifier tmp = new IrIdentifier(getTmpName());
-            tmp.setExpType(exp.getExpType());
-            newTmps.add(tmp);
-            expToTmpMap.put(exp, tmp);
-        }
-        
-        private String getTmpName() {
-            return "_tmp" + this.tmpStart++;
-        }
-        
-        public void reset() {
-            this.expToTmpMap = new HashMap<IrExpression, IrIdentifier>();
-            this.expToNodeMap = new HashMap<IrExpression, Node>();
-        }
-        
-        public void clear(IrIdentifier var) {
-            Iterator<IrExpression> it = expToNodeMap.keySet().iterator();
-            while (it.hasNext()) {
-                IrExpression exp = it.next();
-                if (exp.contains(var)) {
-                    it.remove();
-                }
-            }
-        }
-        
-    }
+    
+    
+    
+    
+    
     
     
     // Available Expression set
@@ -370,10 +319,18 @@ public class CSE {
 
         public void addExpression(CfgBlock block, Map<IrExpression, Node> expMap) {
             for (IrExpression exp : expMap.keySet()) {
-                expToLocationMap.put(exp, new ExpressionLocation(block, expMap.get(exp)));
-                expToTmpMap.put(exp, null);
+                addExpression(exp, block, expMap.get(exp));
             }
-        }   
+        }
+        
+        public void addExpression(IrExpression exp, CfgBlock block, Node node) {
+            expToLocationMap.put(exp, new ExpressionLocation(block, node));
+            expToTmpMap.put(exp, null);
+        }
+        
+        public List<BlockLocation> getLocation(IrExpression exp) {
+            return this.expToLocationMap.get(exp).getLocations();
+        }
         
         public void removeExpression(IrIdentifier id) {
             Iterator<IrExpression> it = this.expToLocationMap.keySet().iterator();
@@ -383,6 +340,30 @@ public class CSE {
                     it.remove();
                 }
             }
+        }
+        
+        public boolean available(IrExpression exp) {
+            return this.expToLocationMap.containsKey(exp);
+        }
+        
+        public boolean tmpAvailable(IrExpression exp) {
+            if (this.available(exp)) {
+                return !(this.expToTmpMap.get(exp) == null);
+            } else {
+                throw new Error("Expression is not available");
+            }
+        }
+        
+        public IrIdentifier getTmp(IrExpression exp) {
+            if (this.tmpAvailable(exp)) {
+                return this.expToTmpMap.get(exp);
+            } else {
+                throw new Error("Temporary is not available");
+            }
+        }
+        
+        public void addTmp(IrExpression exp, IrIdentifier tmp) {
+            this.expToTmpMap.put(exp, tmp);
         }
         
         public void intersect(AvailableExpression that) {
