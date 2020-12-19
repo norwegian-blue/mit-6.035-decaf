@@ -72,27 +72,30 @@ public class GenExpressionFinder implements NodeVisitor<Void>{
     public Void visit(CfgStatement node) {
         // Skip non-assignemnt
         if (!node.getStatement().isAssignment()) {
+            if (!node.getStatement().isInvokeStatement()) {
+                this.clearAll();
+            }    
             return null;
         }
         
         // Skip non binary/unary expressions
         IrAssignment ass = (IrAssignment) node.getStatement();
         switch (ass.getExpression().getExpKind()) {
+        case METH:
+            this.clearAll();
+        case BIN:
+        case UN:
+            IrExpression exp = ass.getExpression();
+            this.generatedExpressions.put(exp, node);
+            break;
         case BOOL:
         case CALL:
         case ID:
         case INT:
-        case METH:
         case STRING:
-            return null;
         default:
             break;
         }
-        
-        IrExpression exp = ass.getExpression();
-        
-        // Add expression
-        this.generatedExpressions.put(exp, node);
         
         // Remove expression w/ reassigned term
         this.clear(ass.getLocation());
@@ -109,6 +112,10 @@ public class GenExpressionFinder implements NodeVisitor<Void>{
                 it.remove();
             }
         }
+    }
+    
+    private void clearAll() {
+        this.generatedExpressions = new HashMap<IrExpression, Node>();
     }
 
 }

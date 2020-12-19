@@ -1,10 +1,8 @@
 package cfg.Optimization;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -22,19 +20,19 @@ import semantic.TypeDescriptor;
 public class CSE {
     
     private int tmpStart;
-    private List<IrIdentifier> newTmps;
+    private Set<IrIdentifier> newTmps;
     
     private Map<CfgBlock, AvailableExpression> AEin;
     private Map<CfgBlock, AvailableExpression> AEout;
     
     public CSE(int tmpStart) {
         this.tmpStart = tmpStart;
-        this.newTmps = new ArrayList<IrIdentifier>();
+        this.newTmps = new HashSet<IrIdentifier>();
         this.AEin = new HashMap<CfgBlock, AvailableExpression>();
         this.AEout = new HashMap<CfgBlock, AvailableExpression>();
     }
     
-    public List<IrIdentifier> getNewTmps() {
+    public Set<IrIdentifier> getNewTmps() {
         return this.newTmps;
     }
     
@@ -47,7 +45,6 @@ public class CSE {
         for (Node block : cfg.getNodes()) {
             cse.resetAvailableExpression();    // No initial guess available
             change |= block.accept(cse);
-            this.newTmps.addAll(cse.getNewTmps());
         }        
         
         // Get available expressions
@@ -60,7 +57,7 @@ public class CSE {
             this.newTmps.addAll(cse.getNewTmps());
         }
         
-        return change;
+        return change;  
     }    
     
     
@@ -114,9 +111,7 @@ public class CSE {
             for (IrIdentifier def : DEF.getDefinitions()) {
                 AEout_n.removeExpression(def);
             }
-            AEgen_n.union(AEout_n);
-            AEout_n = AEgen_n;
-            //AEout_n.union(AEgen_n);       
+            AEout_n.union(AEgen_n);       
             
             
             // Re-iterate if changed         
@@ -137,11 +132,11 @@ public class CSE {
         
         private AvailableExpression aeb;
         private int tmpStart;
-        private List<IrIdentifier> newTmps;
+        private Set<IrIdentifier> newTmps;
         
         public CSE_Block(int tmpStart) {
             this.tmpStart = tmpStart;
-            this.newTmps = new ArrayList<IrIdentifier>();
+            this.newTmps = new HashSet<IrIdentifier>();
             this.aeb = new AvailableExpression();
         }
         
@@ -153,7 +148,7 @@ public class CSE {
             this.aeb = new AvailableExpression();
         }
         
-        public List<IrIdentifier> getNewTmps() {
+        public Set<IrIdentifier> getNewTmps() {
             return this.newTmps;
         }
         
@@ -170,8 +165,6 @@ public class CSE {
             for (Node blkNode : node.getBlockNodes()) {
                 mod |= blkNode.accept(this);
             }
-            //this.tmpStart = aeb.getTmpStart();
-            //this.newTmps = aeb.getNewTmps();
             return mod;
         }
 
@@ -260,6 +253,7 @@ public class CSE {
                     check = true;
                 } else {                                // Expression is available and not in use --> add temporary and replace
                     IrIdentifier tmp = getNewTmp(exp.getExpType());
+                    this.newTmps.add(tmp);
                     aeb.addTmp(exp, tmp);
                     
                     // Update CS origin nodes   a = b+c;    -->     tmp = b+c;  a = tmp;
@@ -267,7 +261,14 @@ public class CSE {
                         CfgBlock originBlock = location.getBlock();
                         Node origin = location.getNode();
                         
-                        CfgStatement newNode = new CfgStatement(new IrAssignment(tmp, IrAssignment.IrAssignmentOp.ASSIGN, exp));
+                        if (origin.equals(node)) {
+                            continue;
+                        }
+                        
+                        // Get origin expression (may have been reassigned already)
+                        IrExpression originExp = ((IrAssignment)((CfgStatement)origin).getStatement()).getExpression();
+                        
+                        CfgStatement newNode = new CfgStatement(new IrAssignment(tmp, IrAssignment.IrAssignmentOp.ASSIGN, originExp));
                         newNode.setParentBlock(originBlock);
                         origin.getParentBlock().prepend(origin, newNode);
                         origin.setExp(tmp);
@@ -287,14 +288,7 @@ public class CSE {
         }
     }
     
-    
-    
-    
-    
-    
-    
-    
-    
+     
     // Available Expression set
     private class AvailableExpression {
         
@@ -328,7 +322,7 @@ public class CSE {
             expToTmpMap.put(exp, null);
         }
         
-        public List<BlockLocation> getLocation(IrExpression exp) {
+        public Set<BlockLocation> getLocation(IrExpression exp) {
             return this.expToLocationMap.get(exp).getLocations();
         }
         
@@ -368,11 +362,20 @@ public class CSE {
         
         public void intersect(AvailableExpression that) {
             Iterator<IrExpression> it = this.expToLocationMap.keySet().iterator();
+            // Remove if not in both sets
             while (it.hasNext()) {
                 IrExpression exp = it.next();
                 if (!that.expToLocationMap.containsKey(exp)) {
                     this.expToTmpMap.remove(exp);
                     it.remove();
+                }                
+            }
+            // Merge locations if in both sets
+            for (IrExpression thatExp : that.expToLocationMap.keySet()) {
+                if (this.expToLocationMap.containsKey(thatExp)) {
+                    for (BlockLocation location : that.expToLocationMap.get(thatExp).getLocations()) {
+                        this.expToLocationMap.get(thatExp).addLocation(location.getBlock(), location.getNode());
+                    }
                 }
             }
         }
@@ -380,9 +383,7 @@ public class CSE {
         public void union(AvailableExpression that) {
             for (IrExpression exp : that.expToLocationMap.keySet()) {
                 if (this.expToLocationMap.containsKey(exp)) {
-                    for (BlockLocation location : that.expToLocationMap.get(exp).getLocations()) {
-                        this.expToLocationMap.get(exp).addLocation(location.getBlock(), location.getNode());
-                    }
+                    this.expToLocationMap.replace(exp, that.expToLocationMap.get(exp));
                 } else {
                     this.expToLocationMap.put(exp, that.expToLocationMap.get(exp));
                 }
@@ -418,10 +419,10 @@ public class CSE {
     // Available expressions location (block and statement)
     private class ExpressionLocation {
         
-        private List<BlockLocation> location;
+        private Set<BlockLocation> location;
         
         public ExpressionLocation(CfgBlock block, Node node) {
-            this.location = new ArrayList<BlockLocation>();
+            this.location = new HashSet<BlockLocation>();
             this.addLocation(block, node);
         }
         
@@ -429,7 +430,7 @@ public class CSE {
             this.location.add(new BlockLocation(block, node));
         }
         
-        public List<BlockLocation> getLocations() {
+        public Set<BlockLocation> getLocations() {
             return location;
         }
         
