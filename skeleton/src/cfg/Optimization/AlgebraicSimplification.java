@@ -79,7 +79,8 @@ public class AlgebraicSimplification extends ExpressionSimplifier {
                                                           ((IrUnaryExpression)rhs).getExp());
                 exp.setExpType(node.getExpType());
                 return exp;
-            }                
+            }    
+            break;
         case TIMES:
             if (lhs.isLiteral() && ((IrIntLiteral)lhs).eval() == 0) {
                 return lhs;
@@ -90,6 +91,7 @@ public class AlgebraicSimplification extends ExpressionSimplifier {
             } else if (rhs.isLiteral() && ((IrIntLiteral)rhs).eval() == 1) {
                 return lhs;
             }
+            break;
         default:
             break;
         }
