@@ -280,7 +280,7 @@ public class CSE {
                         }
                         
                         // Get origin expression (may have been reassigned already)
-                        IrExpression originExp = ((IrAssignment)((CfgStatement)origin).getStatement()).getExpression();
+                        IrExpression originExp = origin.getExp();
                         
                         CfgStatement newNode = new CfgStatement(new IrAssignment(tmp, IrAssignment.IrAssignmentOp.ASSIGN, originExp));
                         newNode.setParentBlock(originBlock);
