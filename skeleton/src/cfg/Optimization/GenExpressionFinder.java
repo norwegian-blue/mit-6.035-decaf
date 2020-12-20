@@ -83,6 +83,7 @@ public class GenExpressionFinder implements NodeVisitor<Void>{
         switch (ass.getExpression().getExpKind()) {
         case METH:
             this.clearAll();
+            break;
         case BIN:
         case UN:
             IrExpression exp = ass.getExpression();

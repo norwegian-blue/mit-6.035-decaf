@@ -171,31 +171,44 @@ public class CSE {
         @Override
         public Boolean visit(CfgCondBranch node) {
             
-            return false;
+            IrExpression exp = node.getExp();
             
-//            IrExpression exp = node.getExp();
-//            // Perform CSE
-//            boolean check = false;
-//            if (!aeb.available(exp)) {      // Expression is not available --> add
-//                aeb.addExpr(exp, node);
-//            } else if (!aeb.isNull(exp)) {  // Expression is available and in use --> replace
-//                node.setExp(aeb.getTmp(exp));
-//                check = true;
-//            } else {                        // Expression is available and not in use --> add temporary and replace
-//                aeb.addTmp(exp);
-//                IrIdentifier tmp = aeb.getTmp(exp);
-//                Node origin = aeb.getNode(exp);
-//
-//                CfgStatement newNode = new CfgStatement(new IrAssignment(tmp, IrAssignment.IrAssignmentOp.ASSIGN, exp));
-//                newNode.setParentBlock(node.getParentBlock());
-//                origin.getParentBlock().prepend(origin, newNode);
-//
-//                origin.setExp(tmp);
-//                node.setExp(tmp);
-//                check = true;
-//            }
-//            
-//            return check;
+            // Perform CSE
+            boolean check = false;
+            if (!aeb.available(exp)) {      // Expression is not available --> add
+                aeb.addExpression(exp, node.getParentBlock(), node);
+            } else if (aeb.tmpAvailable(exp)) {  // Expression is available and in use --> replace
+                node.setExp(aeb.getTmp(exp));
+                check = true;
+            } else {                        // Expression is available and not in use --> add temporary and replace
+                IrIdentifier tmp = getNewTmp(exp.getExpType());
+                this.newTmps.add(tmp);
+                aeb.addTmp(exp, tmp);
+                
+                // Update CS origin nodes   a = b+c;    -->     tmp = b+c;  a = tmp;
+                for (BlockLocation location : aeb.getLocation(exp)) {
+                    CfgBlock originBlock = location.getBlock();
+                    Node origin = location.getNode();
+                    
+                    // Avoid replacing self
+                    if (origin.equals(node)) {
+                        continue;
+                    }
+                    
+                    // Get origin expression (may have been reassigned already)
+                    IrExpression originExp = ((IrAssignment)((CfgStatement)origin).getStatement()).getExpression();
+                    
+                    CfgStatement newNode = new CfgStatement(new IrAssignment(tmp, IrAssignment.IrAssignmentOp.ASSIGN, originExp));
+                    newNode.setParentBlock(originBlock);
+                    origin.getParentBlock().prepend(origin, newNode);
+                    origin.setExp(tmp);
+                }
+                               
+                node.setExp(tmp);
+                check = true;
+            }
+            
+            return check;
         }
 
         @Override
@@ -261,6 +274,7 @@ public class CSE {
                         CfgBlock originBlock = location.getBlock();
                         Node origin = location.getNode();
                         
+                        // Avoid replacing self
                         if (origin.equals(node)) {
                             continue;
                         }
@@ -452,6 +466,21 @@ public class CSE {
         public Node getNode() {
             return this.node;
         }
+        
+        @Override
+        public int hashCode() {
+            return 0;
+        }
+        
+        @Override
+        public boolean equals(Object that) {
+            if (!(that instanceof BlockLocation)) {
+                return false;
+            }
+            BlockLocation thatBlock = (BlockLocation)that;
+            return thatBlock.getNode().equals(this.getNode());
+        }
+        
     }
     
 }
