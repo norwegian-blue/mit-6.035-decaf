@@ -303,7 +303,14 @@ public class CP {
             IrExpression exp = ass.getExpression();
                        
             // Perform copy propagation
-            boolean check = this.copyPropagation(exp);  
+            boolean check = this.copyPropagation(exp);
+            if (exp.getExpKind().equals(IrExpression.expKind.ID)) {
+                if (acp.available(exp)) {
+                    ass.setExpression(acp.getExp(exp));
+                    check = true;
+                }
+            }
+                
             if (ass.getLocation().isArrayElement()) {
                 if (acp.available(id.getInd())) {
                     id.setIndex(acp.getExp(id.getInd()));
@@ -355,6 +362,25 @@ public class CP {
 
         public void addCopyInstruction(IrExpression expId, IrExpression value) {
             IrIdentifier id = (IrIdentifier) expId;
+            
+            // Skip globals
+            if (id.getId().startsWith("_glb")) {
+                return;
+            }
+            
+            // Skip if self assignemnt
+            if (expId.equals(value)) {
+                return;
+            }
+            
+            // Skip if reverted assignment already exists
+            if (value.getExpKind().equals(IrExpression.expKind.ID)) {
+                IrExpression valueId = (IrExpression) value;
+                if (available(valueId) && id.equals(this.getExp(valueId))){
+                    return;
+                }
+            }
+            
             if (this.available(id)) {
                 this.idToExpMap.replace(id, value);
             } else {
@@ -362,13 +388,14 @@ public class CP {
             }
         }
         
-        public void removeCopyInstruction(IrIdentifier id) {
+        public void removeCopyInstruction(IrIdentifier idEx) {
             Iterator<IrIdentifier> it = this.idToExpMap.keySet().iterator();
             while (it.hasNext()) {
-                IrExpression exp = it.next();
-                if (exp.equals(id)) {
+                IrIdentifier id = it.next();
+                boolean check = this.idToExpMap.get(id).equals(idEx) || id.equals(idEx);
+                if (check) {
                     it.remove();
-                }
+                } 
             }
         }
         
@@ -388,7 +415,6 @@ public class CP {
             while (it.hasNext()) {
               IrIdentifier id = it.next();
               if (!that.idToExpMap.containsKey(id)) {
-                  this.idToExpMap.remove(id);
                   it.remove();
               }   
             }
