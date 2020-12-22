@@ -7,8 +7,8 @@ import ir.IrVisitor;
  * @author Nicola
  */
 public class IrBinaryExpression extends IrExpression {
-    private final IrExpression leftHandSide;
-    private final IrExpression rightHandSide;
+    private IrExpression leftHandSide;
+    private IrExpression rightHandSide;
     private final BinaryOperator operator;
     
     public static enum BinaryOperator {
@@ -37,8 +37,16 @@ public class IrBinaryExpression extends IrExpression {
         return this.leftHandSide;
     }
     
+    public void setLHS(IrExpression lhs) {
+        this.leftHandSide = lhs;
+    }
+    
     public IrExpression getRHS() {
         return this.rightHandSide;
+    }
+    
+    public void setRHS(IrExpression rhs) {
+        this.rightHandSide = rhs;
     }
     
     public BinaryOperator getOp() {

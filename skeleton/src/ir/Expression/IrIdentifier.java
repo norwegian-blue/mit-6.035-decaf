@@ -8,7 +8,7 @@ import ir.IrVisitor;
  */
 public class IrIdentifier extends IrExpression {
     private final String idName;
-    private final IrExpression arrayInd;
+    private IrExpression arrayInd;
     
     public IrIdentifier(String varName) {
         this.idName = varName;
@@ -81,5 +81,9 @@ public class IrIdentifier extends IrExpression {
     @Override
     public int hashCode() {
         return this.idName.hashCode();
+    }
+
+    public void setIndex(IrExpression exp) {
+        this.arrayInd = exp;
     }
 }

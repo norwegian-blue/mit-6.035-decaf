@@ -132,7 +132,10 @@ public class MethodCFG extends CFG {
             }
             
             // Global Copy Propagation
-            // TODO global copy propagation
+            if (do_cp) {
+                CP cp = new CP(this.methodDesc.getLocals());
+                loop |= cp.optimize(this);
+            }
             
             // Dead Code Elimination
             // TODO dead code elimination

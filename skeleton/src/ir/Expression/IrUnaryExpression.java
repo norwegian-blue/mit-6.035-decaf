@@ -7,7 +7,7 @@ import ir.IrVisitor;
  * @author Nicola
  */
 public class IrUnaryExpression extends IrExpression {
-    private final IrExpression expr;
+    private IrExpression expr;
     private final UnaryOperator op;
     
     public enum UnaryOperator {
@@ -22,6 +22,10 @@ public class IrUnaryExpression extends IrExpression {
     
     public IrExpression getExp() {
         return this.expr;
+    }
+    
+    public void setExp(IrExpression exp) {
+        this.expr = exp;
     }
     
     public UnaryOperator getOp() {

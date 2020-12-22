@@ -173,6 +173,16 @@ public class CSE {
             
             IrExpression exp = node.getExp();
             
+            // Reset available expressions if call
+            switch (exp.getExpKind()) {
+            case CALL:
+            case METH:
+                this.resetAvailableExpression();
+                return false;
+            default:
+                break;
+            }
+                       
             // Perform CSE
             boolean check = false;
             if (!aeb.available(exp)) {      // Expression is not available --> add
