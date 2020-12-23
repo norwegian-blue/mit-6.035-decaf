@@ -1,5 +1,8 @@
 package ir.Expression;
 
+import java.util.HashSet;
+import java.util.Set;
+
 import ir.Ir;
 import ir.IrVisitor;
 
@@ -107,5 +110,13 @@ public class IrBinaryExpression extends IrExpression {
     @Override
     public boolean contains(IrIdentifier var) {
         return this.leftHandSide.equals(var) || this.rightHandSide.equals(var);
+    }
+    
+    @Override
+    public Set<IrIdentifier> getUsedVars() {
+        Set<IrIdentifier> vars = new HashSet<IrIdentifier>();
+        vars.addAll(this.leftHandSide.getUsedVars());
+        vars.addAll(this.rightHandSide.getUsedVars());
+        return vars;
     }
 }

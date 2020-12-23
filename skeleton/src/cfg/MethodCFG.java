@@ -138,7 +138,10 @@ public class MethodCFG extends CFG {
             }
             
             // Dead Code Elimination
-            // TODO dead code elimination
+            if (do_dce) {
+                DCE dce = new DCE();
+                loop |= dce.optimize(this);
+            }
         }
     }
     

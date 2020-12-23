@@ -1,6 +1,8 @@
 package ir.Expression;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import semantic.BaseTypeDescriptor;
 
@@ -27,5 +29,14 @@ public abstract class IrCallExpression extends IrExpression {
     
     public String getName() {
         return name;
+    }
+    
+    @Override
+    public Set<IrIdentifier> getUsedVars() {
+        Set<IrIdentifier> vars = new HashSet<IrIdentifier>();
+        for (IrExpression arg : args) {
+            vars.addAll(arg.getUsedVars());
+        }
+        return vars;
     }
 }

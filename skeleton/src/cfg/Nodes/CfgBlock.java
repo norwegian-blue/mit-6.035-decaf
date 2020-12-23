@@ -132,5 +132,23 @@ public class CfgBlock extends Node {
     public CfgBlock getParentBlock() {
         return this;
     }
+    
+    public void deleteNode(Node node) {
+        node.delete();
+        
+        // Replace first node if necessary
+        if (node.equals(this.getFirstNode())) {
+            this.firstNode = node.getNextBranch();
+        }
+        
+        // Replace last node if necessary
+        if (node.equals(this.getLastNode())) {
+            for(Node parent : node.getParents()) {
+                this.lastNode = parent;
+                break;
+            }
+        }
+        
+    }
 
 }

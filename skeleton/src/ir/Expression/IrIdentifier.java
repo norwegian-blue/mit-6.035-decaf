@@ -1,5 +1,8 @@
 package ir.Expression;
 
+import java.util.HashSet;
+import java.util.Set;
+
 import ir.Ir;
 import ir.IrVisitor;
 
@@ -85,5 +88,12 @@ public class IrIdentifier extends IrExpression {
 
     public void setIndex(IrExpression exp) {
         this.arrayInd = exp;
+    }
+    
+    @Override
+    public Set<IrIdentifier> getUsedVars() {
+        Set<IrIdentifier> vars = new HashSet<IrIdentifier>();
+        vars.add(this);
+        return vars;
     }
 }

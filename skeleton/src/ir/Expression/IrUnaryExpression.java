@@ -1,5 +1,8 @@
 package ir.Expression;
 
+import java.util.HashSet;
+import java.util.Set;
+
 import ir.Ir;
 import ir.IrVisitor;
 
@@ -84,5 +87,12 @@ public class IrUnaryExpression extends IrExpression {
     @Override
     public boolean contains(IrIdentifier exp) {
         return this.expr.equals(exp);
+    }
+    
+    @Override
+    public Set<IrIdentifier> getUsedVars() {
+        Set<IrIdentifier> vars = new HashSet<IrIdentifier>();
+        vars.addAll(this.expr.getUsedVars());
+        return vars;
     }
 }

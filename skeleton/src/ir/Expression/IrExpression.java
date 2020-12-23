@@ -1,5 +1,7 @@
 package ir.Expression;
 
+import java.util.Set;
+
 import ir.Ir;
 import semantic.*;
 
@@ -64,6 +66,10 @@ public abstract class IrExpression extends Ir {
     
     public boolean contains(IrIdentifier var) {
         return false;
+    }
+    
+    public Set<IrIdentifier> getUsedVars() {
+        throw new UnsupportedOperationException("");
     }
     
 }

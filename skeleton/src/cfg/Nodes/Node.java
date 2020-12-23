@@ -4,6 +4,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 import ir.Expression.IrExpression;
+import ir.Expression.IrIdentifier;
 
 /**
  * @author Nicola
@@ -16,6 +17,7 @@ public abstract class Node {
     protected Set<Node> parentNodes = new HashSet<Node>();
     protected Node childNodes[];
     private Node parentBlock = null;
+    protected Set<IrIdentifier> liveVars = new HashSet<IrIdentifier>();
         
     public void addParentNode(Node parent) {
         this.parentNodes.add(parent);
@@ -173,6 +175,34 @@ public abstract class Node {
     
     public void setExp(IrExpression exp) {
         throw new UnsupportedOperationException();
+    }
+    
+    public Set<IrIdentifier> getLiveVars() {
+        return this.liveVars;
+    }
+    
+    public void setLiveVar(Set<IrIdentifier> vars) {
+        this.liveVars = new HashSet<IrIdentifier>(vars);
+    }
+    
+    public void delete() {
+        // Link parents to child
+        for (Node parent : this.parentNodes) {
+            if (parent.isFork()) {
+                if (parent.isTrueBranch(this)) {
+                    parent.setTrueBranch(this.getNextBranch());
+                } else {
+                    parent.setFalseBranch(this.getNextBranch());
+                }
+            } else {
+                parent.setNextBranch(this.getNextBranch());
+            }
+        }
+        
+        // Link children to parent
+        Node children = this.getNextBranch();
+        children.parentNodes.remove(this);
+        children.parentNodes.addAll(this.getParents());
     }
         
 }

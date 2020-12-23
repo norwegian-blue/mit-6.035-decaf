@@ -19,5 +19,10 @@ public abstract class CfgBranchNode extends Node {
     public boolean isTrueBranch(Node node) {
         return this.getTrueBranch().equals(node);
     }
+    
+    @Override
+    public void delete() {
+        throw new Error("Cannot apply to branch node");
+    }
 
 }
