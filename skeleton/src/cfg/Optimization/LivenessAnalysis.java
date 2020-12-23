@@ -121,6 +121,10 @@ public class LivenessAnalysis implements NodeVisitor<Void> {
         IrExpression exp = ass.getExpression();
         
         lv.addLiveVar(exp.getUsedVars());                       // Add used variables
+        if (id.isArrayElement()) {
+            lv.addLiveVar(id.getInd().getUsedVars());
+        }
+        
         node.setLiveVar(lv.getLiveVars());                      // Update node info
         if (!exp.getUsedVars().contains(id)) {
             lv.removeLiveVar(id);                               // Removed assigned variable

@@ -65,6 +65,7 @@ public class DCE implements NodeVisitor<Boolean> {
 
     @Override
     public Boolean visit(CfgStatement node) {
+        
         if (!node.getStatement().isAssignment()) {
             return false;
         }
@@ -74,6 +75,11 @@ public class DCE implements NodeVisitor<Boolean> {
         IrAssignment ass = (IrAssignment) node.getStatement();
         IrIdentifier id = (IrIdentifier) ass.getLocation();
         IrExpression val = (IrExpression) ass.getExpression();
+        
+        // Skip globals
+        if (id.getId().startsWith("_glb")) {
+            return false;
+        }
         
         // Remove statement x = x   
         if (val.equals(id)) {
