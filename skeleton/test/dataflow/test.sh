@@ -1,7 +1,7 @@
 #!/bin/bash
 
 runassembler() {
-  $(git rev-parse --show-toplevel)/skeleton/run.sh -target codegen -opt cse -o $2 $1
+  $(git rev-parse --show-toplevel)/skeleton/run.sh -target codegen -opt all -o $2 $1
 }
 
 fail=0
@@ -10,6 +10,7 @@ for file in `dirname $0`/input/*.dcf; do
   asm='tmp.s'
   bin='tmp'
 
+  #echo "running " $file;
   # compile to assembly
   if runassembler $file $asm 2>&1 > /dev/null; then
     

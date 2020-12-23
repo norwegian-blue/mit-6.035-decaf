@@ -10,6 +10,7 @@ for file in `dirname $0`/input/*.dcf; do
   asm='tmp.s'
   bin='tmp'
 
+  #echo "running " $file;
   # compile to assembly
   if runassembler $file $asm 2>&1 > /dev/null; then
     
