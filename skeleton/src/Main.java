@@ -20,8 +20,6 @@ import decaf.GrammarParser;
 import ir.*;
 import ir.Declaration.IrClassDeclaration;
 import cfg.ProgramCFG;
-import cfg.Optimization.AlgebraicSimplification;
-import cfg.Optimization.ConstantExpressionEvaluation;
 import codegen.AssemblyProgram;
 
 class Main {
@@ -148,15 +146,6 @@ class Main {
                 if (CLI.debug) {
                     Ir.setTreePrint(false);
                     System.out.println("################# Variable renaming (no duplicate names) #################");
-                    System.out.print(program.toString() + "\n");
-                    
-                    // Apply algebraic/constants simplification if any optimization is active
-                    if (anyTrue(CLI.opts)) {
-                        program.accept(new AlgebraicSimplification());
-                        program.accept(new ConstantExpressionEvaluation());
-                    }
-                        
-                    System.out.println("################# Constant Evaluation #################");
                     System.out.print(program.toString() + "\n");
                 }
                 
