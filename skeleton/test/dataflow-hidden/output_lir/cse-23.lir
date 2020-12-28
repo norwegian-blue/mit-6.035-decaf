@@ -1,0 +1,67 @@
+################# Variable renaming (no duplicate names) #################
+CLASS Program
+fields:
+methods:
+METHOD (INT) get_int((INT) _get_int1_x)
+  RETURN _get_int1_x
+
+METHOD (VOID) main()
+  (INT) _main1_a
+  (INT) _main2_b
+  (INT) _main3_c
+  (INT) _main4_d
+  _main1_a ASSIGN get_int(2)
+  _main2_b ASSIGN get_int(3)
+  _main3_c ASSIGN 0
+  _main4_d ASSIGN 0
+  _main3_c ASSIGN (_main1_a TIMES _main2_b)
+  _main4_d ASSIGN get_int((_main1_a TIMES _main2_b))
+  Callout("printf", "%%d\n", _main3_c)
+  Callout("printf", "%%d\n", _main4_d)
+
+############ Blockified Control Flow Graph ############
+main:
+BLOCK main1    
+    NODE ENTRY
+    NODE STMT	_tmp2 ASSIGN get_int(2)
+    NODE STMT	_main1_a ASSIGN _tmp2
+    NODE STMT	_tmp1 ASSIGN get_int(3)
+    NODE STMT	_main2_b ASSIGN _tmp1
+    NODE STMT	_main3_c ASSIGN 0
+    NODE STMT	_main4_d ASSIGN 0
+    NODE STMT	_main3_c ASSIGN (_main1_a TIMES _main2_b)
+    NODE STMT	_tmp3 ASSIGN (_main1_a TIMES _main2_b)
+    NODE STMT	_tmp4 ASSIGN get_int(_tmp3)
+    NODE STMT	_main4_d ASSIGN _tmp4
+    NODE STMT	Callout("printf", "%%d\n", _main3_c)
+    NODE STMT	Callout("printf", "%%d\n", _main4_d)
+    NODE EXIT
+
+
+get_int:
+BLOCK get_int1    
+    NODE ENTRY
+    NODE EXIT	return _get_int1_x
+
+
+
+############ Optimized Control Flow Graph ############
+main:
+BLOCK main1    
+    NODE ENTRY
+    NODE STMT	_tmp2 ASSIGN get_int(2)
+    NODE STMT	_tmp1 ASSIGN get_int(3)
+    NODE STMT	_tmp5 ASSIGN (_tmp2 TIMES _tmp1)
+    NODE STMT	_tmp4 ASSIGN get_int(_tmp5)
+    NODE STMT	Callout("printf", "%%d\n", _tmp5)
+    NODE STMT	Callout("printf", "%%d\n", _tmp4)
+    NODE EXIT
+
+
+get_int:
+BLOCK get_int1    
+    NODE ENTRY
+    NODE EXIT	return _get_int1_x
+
+
+

@@ -1,0 +1,134 @@
+################# Variable renaming (no duplicate names) #################
+CLASS Program
+fields:
+methods:
+METHOD (INT) get_int((INT) _get_int1_x)
+  RETURN _get_int1_x
+
+METHOD (BOOL) get_bool((BOOL) _get_bool1_x)
+  RETURN _get_bool1_x
+
+METHOD (INT) foo()
+  (INT) _foo1_a
+  (INT) _foo2_b
+  (INT) _foo3_c
+  (INT) _foo4_i
+  (BOOL) _foo5_x
+  _foo1_a ASSIGN get_int(7)
+  _foo2_b ASSIGN get_int(2)
+  _foo5_x ASSIGN get_bool(true)
+  _foo3_c ASSIGN 0
+  FOR (_foo6_i = (_foo1_a PLUS _foo2_b) to (2 TIMES (_foo1_a PLUS _foo2_b))) {  
+    _foo3_c ASSIGN (_foo3_c PLUS ((_foo6_i TIMES _foo6_i) TIMES (_foo1_a PLUS _foo2_b)))
+  }
+  RETURN _foo3_c
+
+METHOD (VOID) main()
+  (INT) _main1_c
+  _main1_c ASSIGN foo()
+  Callout("printf", "%%d\n", _main1_c)
+
+############ Blockified Control Flow Graph ############
+foo:
+BLOCK foo1    
+    NODE ENTRY
+    NODE STMT	_tmp7 ASSIGN get_int(7)
+    NODE STMT	_foo1_a ASSIGN _tmp7
+    NODE STMT	_tmp3 ASSIGN get_int(2)
+    NODE STMT	_foo2_b ASSIGN _tmp3
+    NODE STMT	_tmp8 ASSIGN get_bool(true)
+    NODE STMT	_foo5_x ASSIGN _tmp8
+    NODE STMT	_foo3_c ASSIGN 0
+    NODE STMT	_foo6_i ASSIGN (_foo1_a PLUS _foo2_b)
+		GOTO   --> foo2
+
+BLOCK foo2    
+    NODE STMT	_tmp1 ASSIGN (_foo1_a PLUS _foo2_b)
+    NODE STMT	_tmp2 ASSIGN (2 TIMES _tmp1)
+    NODE CMP	 ((_foo6_i LT _tmp2))
+		COND T --> foo3
+		COND F --> foo4
+
+BLOCK foo3    
+    NODE STMT	_tmp4 ASSIGN (_foo6_i TIMES _foo6_i)
+    NODE STMT	_tmp5 ASSIGN (_foo1_a PLUS _foo2_b)
+    NODE STMT	_tmp6 ASSIGN (_tmp4 TIMES _tmp5)
+    NODE STMT	_foo3_c ASSIGN (_foo3_c PLUS _tmp6)
+    NODE STMT	_foo6_i ASSIGN (_foo6_i PLUS 1)
+		GOTO   --> foo2
+
+BLOCK foo4    
+    NODE EXIT	return _foo3_c
+
+
+get_bool:
+BLOCK get_bool1    
+    NODE ENTRY
+    NODE EXIT	return _get_bool1_x
+
+
+main:
+BLOCK main1    
+    NODE ENTRY
+    NODE STMT	_tmp1 ASSIGN foo()
+    NODE STMT	_main1_c ASSIGN _tmp1
+    NODE STMT	Callout("printf", "%%d\n", _main1_c)
+    NODE EXIT
+
+
+get_int:
+BLOCK get_int1    
+    NODE ENTRY
+    NODE EXIT	return _get_int1_x
+
+
+
+############ Optimized Control Flow Graph ############
+foo:
+BLOCK foo1    
+    NODE ENTRY
+    NODE STMT	_tmp7 ASSIGN get_int(7)
+    NODE STMT	_tmp3 ASSIGN get_int(2)
+    NODE STMT	_foo3_c ASSIGN 0
+    NODE STMT	_tmp9 ASSIGN (_tmp7 PLUS _tmp3)
+    NODE STMT	_foo6_i ASSIGN _tmp9
+		GOTO   --> foo2
+
+BLOCK foo2    
+    NODE STMT	_tmp2 ASSIGN (2 TIMES _tmp9)
+    NODE CMP	 ((_foo6_i LT _tmp2))
+		COND T --> foo3
+		COND F --> foo4
+
+BLOCK foo3    
+    NODE STMT	_tmp4 ASSIGN (_foo6_i TIMES _foo6_i)
+    NODE STMT	_tmp6 ASSIGN (_tmp4 TIMES _tmp9)
+    NODE STMT	_foo3_c ASSIGN (_foo3_c PLUS _tmp6)
+    NODE STMT	_foo6_i ASSIGN (_foo6_i PLUS 1)
+		GOTO   --> foo2
+
+BLOCK foo4    
+    NODE EXIT	return _foo3_c
+
+
+get_bool:
+BLOCK get_bool1    
+    NODE ENTRY
+    NODE EXIT	return _get_bool1_x
+
+
+main:
+BLOCK main1    
+    NODE ENTRY
+    NODE STMT	_tmp1 ASSIGN foo()
+    NODE STMT	Callout("printf", "%%d\n", _tmp1)
+    NODE EXIT
+
+
+get_int:
+BLOCK get_int1    
+    NODE ENTRY
+    NODE EXIT	return _get_int1_x
+
+
+

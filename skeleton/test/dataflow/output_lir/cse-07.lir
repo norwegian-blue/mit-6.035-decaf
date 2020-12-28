@@ -1,0 +1,112 @@
+################# Variable renaming (no duplicate names) #################
+CLASS Program
+fields:
+methods:
+METHOD (INT) get_int((INT) _get_int1_x)
+  RETURN _get_int1_x
+
+METHOD (BOOL) get_bool((BOOL) _get_bool1_x)
+  RETURN _get_bool1_x
+
+METHOD (VOID) main()
+  (INT) _main1_a
+  (INT) _main2_b
+  (INT) _main3_c
+  (INT) _main4_d
+  (INT) _main5_e
+  (BOOL) _main6_x
+  _main1_a ASSIGN get_int(2)
+  _main2_b ASSIGN get_int(3)
+  _main6_x ASSIGN get_bool(true)
+  _main3_c ASSIGN 0
+  _main4_d ASSIGN 0
+  _main5_e ASSIGN 0
+  _main3_c ASSIGN (_main1_a PLUS _main2_b)
+  IF (_main6_x) {  
+    _main4_d ASSIGN (_main1_a PLUS _main2_b)
+  }
+  _main5_e ASSIGN (_main1_a PLUS _main2_b)
+  Callout("printf", "%%d\n", _main3_c)
+  Callout("printf", "%%d\n", _main4_d)
+  Callout("printf", "%%d\n", _main5_e)
+
+############ Blockified Control Flow Graph ############
+get_bool:
+BLOCK get_bool1    
+    NODE ENTRY
+    NODE EXIT	return _get_bool1_x
+
+
+main:
+BLOCK main1    
+    NODE ENTRY
+    NODE STMT	_tmp2 ASSIGN get_int(2)
+    NODE STMT	_main1_a ASSIGN _tmp2
+    NODE STMT	_tmp1 ASSIGN get_int(3)
+    NODE STMT	_main2_b ASSIGN _tmp1
+    NODE STMT	_tmp3 ASSIGN get_bool(true)
+    NODE STMT	_main6_x ASSIGN _tmp3
+    NODE STMT	_main3_c ASSIGN 0
+    NODE STMT	_main4_d ASSIGN 0
+    NODE STMT	_main5_e ASSIGN 0
+    NODE STMT	_main3_c ASSIGN (_main1_a PLUS _main2_b)
+    NODE CMP	 (_main6_x)
+		COND T --> main2
+		COND F --> main3
+
+BLOCK main2    
+    NODE STMT	_main4_d ASSIGN (_main1_a PLUS _main2_b)
+		GOTO   --> main3
+
+BLOCK main3    
+    NODE STMT	_main5_e ASSIGN (_main1_a PLUS _main2_b)
+    NODE STMT	Callout("printf", "%%d\n", _main3_c)
+    NODE STMT	Callout("printf", "%%d\n", _main4_d)
+    NODE STMT	Callout("printf", "%%d\n", _main5_e)
+    NODE EXIT
+
+
+get_int:
+BLOCK get_int1    
+    NODE ENTRY
+    NODE EXIT	return _get_int1_x
+
+
+
+############ Optimized Control Flow Graph ############
+get_bool:
+BLOCK get_bool1    
+    NODE ENTRY
+    NODE EXIT	return _get_bool1_x
+
+
+main:
+BLOCK main1    
+    NODE ENTRY
+    NODE STMT	_tmp2 ASSIGN get_int(2)
+    NODE STMT	_tmp1 ASSIGN get_int(3)
+    NODE STMT	_tmp3 ASSIGN get_bool(true)
+    NODE STMT	_main4_d ASSIGN 0
+    NODE STMT	_tmp4 ASSIGN (_tmp2 PLUS _tmp1)
+    NODE CMP	 (_tmp3)
+		COND T --> main2
+		COND F --> main3
+
+BLOCK main2    
+    NODE STMT	_main4_d ASSIGN _tmp4
+		GOTO   --> main3
+
+BLOCK main3    
+    NODE STMT	Callout("printf", "%%d\n", _tmp4)
+    NODE STMT	Callout("printf", "%%d\n", _main4_d)
+    NODE STMT	Callout("printf", "%%d\n", _tmp4)
+    NODE EXIT
+
+
+get_int:
+BLOCK get_int1    
+    NODE ENTRY
+    NODE EXIT	return _get_int1_x
+
+
+
