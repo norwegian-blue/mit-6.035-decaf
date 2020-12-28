@@ -2,7 +2,6 @@ package cfg.Optimization;
 
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -354,6 +353,14 @@ public class CP {
         
         public boolean available(IrExpression id) {
             if (id.getExpKind().equals(IrExpression.expKind.ID)) {
+                return this.idToExpMap.containsKey(id) && this.idToExpMap.get(id)!=null;
+            } else {
+                return false;
+            }
+        }
+        
+        private boolean weakAvailable(IrExpression id) {
+            if (id.getExpKind().equals(IrExpression.expKind.ID)) {
                 return this.idToExpMap.containsKey(id);
             } else {
                 return false;
@@ -381,7 +388,7 @@ public class CP {
                 }
             }
             
-            if (this.available(id)) {
+            if (this.weakAvailable(id)) {
                 this.idToExpMap.replace(id, value);
             } else {
                 this.idToExpMap.put(id, value);
@@ -389,13 +396,16 @@ public class CP {
         }
         
         public void removeCopyInstruction(IrIdentifier idEx) {
-            Iterator<IrIdentifier> it = this.idToExpMap.keySet().iterator();
-            while (it.hasNext()) {
-                IrIdentifier id = it.next();
-                boolean check = this.idToExpMap.get(id).equals(idEx) || id.equals(idEx);
-                if (check) {
-                    it.remove();
-                } 
+            
+            for(IrIdentifier id : this.idToExpMap.keySet()) {
+                if (!this.available(id)) continue;
+                if (id.equals(idEx) || this.idToExpMap.get(id).equals(idEx)) {
+                    this.idToExpMap.replace(id, null);
+                }
+            }
+            
+            if (!this.idToExpMap.containsKey(idEx)) {
+                this.idToExpMap.put(idEx, null);
             }
         }
         
@@ -409,21 +419,21 @@ public class CP {
         }
         
         public void intersect(AvailableCopyInstruction that) {
-            Iterator<IrIdentifier> it = this.idToExpMap.keySet().iterator();
             
-            // Remove if not in both sets
-            while (it.hasNext()) {
-              IrIdentifier id = it.next();
-              if (!that.idToExpMap.containsKey(id)) {
-                  it.remove();
-              }   
-            }
-            
-            // Merge copy if in both sets
+            // Merge copy if in both sets or add if missing
             for (IrIdentifier thatId : that.idToExpMap.keySet()) {
-                if (this.idToExpMap.containsKey(thatId)) {
+                if (!that.available(thatId)) {
+                    this.idToExpMap.put(thatId, null);
+                    this.idToExpMap.replace(thatId, null);
+                    continue;
+                }
+                if (this.available(thatId)) {
                     if (!that.getExp(thatId).equals(this.getExp(thatId))) {
                         this.removeCopyInstruction(thatId);
+                    }
+                } else {
+                    if(this.idToExpMap.get(thatId)!=null) {
+                        this.addCopyInstruction(thatId, that.getExp(thatId));
                     }
                 }
             }
@@ -455,7 +465,11 @@ public class CP {
         public String toString() {
             String str = "[";
             for (IrIdentifier id : this.idToExpMap.keySet()) {
-                str += id.toString() + "-->" + this.idToExpMap.get(id).toString() + " ";
+                if (this.available(id)) {
+                    str += id.toString() + "-->" + this.idToExpMap.get(id).toString() + " ";
+                } else {
+                    str += id.toString() + "-->null ";
+                }
             }
             return str + "]";
         }
