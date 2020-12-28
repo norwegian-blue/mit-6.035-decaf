@@ -89,7 +89,7 @@ class Main {
                     throw new Error("Syntax error");
                 }
                 
-        	} else if (CLI.target == CLI.INTER || CLI.target == CLI.ASSEMBLY || CLI.target == CLI.DEFAULT) {
+        	} else if (CLI.target == CLI.INTER || CLI.target == CLI.ASSEMBLY || CLI.target == CLI.LOWIR || CLI.target == CLI.DEFAULT) {
         	            	    
                 //****************************************************** 
                 // INTERPRETER 
@@ -174,7 +174,7 @@ class Main {
                 // Assemble
                 AssemblyProgram prog = controlFlow.assemble();
                 
-                if (CLI.debug) {
+                if (CLI.debug && CLI.target == CLI.ASSEMBLY) {
                     System.out.println("############## Assembly code ###############\n");
                     System.out.println(prog.toCode());
                 }

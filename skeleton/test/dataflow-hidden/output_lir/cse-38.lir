@@ -1,0 +1,106 @@
+################# Variable renaming (no duplicate names) #################
+CLASS Program
+fields:
+methods:
+METHOD (INT) get_int((INT) _get_int1_x)
+  RETURN _get_int1_x
+
+METHOD (BOOL) get_bool((BOOL) _get_bool1_x)
+  RETURN _get_bool1_x
+
+METHOD (INT) foo()
+  (INT) _foo1_a
+  (INT) _foo2_b
+  (INT) _foo3_c
+  (INT) _foo4_i
+  (INT) _foo5_d
+  (BOOL) _foo6_x
+  _foo1_a ASSIGN get_int(7)
+  _foo2_b ASSIGN get_int(2)
+  _foo6_x ASSIGN get_bool(true)
+  _foo3_c ASSIGN 0
+  _foo5_d ASSIGN (_foo1_a TIMES _foo2_b)
+  _foo1_a ASSIGN (_foo1_a TIMES _foo2_b)
+  _foo3_c ASSIGN (_foo1_a PLUS _foo5_d)
+  RETURN ((_foo3_c PLUS _foo5_d) PLUS _foo1_a)
+
+METHOD (VOID) main()
+  (INT) _main1_c
+  _main1_c ASSIGN foo()
+  Callout("printf", "%%d\n", _main1_c)
+
+############ Blockified Control Flow Graph ############
+foo:
+BLOCK foo1    
+    NODE ENTRY
+    NODE STMT	_tmp4 ASSIGN get_int(7)
+    NODE STMT	_foo1_a ASSIGN _tmp4
+    NODE STMT	_tmp5 ASSIGN get_int(2)
+    NODE STMT	_foo2_b ASSIGN _tmp5
+    NODE STMT	_tmp3 ASSIGN get_bool(true)
+    NODE STMT	_foo6_x ASSIGN _tmp3
+    NODE STMT	_foo3_c ASSIGN 0
+    NODE STMT	_foo5_d ASSIGN (_foo1_a TIMES _foo2_b)
+    NODE STMT	_foo1_a ASSIGN (_foo1_a TIMES _foo2_b)
+    NODE STMT	_foo3_c ASSIGN (_foo1_a PLUS _foo5_d)
+    NODE STMT	_tmp1 ASSIGN (_foo3_c PLUS _foo5_d)
+    NODE STMT	_tmp2 ASSIGN (_tmp1 PLUS _foo1_a)
+    NODE EXIT	return _tmp2
+
+
+get_bool:
+BLOCK get_bool1    
+    NODE ENTRY
+    NODE EXIT	return _get_bool1_x
+
+
+main:
+BLOCK main1    
+    NODE ENTRY
+    NODE STMT	_tmp1 ASSIGN foo()
+    NODE STMT	_main1_c ASSIGN _tmp1
+    NODE STMT	Callout("printf", "%%d\n", _main1_c)
+    NODE EXIT
+
+
+get_int:
+BLOCK get_int1    
+    NODE ENTRY
+    NODE EXIT	return _get_int1_x
+
+
+
+############ Optimized Control Flow Graph ############
+foo:
+BLOCK foo1    
+    NODE ENTRY
+    NODE STMT	_tmp4 ASSIGN get_int(7)
+    NODE STMT	_tmp5 ASSIGN get_int(2)
+    NODE STMT	_tmp6 ASSIGN (_tmp4 TIMES _tmp5)
+    NODE STMT	_foo3_c ASSIGN (_tmp6 PLUS _tmp6)
+    NODE STMT	_tmp1 ASSIGN (_foo3_c PLUS _tmp6)
+    NODE STMT	_tmp2 ASSIGN (_tmp1 PLUS _tmp6)
+    NODE EXIT	return _tmp2
+
+
+get_bool:
+BLOCK get_bool1    
+    NODE ENTRY
+    NODE EXIT	return _get_bool1_x
+
+
+main:
+BLOCK main1    
+    NODE ENTRY
+    NODE STMT	_tmp1 ASSIGN foo()
+    NODE STMT	Callout("printf", "%%d\n", _tmp1)
+    NODE EXIT
+
+
+get_int:
+BLOCK get_int1    
+    NODE ENTRY
+    NODE EXIT	return _get_int1_x
+
+
+
