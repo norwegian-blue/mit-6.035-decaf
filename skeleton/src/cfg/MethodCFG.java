@@ -143,8 +143,6 @@ public class MethodCFG extends CFG {
                 loop |= dce.optimize(this);
             }
         }
-        
-        new RegisterAllocation().allocate(this);
     }
     
     public int getNextTmp() {
