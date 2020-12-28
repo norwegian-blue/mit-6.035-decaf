@@ -43,6 +43,11 @@ public class CP {
         // Get available copy instructions
         getReachingDefinitions(cfg);
         
+        //System.out.println("!!!!!!!!!! ACP in !!!!!!!!!!!");
+        //System.out.println(this.ACPin);
+        //System.out.println("!!!!!!!!!! ACP out !!!!!!!!!!!");
+        //System.out.println(this.ACPout);        
+        
         // Global       
         for (Node block : cfg.getNodes()) {
             cp.setAvailableInstructions(ACPin.get(block));      // Get available copy instructions for dataflow analysis
@@ -70,7 +75,7 @@ public class CP {
                 
         // Initialize list of blocks
         Set<Node> changed = new HashSet<Node>(cfg.getNodes());
-        changed.remove(cfg.getRoot());
+        changed.remove(cfg.getRoot());       
                 
         // Iteratively solve dataflow equations
         while(!changed.isEmpty()) {   
@@ -89,17 +94,29 @@ public class CP {
             }
             ACPin.put(currentNode.getParentBlock(), ACPin_n);
             
+            //System.out.println("####### ACP in " + currentNode.getParentBlock().getBlockName() + " ############\n");
+            //System.out.println(ACPin_n);
+            
             // Available out = Copied union (In-Killed)            
             AvailableCopyInstruction ACPout_n = propFind.find(currentNode.getParentBlock(), ACPin.get(currentNode));     
             
+            //System.out.println("####### ACP out " + currentNode.getParentBlock().getBlockName() + " ############\n");
+            //System.out.println(ACPout_n);
+            
+            //System.out.println("####### ACP out prev " + currentNode.getParentBlock().getBlockName() + " ############\n");
+            //System.out.println(ACPout.get(currentNode.getParentBlock()));
+            
             // Re-iterate if changed         
             if (!ACPout_n.equals(ACPout.get(currentNode.getParentBlock()))) {
+                //System.out.println("repeat\n");
                 for (Node child : currentNode.getChildren()) {
                     if (child != null) {
                         changed.add(child);
                     }
                 }
             }
+            
+            
             
             ACPout.replace(currentNode.getParentBlock(), ACPout_n);
         }
@@ -446,19 +463,21 @@ public class CP {
         }
                 
         @Override
-        public boolean equals(Object that) {
+        public boolean equals(Object thatObj) {
 
-            if (!(that instanceof AvailableCopyInstruction)) {
+            if (!(thatObj instanceof AvailableCopyInstruction)) {
                 return false;
             }
-            AvailableCopyInstruction thatAcp = (AvailableCopyInstruction)that;
+            AvailableCopyInstruction that = (AvailableCopyInstruction)thatObj;
             
-            for (IrIdentifier exp : thatAcp.idToExpMap.keySet()) {
+            for (IrIdentifier exp : that.idToExpMap.keySet()) {
                 if (!this.idToExpMap.containsKey(exp)) {
+                    return false;
+                } else if (this.available(exp) != that.available(exp)) {
                     return false;
                 }
             }
-            return thatAcp.idToExpMap.size() == this.idToExpMap.size();
+            return that.idToExpMap.size() == this.idToExpMap.size();
         }
         
         @Override
@@ -471,7 +490,7 @@ public class CP {
                     str += id.toString() + "-->null ";
                 }
             }
-            return str + "]";
+            return str + "]\n\n";
         }
     }     
 }
