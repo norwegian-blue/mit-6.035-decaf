@@ -121,9 +121,7 @@ public class CP {
                         changed.add(child);
                     }
                 }
-            }
-            
-            
+            }           
             
             ACPout.replace(currentNode.getParentBlock(), ACPout_n);
         }
@@ -305,7 +303,20 @@ public class CP {
 
         @Override
         public Boolean visit(CfgExitNode node) {
-            return false;
+            if (!node.returnsExp()) return false;
+            
+            IrExpression exp = node.getExp();
+            
+            // Perform Copy Propagation
+            if (exp.getExpKind().equals(IrExpression.expKind.ID)) {
+                if (acp.available(exp)) {
+                    node.setExp(acp.getExp(exp));
+                    return true;
+                }
+                return false;
+            } else {           
+                return this.copyPropagation(exp);
+            }
         }
 
         @Override
