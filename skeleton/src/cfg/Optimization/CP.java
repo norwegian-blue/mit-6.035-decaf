@@ -18,6 +18,7 @@ public class CP {
     private Map<CfgBlock, AvailableCopyInstruction> ACPin;
     private Map<CfgBlock, AvailableCopyInstruction> ACPout;
     private List<LocalDescriptor> locals;
+    private boolean CP_db = false;
     
     public CP(List<LocalDescriptor> locals) {
         this.ACPin = new HashMap<CfgBlock, AvailableCopyInstruction>();
@@ -43,10 +44,12 @@ public class CP {
         // Get available copy instructions
         getReachingDefinitions(cfg);
         
-        //System.out.println("!!!!!!!!!! ACP in !!!!!!!!!!!");
-        //System.out.println(this.ACPin);
-        //System.out.println("!!!!!!!!!! ACP out !!!!!!!!!!!");
-        //System.out.println(this.ACPout);        
+        if (CP_db) {
+            System.out.println("!!!!!!!!!! ACP in !!!!!!!!!!!");
+            System.out.println(this.ACPin);
+            System.out.println("!!!!!!!!!! ACP out !!!!!!!!!!!");
+            System.out.println(this.ACPout);        
+        }
         
         // Global       
         for (Node block : cfg.getNodes()) {
@@ -94,21 +97,25 @@ public class CP {
             }
             ACPin.put(currentNode.getParentBlock(), ACPin_n);
             
-            //System.out.println("####### ACP in " + currentNode.getParentBlock().getBlockName() + " ############\n");
-            //System.out.println(ACPin_n);
+            if (CP_db) {
+                System.out.println("####### ACP in " + currentNode.getParentBlock().getBlockName() + " ############\n");
+                System.out.println(ACPin_n);
+            }
             
             // Available out = Copied union (In-Killed)            
             AvailableCopyInstruction ACPout_n = propFind.find(currentNode.getParentBlock(), ACPin.get(currentNode));     
             
-            //System.out.println("####### ACP out " + currentNode.getParentBlock().getBlockName() + " ############\n");
-            //System.out.println(ACPout_n);
+            if (CP_db) {
+                System.out.println("####### ACP out " + currentNode.getParentBlock().getBlockName() + " ############\n");
+                System.out.println(ACPout_n);
             
-            //System.out.println("####### ACP out prev " + currentNode.getParentBlock().getBlockName() + " ############\n");
-            //System.out.println(ACPout.get(currentNode.getParentBlock()));
-            
+                System.out.println("####### ACP out prev " + currentNode.getParentBlock().getBlockName() + " ############\n");
+                System.out.println(ACPout.get(currentNode.getParentBlock()));
+            }
+                
             // Re-iterate if changed         
             if (!ACPout_n.equals(ACPout.get(currentNode.getParentBlock()))) {
-                //System.out.println("repeat\n");
+                if (CP_db) System.out.println("repeat\n");
                 for (Node child : currentNode.getChildren()) {
                     if (child != null) {
                         changed.add(child);
@@ -437,19 +444,27 @@ public class CP {
         
         public void intersect(AvailableCopyInstruction that) {
             
+            //System.out.println(this);
+            //System.out.println(that);
+            
             // Merge copy if in both sets or add if missing
             for (IrIdentifier thatId : that.idToExpMap.keySet()) {
+                
+                //System.out.println(thatId);
+                
                 if (!that.available(thatId)) {
+                    //System.out.println("\tthat not available");
                     this.idToExpMap.put(thatId, null);
                     this.idToExpMap.replace(thatId, null);
                     continue;
                 }
+                
                 if (this.available(thatId)) {
                     if (!that.getExp(thatId).equals(this.getExp(thatId))) {
                         this.removeCopyInstruction(thatId);
                     }
                 } else {
-                    if(this.idToExpMap.get(thatId)!=null) {
+                    if(!this.idToExpMap.containsKey(thatId)) {
                         this.addCopyInstruction(thatId, that.getExp(thatId));
                     }
                 }
