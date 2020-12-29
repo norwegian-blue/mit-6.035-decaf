@@ -88,8 +88,7 @@ BLOCK foo1
 		COND F --> foo3
 
 BLOCK foo2    
-    NODE STMT	_tmp5 ASSIGN _tmp6
-    NODE EXIT	return _tmp5
+    NODE EXIT	return _tmp6
 
 BLOCK foo3    
     NODE STMT	_tmp3 ASSIGN (_tmp6 MINUS 3)
