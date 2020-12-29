@@ -11,7 +11,7 @@ for file in `dirname $0`/input/*.dcf; do
   bin='tmp'
   lir='tmp.lir'
 
-  echo "running " $file;
+  #echo "running " $file;
   # compile to assembly
   if runassembler $file $asm 2>&1 > $lir; then
     
