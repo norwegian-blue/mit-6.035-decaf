@@ -8,6 +8,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.Stack;
 
 import cfg.MethodCFG;
 import cfg.Nodes.*;
@@ -21,10 +22,11 @@ public class RegisterAllocation {
 
     public void allocate(MethodCFG cfg) {
                 
-        // Get UD chains from reaching definitions dataflow analysis
+        // Get DU chains from reaching definitions dataflow analysis
         Set<DuChain> duChains = new ReachingDefinitions(cfg).getDuChains();
         
-        // TODO get Webs
+        // Merge DU chains in Webs for register allocation  
+        Set<Web> webs = Web.getWebs(duChains);
         
         // TODO build dependency graph
         
@@ -375,6 +377,18 @@ public class RegisterAllocation {
             this.uses.add(use);
         }
         
+        public IrIdentifier getId() {
+            return id;
+        }
+        
+        public UD getDef() {
+            return this.definition;
+        }
+        
+        public Set<UD> getUses() {
+            return this.uses;
+        }
+        
         public boolean matches(IrIdentifier thatId, UD thatDef) {
             return id.equals(thatId) && definition.equals(thatDef);
         }
@@ -398,8 +412,74 @@ public class RegisterAllocation {
             }
             return str + "\n";
         }
+
+        public boolean hasCommonUses(DuChain that) {
+            // Check only if same variable
+            if (!that.id.equals(this.id)) return false;
+            
+            // Check if the two chains share a use
+            for (UD use : that.uses) {
+                if (this.uses.contains(use)) {
+                    return true;
+                }
+            }
+            return false;
+        }
         
     }
     
-    
+    private static class Web {
+                
+        private IrIdentifier id;
+        private Set<UD> definitions;
+        private Set<UD> uses;
+        private boolean spilled;
+        private int symReg;
+        
+        private static int webNum = 0;
+        private static Set<Web> webs;
+        
+        public Web(IrIdentifier id, UD def, Set<UD> uses) {
+            this.id = id;
+            definitions = new HashSet<UD>();
+            this.definitions.add(def);
+            this.uses = uses;
+            this.spilled = false;
+            this.symReg = ++webNum;
+        }
+        
+        public static Set<Web> getWebs(Set<DuChain> chains) {
+            
+            webs = new HashSet<Web>();
+            Stack<DuChain> stack = new Stack<DuChain>();
+            stack.addAll(chains);
+            
+            while(!stack.isEmpty()) {
+                DuChain chain = stack.pop();
+                Web web = new Web(chain.getId(), chain.getDef(), chain.getUses());
+                
+                // Check if other chains can be merged into same web
+                Iterator<DuChain> it = stack.iterator();
+                while(it.hasNext()) {
+                    DuChain otherChain = it.next();
+                    if (chain.hasCommonUses(otherChain)) {
+                        web.addChain(otherChain);
+                        it.remove();
+                    }
+                }
+                webs.add(web);
+            }
+            
+            return webs;
+        }
+
+        private void addChain(DuChain that) {
+            // Add definition
+            this.definitions.add(that.getDef());
+            
+            // Add uses
+            this.uses.addAll(that.getUses());            
+        }
+        
+    }
 }
