@@ -1,7 +1,6 @@
 package cfg.Optimization;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -336,21 +335,13 @@ public class RegisterAllocation {
         }
     }
     
-    private class UD {
+    private static class UD {
         private CfgBlock block;
         private Node node;
         
         public UD (CfgBlock block, Node node) {
             this.block = block;
             this.node = node;
-        }
-        
-        public CfgBlock getBlock() {
-            return this.block;
-        }
-        
-        public Node getNode() {
-            return this.node;
         }
         
         @Override
@@ -370,6 +361,10 @@ public class RegisterAllocation {
         @Override
         public String toString() {
             return block.getBlockName() + ": " + node.toString();
+        }
+
+        public Node getNode() {
+            return this.node;
         }
         
     }
@@ -448,14 +443,19 @@ public class RegisterAllocation {
         private IrIdentifier id;
         private Set<UD> definitions;
         private Set<UD> uses;
+        private Set<UD> liveRange;
         private boolean spilled;
         private int symReg;
         
-        private static int webNum = 0;
+        private static int webNum;
         private static Set<Web> webs;
+        
+        private Set<Node> visited;
+        private Stack<UD> range;
         
         public Web(IrIdentifier id, UD def, Set<UD> uses) {
             this.id = id;
+            this.liveRange = new HashSet<UD>();
             definitions = new HashSet<UD>();
             this.definitions.add(def);
             this.uses = uses;
@@ -465,6 +465,7 @@ public class RegisterAllocation {
         
         public static Set<Web> getWebs(Set<DuChain> chains) {
             
+            webNum = 0;
             webs = new HashSet<Web>();
             Stack<DuChain> stack = new Stack<DuChain>();
             stack.addAll(chains);
@@ -482,10 +483,12 @@ public class RegisterAllocation {
                         it.remove();
                     }
                 }
+                web.getLiveRange();
                 webs.add(web);
             }
             
             return webs;
+            
         }
 
         private void addChain(DuChain that) {
@@ -494,6 +497,63 @@ public class RegisterAllocation {
             
             // Add uses
             this.uses.addAll(that.getUses());            
+        }
+        
+        private void getLiveRange() {
+            visited = new HashSet<Node>();
+            for (UD def : this.definitions) {
+                range = new Stack<UD>();
+                dfsCheck(def.getNode());
+            }
+        }
+        
+        private void dfsCheck(Node node) {
+            
+            visited.add(node);
+            
+            // Add stack if current is in web
+            UD current = new UD(node.getParentBlock(), node);
+            range.push(current);
+            if (this.contains(current)) {
+                this.liveRange.addAll(range);
+            }
+            
+            // Search children
+            for (Node child : node.getChildren()) {
+                if (child!=null && !visited.contains(child)) {
+                    dfsCheck(child);
+                }
+            }      
+            
+            // Pop current node
+            range.pop();
+            
+        }
+        
+        private boolean contains(UD ud) {
+            return this.definitions.contains(ud) || this.uses.contains(ud);
+        }
+        
+        public boolean interfere(Web that) {
+            return this._interfere(that) || that._interfere(this);
+        }
+               
+        private boolean _interfere(Web that) {
+            for (UD def : that.definitions) {
+                if (this.liveRange.contains(def)) {
+                    return true;
+                }
+            }
+            return false;
+        }
+        
+        @Override
+        public String toString() {
+            String str = "\nWeb (" + this.symReg + " <-- " + this.id.toString() + ")";
+            for (UD def : definitions) {
+                str += "\n\t" + def.toString();
+            }
+            return str;
         }
         
     }
@@ -541,7 +601,7 @@ private static class InterferenceGraph {
             }
             
             // Sym2Reg interference
-            
+            // TODO Sym to Reg interference
             
             // Sys2Sym interference     --> check if webs interfere
             for (Web web1 : this.webs) {
