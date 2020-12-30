@@ -13,13 +13,19 @@ import cfg.MethodCFG;
 import cfg.Nodes.*;
 import ir.Expression.IrIdentifier;
 import ir.Statement.IrAssignment;
+import semantic.MethodDescriptor;
+import semantic.ParameterDescriptor;
 
 /**
  * @author Nicola
  */
 public class RegisterAllocation {
+    
+    private static MethodDescriptor currentMethod;
 
-    public void allocate(MethodCFG cfg) {
+    public void allocate(MethodCFG cfg, MethodDescriptor method) {
+        
+        currentMethod = method;
                 
         // Get DU chains from reaching definitions dataflow analysis
         Set<DuChain> duChains = new ReachingDefinitions(cfg).getDuChains();
@@ -27,13 +33,11 @@ public class RegisterAllocation {
         // Merge DU chains in Webs for register allocation  
         Set<Web> webs = Web.getWebs(duChains);
         
-        // Build adjacency list from Webs
+        // Build adjacency matrix from Webs
         InterferenceGraph graph = new InterferenceGraph(webs);
         
-        // TODO coalesce registers
+        // TODO coalesce registers (??)
         System.out.println(graph);
-        
-        // TODO coalesce registers
         
         // TODO build adjacency list
         
@@ -509,29 +513,39 @@ public class RegisterAllocation {
         
         private void dfsCheck(Node node) {
             
-            visited.add(node);
-            
-            // Add stack if current is in web
+            // Stop if definition is found (and not first node)
             UD current = new UD(node.getParentBlock(), node);
-            range.push(current);
-            if (this.contains(current)) {
-                this.liveRange.addAll(range);
+            if (this.containsDef(current) && !range.isEmpty()) {
+                return;
             }
             
+            // Add to visited and push onto stack
+            visited.add(node);
+            range.push(current);
+                        
             // Search children
             for (Node child : node.getChildren()) {
                 if (child!=null && !visited.contains(child)) {
                     dfsCheck(child);
                 }
-            }      
+            } 
+            
+            // Add stack to live range if current is in web uses          
+            if (this.containsUse(current)) {
+                this.liveRange.addAll(range);
+            }
             
             // Pop current node
             range.pop();
             
         }
         
-        private boolean contains(UD ud) {
-            return this.definitions.contains(ud) || this.uses.contains(ud);
+        private boolean containsUse(UD ud) {
+            return this.uses.contains(ud);
+        }
+        
+        private boolean containsDef(UD ud) {
+            return this.definitions.contains(ud);
         }
         
         public boolean interfere(Web that) {
@@ -547,6 +561,41 @@ public class RegisterAllocation {
             return false;
         }
         
+        public boolean interfere(InterferenceGraph.REG reg) {
+            
+            // Interfere if web for function parameter
+            for (ParameterDescriptor par : RegisterAllocation.currentMethod.getPars()) {
+                if (par.getId().equals(this.id.getId())) {
+                    try {
+                        InterferenceGraph.REG callReg =  InterferenceGraph.getCallRegister(RegisterAllocation.currentMethod.getPars().indexOf(par));
+                        if (reg.equals(callReg)) {
+                            return false;
+                        } else {
+                            return true;
+                        }
+                    } catch (IllegalArgumentException err) {
+                        return false;
+                    }
+                }
+            }
+            
+            // Interfere if function call within live range
+            // TODO
+            
+            // Interfere with DIV/MOD operation
+            // TODO
+            
+            // Interfere with return value
+            for (UD use : this.uses) {
+                Node node = use.getNode();
+                if (!node.hasNext()) {
+                    return !reg.equals(InterferenceGraph.REG.rax);
+                }
+            }
+            
+            return false;
+        }
+        
         @Override
         public String toString() {
             String str = "\nWeb (" + this.symReg + " <-- " + this.id.toString() + ")";
@@ -558,12 +607,13 @@ public class RegisterAllocation {
         
     }
 
-private static class InterferenceGraph {
+    private static class InterferenceGraph {
         
         private int nSym;
         private int nPhys;
         
         private boolean[][] adjMat;
+        private List<NodeRecord> adjList;
         private List<Web> webs;
         
         public static enum REG {
@@ -592,6 +642,7 @@ private static class InterferenceGraph {
             this.nPhys = REG.values().length;
             this.webs = new ArrayList<Web>(webs);
             this.adjMat = new boolean[nSym+nPhys][nSym+nPhys];
+            this.adjList = new ArrayList<NodeRecord>();
             
             // Reg2Reg interference     --> all physical registers interfere with one another
             for (int i = 0; i < this.nPhys; i++) {
@@ -601,7 +652,15 @@ private static class InterferenceGraph {
             }
             
             // Sym2Reg interference
-            // TODO Sym to Reg interference
+            for (int i = 0; i < this.nPhys; i++) {
+                for (Web web : this.webs) {
+                    if (web.interfere(REG.values()[i])) {
+                        if (!isBound(web) && !isBound(i)) {
+                            adjMat[getInd(web)][i] = true;
+                        }
+                    }
+                }
+            }
             
             // Sys2Sym interference     --> check if webs interfere
             for (Web web1 : this.webs) {
@@ -618,5 +677,132 @@ private static class InterferenceGraph {
             return webs.indexOf(web) + this.nPhys;
         }
         
+        private boolean isBound(Web web) {
+            int free = 0;
+            for (int i = 0; i < nPhys; i++) {
+                if (!interfere(i, getInd(web))) {
+                    free++;
+                }
+            }
+            return free == 1;
+        }
+        
+        private boolean isBound(int i) {
+            // TODO check
+            return false;
+        }
+        
+        private boolean interfere(int i, int j) {
+            if (i > j) {
+                return interfere(j, i);
+            } else {
+                return adjMat[i][j];
+            }
+        }
+        
+        public static REG getCallRegister(int i) throws IllegalArgumentException {
+            switch (i) {
+            case 0:
+                return REG.rdi;
+            case 1:
+                return REG.rsi;
+            case 2:
+                return REG.rdx;
+            case 3:
+                return REG.rcx;
+            case 4:
+                return REG.r8;
+            case 5:
+                return REG.r9;
+            default:
+                throw new IllegalArgumentException("No register assigned to this value");
+            }
+        }
+        
+        public void makeAdjList() {
+            for (int i = 0; i < this.nPhys; i++) {
+                adjList.add(new NodeRecord());
+                adjList.get(i).setAdjoints(getAdjoints(i));
+            }
+            
+            for (Web web : webs) {
+                adjList.add(new NodeRecord());
+                adjList.get(getInd(web)).setAdjoints(getAdjoints(getInd(web)));
+            }
+        }
+        
+        private List<Integer> getAdjoints(int i) {
+            List<Integer> adjList = new ArrayList<Integer>();
+            for (int j = 0; j < nPhys+nSym; j++) {
+                if (interfere(i, j)) {
+                    adjList.add(j);
+                }
+            }
+            return adjList;
+        }
+        
+        private REG getRegAtInd(int i) {
+            return REG.values()[i];
+        }
+        
+        private Web getWebAtInd(int i) {
+            return webs.get(i-nPhys);
+        }
+        
+        @Override
+        public String toString() {
+            if (adjList.isEmpty()) {
+                makeAdjList();
+            }
+            String str = "Interference Graph:";
+            for (int i = 0; i < adjList.size(); i++) {
+                str += "\n " + i + "\t";
+                if (i < nPhys) {
+                    str += String.format("%-20s", getRegAtInd(i).toString());
+                } else {
+                    str += String.format("%-20s", "Web " + getWebAtInd(i).symReg + " (" + getWebAtInd(i).id + ")");
+                }
+                str += "\t" + adjList.get(i).toString();
+            }
+            
+            // Adjacency matrix
+            str += "\n\n";
+            for (int i = 0; i < nPhys+nSym; i++) {
+                for (int j = 0; j < nPhys+nSym; j++) {
+                    str += " " + (adjMat[i][j] ? "1" : "0");
+                }
+                str += "\n";
+            }
+
+            return str + "\n\n";
+        }
+        
+        private class NodeRecord {
+            
+            private int color;
+            private int offset;
+            private int spillCost;
+            private List<Integer> adjoints;
+            private List<Integer> removedAdjoints;
+            
+            public NodeRecord() {
+                this.color = -1;
+                this.offset = -1;
+                this.spillCost = -1;
+                this.adjoints = new ArrayList<Integer>();
+                this.removedAdjoints = new ArrayList<Integer>();
+            }
+            
+            public void setAdjoints(List<Integer> adj) {
+                this.adjoints.addAll(adj);
+            }
+            
+            @Override
+            public String toString() {
+                String str = String.format("color %d, offset %d, cost %d", color, offset, spillCost);
+                str += " adjacent = " + adjoints;
+                return str;
+            }
+        }
     }
 }
