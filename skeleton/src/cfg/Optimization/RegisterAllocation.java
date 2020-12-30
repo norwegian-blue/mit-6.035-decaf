@@ -28,7 +28,11 @@ public class RegisterAllocation {
         // Merge DU chains in Webs for register allocation  
         Set<Web> webs = Web.getWebs(duChains);
         
-        // TODO build dependency graph
+        // Build adjacency list from Webs
+        InterferenceGraph graph = new InterferenceGraph(webs);
+        
+        // TODO coalesce registers
+        System.out.println(graph);
         
         // TODO coalesce registers
         
@@ -151,10 +155,12 @@ public class RegisterAllocation {
                 return idSet;
             }
             
+            @Override
             public String toString() {
                 return defSet.toString();
             }
             
+            @Override
             public boolean equals(Object thatObj) {
                 if (!(thatObj instanceof RCH)) {
                     return false;
@@ -182,10 +188,12 @@ public class RegisterAllocation {
                 return this.node;
             }
             
+            @Override
             public int hashCode() {
                 return id.hashCode();
             }
             
+            @Override
             public boolean equals(Object thatObj) {
                 if (!(thatObj instanceof Definition)) {
                     return false;
@@ -194,6 +202,7 @@ public class RegisterAllocation {
                 return (this.id.equals(that.id)) && (this.node.equals(that.node));
             }
             
+            @Override
             public String toString() {
                 return "{" + id.toString() + ", " + node.toString() + "}";
             }
@@ -344,10 +353,12 @@ public class RegisterAllocation {
             return this.node;
         }
         
+        @Override
         public int hashCode() {
             return 0;
         }
         
+        @Override
         public boolean equals(Object thatObj) {
             if (!(thatObj instanceof UD)) {
                 return false;
@@ -356,6 +367,7 @@ public class RegisterAllocation {
             return block.equals(that.block) && node.equals(that.node);
         }
         
+        @Override
         public String toString() {
             return block.getBlockName() + ": " + node.toString();
         }
@@ -393,10 +405,12 @@ public class RegisterAllocation {
             return id.equals(thatId) && definition.equals(thatDef);
         }
         
+        @Override
         public int hashCode() {
             return id.hashCode();
         }
         
+        @Override
         public boolean equals(Object thatObj) {
             if (!(thatObj instanceof DuChain)) {
                 return false;
@@ -405,6 +419,7 @@ public class RegisterAllocation {
             return id.equals(that.id) && definition.equals(that.definition);
         }
         
+        @Override
         public String toString() {
             String str =  "[" + id.toString() + ", " + definition.toString() + "] --> :";
             for (UD use : uses) {
@@ -479,6 +494,68 @@ public class RegisterAllocation {
             
             // Add uses
             this.uses.addAll(that.getUses());            
+        }
+        
+    }
+
+private static class InterferenceGraph {
+        
+        private int nSym;
+        private int nPhys;
+        
+        private boolean[][] adjMat;
+        private List<Web> webs;
+        
+        public static enum REG {
+            rax,        // (return value)
+            rbx,        
+            rcx,        // (arg 4)
+            rdx,        // (arg 3)
+            //rsp,      // Stack pointer
+            //rbp,      // Base pointer
+            rsi,        // (arg 2)
+            rdi,        // (arg 1)
+            r8,         // (arg 5)
+            r9,         // (arg 6)
+            //r10,      // Scrap register
+            r11,
+            r12,
+            r13,
+            r14,
+            r15
+        }
+        
+        public InterferenceGraph(Set<Web> webs) {
+            
+            // Initialize
+            this.nSym = webs.size();
+            this.nPhys = REG.values().length;
+            this.webs = new ArrayList<Web>(webs);
+            this.adjMat = new boolean[nSym+nPhys][nSym+nPhys];
+            
+            // Reg2Reg interference     --> all physical registers interfere with one another
+            for (int i = 0; i < this.nPhys; i++) {
+                for (int j = 0; j <= i; j++) {
+                    adjMat[i][j] = true;
+                }
+            }
+            
+            // Sym2Reg interference
+            
+            
+            // Sys2Sym interference     --> check if webs interfere
+            for (Web web1 : this.webs) {
+                for (Web web2 : this.webs) {
+                    if (web1.equals(web2) || web1.interfere(web2)) {
+                        adjMat[getInd(web1)][getInd(web2)] = true;
+                    }
+                }
+            }
+            
+        }
+        
+        private int getInd(Web web) {
+            return webs.indexOf(web) + this.nPhys;
         }
         
     }
