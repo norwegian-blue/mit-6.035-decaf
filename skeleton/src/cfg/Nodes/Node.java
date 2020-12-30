@@ -151,14 +151,21 @@ public abstract class Node {
     }
     
     public void prepend(Node newPredecessor) {
-        newPredecessor.setNextBranch(this);
-        
+                
         // Reconnect parent nodes
         for (Node parent : this.getParents()) {
             Node[] children = parent.getChildren();
             for (int i = 0; i < children.length; i++) {
                 if (children[i].equals(this)) {
-                    children[i] = newPredecessor;
+                    if (parent.isFork()) {
+                        if (parent.isTrueBranch(this)) {
+                            parent.setTrueBranch(newPredecessor);
+                        } else {
+                            parent.setFalseBranch(newPredecessor);
+                        }
+                    } else {
+                        parent.setNextBranch(newPredecessor);
+                    }
                     newPredecessor.addParentNode(parent);
                 }
             }
@@ -167,6 +174,7 @@ public abstract class Node {
         // Reconnect to new predecessor
         this.clearParents();
         this.addParentNode(newPredecessor);
+        newPredecessor.setNextBranch(this);
     }
     
     public IrExpression getExp() {

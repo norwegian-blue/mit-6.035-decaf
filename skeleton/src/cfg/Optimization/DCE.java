@@ -42,6 +42,7 @@ public class DCE implements NodeVisitor<Boolean> {
             Node blockNode = it.next();
             if (blockNode.accept(this)) {
                 check = true;
+                blockNode.delete();
                 it.remove();
             }
         }

@@ -25,7 +25,7 @@ public class LivenessAnalysis implements NodeVisitor<Void> {
     private Map<CfgBlock, LiveVariables> LVout;
     
     public LivenessAnalysis() {
-        this.LVin = new HashMap<CfgBlock, LiveVariables>();;
+        this.LVin = new HashMap<CfgBlock, LiveVariables>();
         this.LVout = new HashMap<CfgBlock, LiveVariables>();
     }
     
