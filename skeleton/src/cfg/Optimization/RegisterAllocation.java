@@ -40,13 +40,9 @@ public class RegisterAllocation {
         
         // Build adjacency matrix from Webs
         InterferenceGraph graph = new InterferenceGraph(webs);
-        System.out.println(graph);
-        
-        // TODO coalesce registers (??)
-        
-        // TODO build adjacency list (??)
         
         // TODO compute spill costs
+        System.out.println(graph);
         
         // TODO color graph
         
@@ -806,7 +802,7 @@ public class RegisterAllocation {
             for (int i = 0; i < nPhys; i++) {
                 adjMat[getInd(web)][i] = false;
             }
-             
+            
         }
         
         private boolean isBound(REG reg) {
@@ -831,16 +827,24 @@ public class RegisterAllocation {
                     adjMat[getInd(web)][i] = false;
                 }
             }
-        }
-        
-        private void unBoundWeb(Web web) {
-            for (int i = 0; i < this.nPhys; i++) {
-                adjMat[getInd(web)][i] = false;
+            for (Web otherWeb : this.webs) {
+                if (!web.equals(otherWeb)) {
+                    adjMat[getInd(otherWeb)][getInd(reg)] = true;
+                }
             }
         }
         
         private int getInd(Web web) {
             return webs.indexOf(web) + this.nPhys;
+        }
+        
+        private int getInd(REG reg) {
+            for (int i = 0; i < nPhys; i++) {
+                if (REG.values()[i].equals(reg)){
+                    return i;
+                }
+            }
+            throw new Error("Cannot found register");
         }
                
         private boolean interfere(int i, int j) {
