@@ -31,6 +31,11 @@ public class CfgStatement extends CfgLineNode {
         return v.visit(this);
     }
     
+    @Override
+    public boolean isStatement() {
+        return true;
+    }
+    
     public IrStatement getStatement() {
         return this.stat;
     }

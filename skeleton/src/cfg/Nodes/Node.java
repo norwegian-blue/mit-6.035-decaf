@@ -212,5 +212,9 @@ public abstract class Node {
         children.parentNodes.remove(this);
         children.parentNodes.addAll(this.getParents());
     }
+    
+    public boolean isStatement() {
+        return false;
+    }
         
 }
