@@ -40,7 +40,7 @@ public class RegisterAllocation {
         
         // Build adjacency matrix from Webs
         InterferenceGraph graph = new InterferenceGraph(webs);
-        //System.out.println(graph);
+        System.out.println(graph);
         
         // TODO coalesce registers (??)
         
@@ -718,8 +718,14 @@ public class RegisterAllocation {
         private boolean[][] adjMat;
         private List<NodeRecord> adjList;
         private List<Web> webs;
+        
+        private Map<REG, Set<Web>> boundRegs;
+        private Map<Web, Set<REG>> boundWebs;
                 
         public InterferenceGraph(Set<Web> webs) {
+            
+            boundRegs = new HashMap<REG, Set<Web>>();
+            boundWebs = new HashMap<Web, Set<REG>>();
             
             // Initialize
             this.nSym = webs.size();
@@ -735,10 +741,11 @@ public class RegisterAllocation {
                 }
             }
             
-            // Sym2Reg interference
+            // Sym2Reg interference     --> bound webs to registers if possible
             for (Web web : this.webs) {
-                Set<REG> boundRegs = web.getBoundRegs();  
-                //System.out.println("Bound to web " + web.symReg + "( " + web.id + "): " + boundRegs + "\n");
+                Set<REG> boundRegs = web.getBoundRegs(); 
+                boundWebs.put(web, boundRegs);
+                attemptBound(web, boundRegs);
             }
             
             // Sys2Sym interference     --> check if webs interfere
@@ -752,6 +759,84 @@ public class RegisterAllocation {
             
             // Build adjacency list
             makeAdjList();
+        }
+        
+        private void attemptBound(Web web, Set<REG> regs) {
+            
+            // First try all possible for current
+            Iterator<REG> it = regs.iterator();  
+            while(it.hasNext()) {
+                REG reg = it.next();
+                boolean skip = false;
+                
+                // Check if live together with conflicting webs
+                if (isBound(reg)) {
+                    Set<Web> conflictWebs = this.boundRegs.get(reg);
+                    for (Web confWeb : conflictWebs) {
+                        if (web.interfere(confWeb)) {
+                            skip = true;
+                        }
+                    }
+                }
+
+                // Bind to web
+                if (!skip) {
+                    bind(web, reg);
+                    this.boundWebs.get(web).remove(reg);
+                    return;
+                }
+
+            }
+            
+            
+            // Then relocate conflict
+            it = regs.iterator();  
+            while(it.hasNext()) {
+                REG reg = it.next();
+                Set<Web> conflict = this.boundRegs.get(reg);
+                for (Web confWeb : conflict) {
+                    attemptBound(confWeb, this.boundWebs.get(confWeb));
+                }
+                bind(web, reg);
+                this.boundWebs.get(web).remove(reg);
+                return;
+            }
+            
+            // Unbound if no binding possible
+            for (int i = 0; i < nPhys; i++) {
+                adjMat[getInd(web)][i] = false;
+            }
+             
+        }
+        
+        private boolean isBound(REG reg) {
+            return boundRegs.containsKey(reg);
+        }
+        
+        private void bind(Web web, REG reg) {
+            // Update bounded registers record
+            if (boundRegs.containsKey(reg)) {
+                boundRegs.get(reg).add(web);
+            } else {
+                Set<Web> webSet = new HashSet<Web>();
+                webSet.add(web);
+                boundRegs.put(reg, webSet);
+            }
+            
+            // Update adjacency matrix
+            for (int i = 0; i < nPhys; i++) {
+                if (!reg.equals(REG.values()[i])) {
+                    adjMat[getInd(web)][i] = true;
+                } else {
+                    adjMat[getInd(web)][i] = false;
+                }
+            }
+        }
+        
+        private void unBoundWeb(Web web) {
+            for (int i = 0; i < this.nPhys; i++) {
+                adjMat[getInd(web)][i] = false;
+            }
         }
         
         private int getInd(Web web) {
