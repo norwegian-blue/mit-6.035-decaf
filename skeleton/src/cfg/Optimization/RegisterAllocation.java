@@ -11,8 +11,13 @@ import java.util.Stack;
 
 import cfg.MethodCFG;
 import cfg.Nodes.*;
+import ir.Expression.IrBinaryExpression;
+import ir.Expression.IrCallExpression;
+import ir.Expression.IrExpression;
 import ir.Expression.IrIdentifier;
 import ir.Statement.IrAssignment;
+import ir.Statement.IrInvokeStatement;
+import ir.Statement.IrStatement;
 import semantic.MethodDescriptor;
 import semantic.ParameterDescriptor;
 
@@ -35,11 +40,11 @@ public class RegisterAllocation {
         
         // Build adjacency matrix from Webs
         InterferenceGraph graph = new InterferenceGraph(webs);
-        
-        // TODO coalesce registers (??)
         System.out.println(graph);
         
-        // TODO build adjacency list
+        // TODO coalesce registers (??)
+        
+        // TODO build adjacency list (??)
         
         // TODO compute spill costs
         
@@ -555,45 +560,128 @@ public class RegisterAllocation {
         private boolean _interfere(Web that) {
             for (UD def : that.definitions) {
                 if (this.liveRange.contains(def)) {
+                    // Check if last use
+                    visited = new HashSet<Node>();
+                    if (this.containsUse(def) && lastUse(def)) {
+                        continue;
+                    }
                     return true;
                 }
             }
             return false;
         }
         
-        public boolean interfere(InterferenceGraph.REG reg) {
+        private boolean lastUse(UD use) {
             
-            // Interfere if web for function parameter
+            if (!visited.isEmpty() && this.containsUse(use)) return false;
+            visited.add(use.getNode());
+            
+            boolean check = true;
+            for (Node child : use.getNode().getChildren()) {
+                if (child != null && !visited.contains(child)) {
+                    UD childUd = new UD(child.getParentBlock(), child);
+                    check &= lastUse(childUd);
+                }
+            }
+            return check;
+        }
+        
+        public Set<REG> getBoundRegs() {
+            
+            Set<REG> boundRegs = new HashSet<REG>();
+            
+            // Bound if web for function parameter
             for (ParameterDescriptor par : RegisterAllocation.currentMethod.getPars()) {
                 if (par.getId().equals(this.id.getId())) {
                     try {
-                        InterferenceGraph.REG callReg =  InterferenceGraph.getCallRegister(RegisterAllocation.currentMethod.getPars().indexOf(par));
-                        if (reg.equals(callReg)) {
-                            return false;
-                        } else {
-                            return true;
-                        }
+                        REG parReg = getCallRegister(RegisterAllocation.currentMethod.getPars().indexOf(par));
+                        boundRegs.add(parReg);
                     } catch (IllegalArgumentException err) {
-                        return false;
+                        continue;
+                    }
+                }
+            }
+                   
+            // Bound if used in function call
+            for (UD use : this.uses) {
+                if (use.getNode().isStatement()) {
+                    CfgStatement node = (CfgStatement) use.getNode();
+                    IrStatement stat = node.getStatement();
+                    IrExpression exp;
+                    if (stat.isAssignment()) {
+                        IrAssignment ass = (IrAssignment) stat;
+                        exp = ass.getExpression();
+                    } else if (stat.isInvokeStatement()) {
+                        IrInvokeStatement inv = (IrInvokeStatement) stat;
+                        exp = inv.getMethod();
+                    } else {
+                        throw new Error("Unexpected type");
+                    }
+                    if (exp.getExpKind().equals(IrExpression.expKind.CALL) || 
+                            exp.getExpKind().equals(IrExpression.expKind.CALL)) { 
+                        IrCallExpression call = (IrCallExpression) exp;
+                        for (int i = 0; i < call.getArgs().size(); i++) {
+                            if (call.getArgs().get(i).contains(this.id)) {
+                                try {
+                                    REG parReg = getCallRegister(i);
+                                    boundRegs.add(parReg);
+                                } catch (IllegalArgumentException err) {
+                                    continue;
+                                }
+                            }
+                        }
+                    }
+                    
+                }
+            }
+            
+            // Bound with DIV/MOD operation registers
+            // --> dividend to %rax
+            for (UD use : this.uses) {
+                if (use.getNode().isStatement()) {
+                    CfgStatement node = (CfgStatement) use.getNode();
+                    IrStatement stat = node.getStatement();
+                    if (stat.isAssignment()) {
+                        IrExpression exp = ((IrAssignment) stat).getExpression();
+                        if (exp.getExpKind().equals(IrExpression.expKind.BIN)) {
+                            IrBinaryExpression bin = (IrBinaryExpression) exp;
+                            if (bin.getOp().equals(IrBinaryExpression.BinaryOperator.DIVIDE) || 
+                                    bin.getOp().equals(IrBinaryExpression.BinaryOperator.MOD)) {
+                                if (bin.getLHS().contains(this.id)) {
+                                    boundRegs.add(REG.rax);
+                                }
+                            }
+                        }
                     }
                 }
             }
             
-            // Interfere if function call within live range
-            // TODO
-            
-            // Interfere with DIV/MOD operation
-            // TODO
-            
-            // Interfere with return value
-            for (UD use : this.uses) {
-                Node node = use.getNode();
-                if (!node.hasNext()) {
-                    return !reg.equals(InterferenceGraph.REG.rax);
+            // --> quotient to %rax, remainder to %rdx
+            for (UD def : this.definitions) {
+                if (!def.getNode().isStatement()) {
+                    continue;
+                }
+                CfgStatement node = (CfgStatement) def.getNode();
+                IrExpression exp = ((IrAssignment) node.getStatement()).getExpression();
+                if (exp.getExpKind().equals(IrExpression.expKind.BIN)) {
+                    IrBinaryExpression bin = (IrBinaryExpression) exp;
+                    if (bin.getOp().equals(IrBinaryExpression.BinaryOperator.DIVIDE)) {
+                        boundRegs.add(REG.rax);
+                    } else if (bin.getOp().equals(IrBinaryExpression.BinaryOperator.MOD)) {
+                        boundRegs.add(REG.rdx);
+                    }
                 }
             }
             
-            return false;
+            // Bound with return value
+            for (UD use : this.uses) {
+                Node node = use.getNode();
+                if (!node.hasNext()) {
+                    boundRegs.add(REG.rax);
+                }
+            }
+            
+            return boundRegs;
         }
         
         @Override
@@ -615,26 +703,7 @@ public class RegisterAllocation {
         private boolean[][] adjMat;
         private List<NodeRecord> adjList;
         private List<Web> webs;
-        
-        public static enum REG {
-            rax,        // (return value)
-            rbx,        
-            rcx,        // (arg 4)
-            rdx,        // (arg 3)
-            //rsp,      // Stack pointer
-            //rbp,      // Base pointer
-            rsi,        // (arg 2)
-            rdi,        // (arg 1)
-            r8,         // (arg 5)
-            r9,         // (arg 6)
-            //r10,      // Scrap register
-            r11,
-            r12,
-            r13,
-            r14,
-            r15
-        }
-        
+                
         public InterferenceGraph(Set<Web> webs) {
             
             // Initialize
@@ -652,14 +721,9 @@ public class RegisterAllocation {
             }
             
             // Sym2Reg interference
-            for (int i = 0; i < this.nPhys; i++) {
-                for (Web web : this.webs) {
-                    if (web.interfere(REG.values()[i])) {
-                        if (!isBound(web) && !isBound(i)) {
-                            adjMat[getInd(web)][i] = true;
-                        }
-                    }
-                }
+            for (Web web : this.webs) {
+                Set<REG> boundRegs = web.getBoundRegs();  
+                System.out.println("Bound to web " + web.symReg + "( " + web.id + "): " + boundRegs + "\n");
             }
             
             // Sys2Sym interference     --> check if webs interfere
@@ -676,46 +740,12 @@ public class RegisterAllocation {
         private int getInd(Web web) {
             return webs.indexOf(web) + this.nPhys;
         }
-        
-        private boolean isBound(Web web) {
-            int free = 0;
-            for (int i = 0; i < nPhys; i++) {
-                if (!interfere(i, getInd(web))) {
-                    free++;
-                }
-            }
-            return free == 1;
-        }
-        
-        private boolean isBound(int i) {
-            // TODO check
-            return false;
-        }
-        
+               
         private boolean interfere(int i, int j) {
             if (i > j) {
                 return interfere(j, i);
             } else {
                 return adjMat[i][j];
-            }
-        }
-        
-        public static REG getCallRegister(int i) throws IllegalArgumentException {
-            switch (i) {
-            case 0:
-                return REG.rdi;
-            case 1:
-                return REG.rsi;
-            case 2:
-                return REG.rdx;
-            case 3:
-                return REG.rcx;
-            case 4:
-                return REG.r8;
-            case 5:
-                return REG.r9;
-            default:
-                throw new IllegalArgumentException("No register assigned to this value");
             }
         }
         
@@ -803,6 +833,44 @@ public class RegisterAllocation {
                 str += " adjacent = " + adjoints;
                 return str;
             }
+        }
+    }
+    
+    private static enum REG {
+        rax,        // (return value)
+        rbx,        
+        rcx,        // (arg 4)
+        rdx,        // (arg 3)
+        //rsp,      // Stack pointer
+        //rbp,      // Base pointer
+        rsi,        // (arg 2)
+        rdi,        // (arg 1)
+        r8,         // (arg 5)
+        r9,         // (arg 6)
+        //r10,      // Scrap register
+        r11,
+        r12,
+        r13,
+        r14,
+        r15
+    }
+    
+    private static REG getCallRegister(int i) throws IllegalArgumentException {
+        switch (i) {
+        case 0:
+            return REG.rdi;
+        case 1:
+            return REG.rsi;
+        case 2:
+            return REG.rdx;
+        case 3:
+            return REG.rcx;
+        case 4:
+            return REG.r8;
+        case 5:
+            return REG.r9;
+        default:
+            throw new IllegalArgumentException("No register assigned to this value");
         }
     }
 }
