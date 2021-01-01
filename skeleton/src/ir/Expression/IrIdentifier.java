@@ -96,4 +96,9 @@ public class IrIdentifier extends IrExpression {
         vars.add(this);
         return vars;
     }
+    
+    @Override
+    public boolean contains(IrIdentifier id) {
+        return this.equals(id);
+    }
 }

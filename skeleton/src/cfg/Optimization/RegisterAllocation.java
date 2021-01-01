@@ -40,7 +40,7 @@ public class RegisterAllocation {
         
         // Build adjacency matrix from Webs
         InterferenceGraph graph = new InterferenceGraph(webs);
-        System.out.println(graph);
+        //System.out.println(graph);
         
         // TODO coalesce registers (??)
         
@@ -618,7 +618,7 @@ public class RegisterAllocation {
                         throw new Error("Unexpected type");
                     }
                     if (exp.getExpKind().equals(IrExpression.expKind.CALL) || 
-                            exp.getExpKind().equals(IrExpression.expKind.CALL)) { 
+                            exp.getExpKind().equals(IrExpression.expKind.METH)) { 
                         IrCallExpression call = (IrCallExpression) exp;
                         for (int i = 0; i < call.getArgs().size(); i++) {
                             if (call.getArgs().get(i).contains(this.id)) {
@@ -673,6 +673,21 @@ public class RegisterAllocation {
                 }
             }
             
+            // Bound with returned value
+            for (UD def : this.definitions) {
+                if (def.getNode().isStatement()) {
+                    CfgStatement node = (CfgStatement) def.getNode();
+                    IrStatement stat = node.getStatement();
+                    if (stat.isAssignment()) {
+                        IrExpression exp = ((IrAssignment) stat).getExpression();
+                        if (exp.getExpKind().equals(IrExpression.expKind.METH) || 
+                                exp.getExpKind().equals(IrExpression.expKind.CALL)) {
+                            boundRegs.add(REG.rax);
+                        }
+                    }
+                }
+            }
+            
             // Bound with return value
             for (UD use : this.uses) {
                 Node node = use.getNode();
@@ -723,7 +738,7 @@ public class RegisterAllocation {
             // Sym2Reg interference
             for (Web web : this.webs) {
                 Set<REG> boundRegs = web.getBoundRegs();  
-                System.out.println("Bound to web " + web.symReg + "( " + web.id + "): " + boundRegs + "\n");
+                //System.out.println("Bound to web " + web.symReg + "( " + web.id + "): " + boundRegs + "\n");
             }
             
             // Sys2Sym interference     --> check if webs interfere
@@ -735,6 +750,8 @@ public class RegisterAllocation {
                 }
             }
             
+            // Build adjacency list
+            makeAdjList();
         }
         
         private int getInd(Web web) {
@@ -742,7 +759,7 @@ public class RegisterAllocation {
         }
                
         private boolean interfere(int i, int j) {
-            if (i > j) {
+            if (i < j) {
                 return interfere(j, i);
             } else {
                 return adjMat[i][j];
@@ -781,9 +798,7 @@ public class RegisterAllocation {
         
         @Override
         public String toString() {
-            if (adjList.isEmpty()) {
-                makeAdjList();
-            }
+
             String str = "Interference Graph:";
             for (int i = 0; i < adjList.size(); i++) {
                 str += "\n " + i + "\t";
