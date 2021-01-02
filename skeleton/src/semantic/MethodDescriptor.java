@@ -2,6 +2,9 @@ package semantic;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
+
+import cfg.Optimization.RegisterAllocation.Web;
 
 /**
  * @author Nicola
@@ -10,6 +13,8 @@ public class MethodDescriptor extends Descriptor {
 
     private List<ParameterDescriptor> parameters;
     private List<LocalDescriptor> locals;
+    
+    private Set<Web> webs;
     
     public MethodDescriptor(String name, TypeDescriptor returnType, List<ParameterDescriptor> parameters) {
         super(name, returnType);
@@ -21,6 +26,14 @@ public class MethodDescriptor extends Descriptor {
         super(name, returnType);
         this.parameters = parameters;
         this.locals = locals;
+    }
+    
+    public void addWebs(Set<Web> webs) {
+        this.webs = webs;
+    }
+    
+    public Set<Web> getWebs() {
+        return this.webs;
     }
     
     @Override

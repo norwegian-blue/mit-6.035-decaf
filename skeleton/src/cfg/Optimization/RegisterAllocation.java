@@ -1,6 +1,7 @@
 package cfg.Optimization;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -41,11 +42,20 @@ public class RegisterAllocation {
         // Build adjacency matrix from Webs
         InterferenceGraph graph = new InterferenceGraph(webs);
         
-        // TODO compute spill costs
-        System.out.println(graph);
+        // Compute spill costs
+        graph.computeSpillCost();
         
-        // TODO color graph
+        // Color graph
+        graph.color();
         
+        // Allocate registers to webs
+        for (Web web : webs) {
+            web.allocate(graph);
+        }
+        currentMethod.addWebs(webs);
+        
+        //System.out.println(graph);
+        //System.out.println("WEBS :\n" + webs + "\n");
     }
     
     private class ReachingDefinitions {
@@ -443,13 +453,14 @@ public class RegisterAllocation {
         
     }
     
-    private static class Web {
+    public static class Web {
                 
         private IrIdentifier id;
         private Set<UD> definitions;
         private Set<UD> uses;
         private Set<UD> liveRange;
         private boolean spilled;
+        private REG reg;
         private int symReg;
         
         private static int webNum;
@@ -461,13 +472,21 @@ public class RegisterAllocation {
         public Web(IrIdentifier id, UD def, Set<UD> uses) {
             this.id = id;
             this.liveRange = new HashSet<UD>();
-            definitions = new HashSet<UD>();
+            this.definitions = new HashSet<UD>();
             this.definitions.add(def);
             this.uses = uses;
             this.spilled = false;
             this.symReg = ++webNum;
         }
         
+        public void allocate(InterferenceGraph graph) {
+            if (graph.canAllocate(this)) {
+                reg = graph.getRegister(this);
+            } else {
+                this.spilled = true;
+            }
+        }
+
         public static Set<Web> getWebs(Set<DuChain> chains) {
             
             webNum = 0;
@@ -697,11 +716,29 @@ public class RegisterAllocation {
         
         @Override
         public String toString() {
-            String str = "\nWeb (" + this.symReg + " <-- " + this.id.toString() + ")";
+            String str = "\nWeb" + this.symReg + " (" + this.id.toString() + ")";
+            if (spilled) {
+                str += "\tmemory";
+            } else {
+                str += "\tregister = " + reg.toString();
+            }
             for (UD def : definitions) {
                 str += "\n\t" + def.toString();
             }
             return str;
+        }
+        
+        public int getSpillCost() {
+            int cost = 0;
+            
+            for (UD def : this.definitions) {
+                cost += Math.pow(10, def.getNode().getDepth());
+            }
+            for (UD use : this.uses) {
+                cost += Math.pow(10, use.getNode().getDepth());
+            }
+            
+            return cost;
         }
         
     }
@@ -712,11 +749,95 @@ public class RegisterAllocation {
         private int nPhys;
         
         private boolean[][] adjMat;
-        private List<NodeRecord> adjList;
+        private Map<Integer, NodeRecord> adjList;
         private List<Web> webs;
         
         private Map<REG, Set<Web>> boundRegs;
         private Map<Web, Set<REG>> boundWebs;
+        
+        public void color() {
+            Stack<NodeRecord> stack = new Stack<NodeRecord>();
+            
+            // Stack nodes
+            while (!adjList.isEmpty()) {
+                
+                // Push R-colorable onto stack
+                boolean loop = true;
+                while(loop) {
+                    loop = false;
+                    for (NodeRecord nr : adjList.values()) {
+                        if (nr.getDegree() < nPhys) {
+                            stack.push(nr);
+                            adjList.remove(nr.getIndex());
+                            removeFromAdjoints(nr.getIndex());
+                            loop = true;
+                            break;
+                        }
+                    }
+                }
+                
+                // Spill register with lowest cost
+                if (!adjList.isEmpty()) {
+                    List<NodeRecord> popList = new ArrayList<NodeRecord>(adjList.values());
+                    Collections.sort(popList);
+                    NodeRecord sp = popList.get(0);
+                    stack.push(sp);
+                    adjList.remove(sp.getIndex());
+                    removeFromAdjoints(sp.getIndex());
+                }
+            }
+            
+            // Color graph
+            while (!stack.isEmpty()) {
+                NodeRecord nr = stack.pop();
+                nr.restoreAdjoint();
+                adjList.put(nr.getIndex(), nr);
+                
+                nr.setColor(getColor(nr.getIndex()));
+                
+                Iterator<NodeRecord> it = stack.iterator();
+                while (it.hasNext()) {
+                    NodeRecord st = it.next();
+                    st.restoreAdjoint(nr.getIndex());
+                }
+            }
+        }
+        
+        public REG getRegister(Web web) {
+            int webColor = adjList.get(getInd(web)).getColor();
+            for (int i = 0; i < nPhys; i++) {
+                int regColor = adjList.get(i).getColor();
+                if (webColor == regColor) {
+                    return getRegAtInd(i);
+                }
+            }
+            throw new Error("Cannot find register");
+        }
+
+        public boolean canAllocate(Web web) {
+            return !adjList.get(getInd(web)).isSpilled();
+        }
+
+        public int getColor(int n) {
+            List<Integer> colors = new ArrayList<Integer>();
+            for (int i = 0; i < nPhys; i++) {
+                colors.add(i);
+            }
+            
+            for (int i : adjList.get(n).getAdjoints()) {
+                if (adjList.containsKey(i)) {
+                    colors.remove((Integer)adjList.get(i).getColor());
+                }
+            }
+            
+            return colors.isEmpty() ? -1 : colors.get(0);
+        }
+        
+        private void removeFromAdjoints(int ind) {
+            for (NodeRecord nr : this.adjList.values()) {
+                nr.removeInd(ind);
+            }
+        }
                 
         public InterferenceGraph(Set<Web> webs) {
             
@@ -728,7 +849,7 @@ public class RegisterAllocation {
             this.nPhys = REG.values().length;
             this.webs = new ArrayList<Web>(webs);
             this.adjMat = new boolean[nSym+nPhys][nSym+nPhys];
-            this.adjList = new ArrayList<NodeRecord>();
+            this.adjList = new HashMap<Integer, NodeRecord>();
             
             // Reg2Reg interference     --> all physical registers interfere with one another
             for (int i = 0; i < this.nPhys; i++) {
@@ -740,6 +861,7 @@ public class RegisterAllocation {
             // Sym2Reg interference     --> bound webs to registers if possible
             for (Web web : this.webs) {
                 Set<REG> boundRegs = web.getBoundRegs(); 
+                //System.out.println("Web " + web.id + " <-- " + boundRegs + "\n");
                 boundWebs.put(web, boundRegs);
                 attemptBound(web, boundRegs);
             }
@@ -784,7 +906,6 @@ public class RegisterAllocation {
 
             }
             
-            
             // Then relocate conflict
             it = regs.iterator();  
             while(it.hasNext()) {
@@ -820,6 +941,7 @@ public class RegisterAllocation {
             }
             
             // Update adjacency matrix
+//            adjMat[getInd(web)][getInd(reg)] = false;
             for (int i = 0; i < nPhys; i++) {
                 if (!reg.equals(REG.values()[i])) {
                     adjMat[getInd(web)][i] = true;
@@ -827,25 +949,25 @@ public class RegisterAllocation {
                     adjMat[getInd(web)][i] = false;
                 }
             }
-            for (Web otherWeb : this.webs) {
-                if (!web.equals(otherWeb)) {
-                    adjMat[getInd(otherWeb)][getInd(reg)] = true;
-                }
-            }
+//            for (Web otherWeb : this.webs) {
+//                if (!web.equals(otherWeb)) {
+//                    adjMat[getInd(otherWeb)][getInd(reg)] = true;
+//                }
+//            }
         }
         
         private int getInd(Web web) {
             return webs.indexOf(web) + this.nPhys;
         }
         
-        private int getInd(REG reg) {
-            for (int i = 0; i < nPhys; i++) {
-                if (REG.values()[i].equals(reg)){
-                    return i;
-                }
-            }
-            throw new Error("Cannot found register");
-        }
+//        private int getInd(REG reg) {
+//            for (int i = 0; i < nPhys; i++) {
+//                if (REG.values()[i].equals(reg)){
+//                    return i;
+//                }
+//            }
+//            throw new Error("Cannot found register");
+//        }
                
         private boolean interfere(int i, int j) {
             if (i < j) {
@@ -857,12 +979,12 @@ public class RegisterAllocation {
         
         public void makeAdjList() {
             for (int i = 0; i < this.nPhys; i++) {
-                adjList.add(new NodeRecord());
+                adjList.put(i, new NodeRecord(i));
                 adjList.get(i).setAdjoints(getAdjoints(i));
             }
             
             for (Web web : webs) {
-                adjList.add(new NodeRecord());
+                adjList.put(getInd(web), new NodeRecord(getInd(web)));
                 adjList.get(getInd(web)).setAdjoints(getAdjoints(getInd(web)));
             }
         }
@@ -870,6 +992,7 @@ public class RegisterAllocation {
         private List<Integer> getAdjoints(int i) {
             List<Integer> adjList = new ArrayList<Integer>();
             for (int j = 0; j < nPhys+nSym; j++) {
+                if (i == j) continue;
                 if (interfere(i, j)) {
                     adjList.add(j);
                 }
@@ -885,11 +1008,18 @@ public class RegisterAllocation {
             return webs.get(i-nPhys);
         }
         
+        public void computeSpillCost() {
+            for (int i = nPhys; i < nPhys+nSym; i++) {
+                this.adjList.get(i).setSpillCost(getWebAtInd(i).getSpillCost());
+            }
+        }
+        
         @Override
         public String toString() {
 
+            // Adjacency list
             String str = "Interference Graph:";
-            for (int i = 0; i < adjList.size(); i++) {
+            for (Integer i : adjList.keySet()) {
                 str += "\n " + i + "\t";
                 if (i < nPhys) {
                     str += String.format("%-20s", getRegAtInd(i).toString());
@@ -911,31 +1041,94 @@ public class RegisterAllocation {
             return str + "\n\n";
         }
         
-        private class NodeRecord {
+        private class NodeRecord implements Comparable<NodeRecord>{
             
+            private int index;
             private int color;
-            private int offset;
+            private boolean spilled;
             private int spillCost;
             private List<Integer> adjoints;
             private List<Integer> removedAdjoints;
             
-            public NodeRecord() {
+            public NodeRecord(int ind) {
+                this.index = ind;
                 this.color = -1;
-                this.offset = -1;
+                this.spilled = false;
                 this.spillCost = -1;
                 this.adjoints = new ArrayList<Integer>();
                 this.removedAdjoints = new ArrayList<Integer>();
+            }
+            
+            public boolean isSpilled() {
+                return this.spilled;
+            }
+
+            public int getIndex() {
+                return this.index;
+            }
+            
+            public int getDegree() {
+                return adjoints.size();
             }
             
             public void setAdjoints(List<Integer> adj) {
                 this.adjoints.addAll(adj);
             }
             
+            public void setSpillCost(int c) {
+                this.spillCost = c;
+            }
+            
+            public void setColor(int c) {
+                this.color = c;
+                if (c == -1) {
+                    this.spilled = true;
+                }
+            }
+            
+            public int getColor() {
+                return this.color;
+            }
+            
+            public void removeInd(int ind) {
+                adjoints.remove((Integer)ind);
+                removedAdjoints.add(ind);
+            }
+            
+            public List<Integer> getAdjoints() {
+                return adjoints;
+            }
+            
+            public void restoreAdjoint() {
+                adjoints.addAll(removedAdjoints);
+                removedAdjoints.clear();
+            }
+            
+            public void restoreAdjoint(int ind) {
+                if (this.removedAdjoints.contains(ind)) {
+                    this.removedAdjoints.remove((Integer)ind);
+                    this.adjoints.add(ind);
+                }
+            }
+            
             @Override
             public String toString() {
-                String str = String.format("color %d, offset %d, cost %d", color, offset, spillCost);
+                String str = String.format("%d: color %d, spilled %d, cost %d", index, color, spilled ? 1 : 0, spillCost);
                 str += " adjacent = " + adjoints;
                 return str;
+            }
+
+            @Override
+            public int compareTo(NodeRecord that) {
+                if (this.spillCost == -1 && that.spillCost == -1) {
+                    return 0;
+                } else if (this.spillCost == -1) {
+                    return 1;
+                } else if (that.spillCost == -1) {
+                    return -1;
+                } else {
+                    return this.spillCost - that.spillCost;
+                }
             }
         }
     }

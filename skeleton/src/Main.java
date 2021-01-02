@@ -25,7 +25,7 @@ import codegen.AssemblyProgram;
 class Main {
     public static void main(String[] args) {
         try {
-            String[] optimizations = {"cse", "cp", "dce"};
+            String[] optimizations = {"cse", "cp", "dce", "regalloc"};
         	CLI.parse (args, optimizations);
         	
         	CharStream inputStream = args.length == 0 ?
@@ -168,7 +168,12 @@ class Main {
                     if (CLI.debug) {
                         System.out.println("############ Optimized Control Flow Graph ############");
                         System.out.println(controlFlow);
-                    }
+                        
+                        if (CLI.opts[3]) {
+                            System.out.println("############ Register allocation Control Flow Graph ############");
+                            System.out.println(controlFlow.getWebs());
+                        }
+                    } 
                 }
                 
                 // Assemble
@@ -181,7 +186,6 @@ class Main {
                 
                 PrintStream outputStream = new PrintStream(new FileOutputStream(CLI.outfile));
                 prog.printToFile(outputStream);
-                
                 
         	}
         	

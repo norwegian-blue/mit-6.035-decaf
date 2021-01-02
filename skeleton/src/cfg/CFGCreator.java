@@ -1,7 +1,9 @@
 package cfg;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.Stack;
 
 import cfg.Nodes.*;
@@ -200,6 +202,10 @@ public class CFGCreator implements IrVisitor<DestructNodes> {
         // Clean up
         loopContinue.pop();
         loopEnd.pop();
+        
+        // Set loop depth
+        forLoop.incDepth();
+        
         return forLoop;
 
     }
@@ -277,6 +283,8 @@ class DestructNodes {
     private Node begin;
     private Node end;
     
+    private Set<Node> visited = new HashSet<Node>();
+    
     public DestructNodes(Node begin, Node end) {
         this.begin = begin;
         this.end = end;
@@ -306,5 +314,24 @@ class DestructNodes {
     public void concatenate(DestructNodes next) {
         this.end.setNextBranch(next.getBeginNode());
         this.setEndNode(next.getEndNode());
+    }
+    
+    public void incDepth() {
+        _incDepth(this.getBeginNode());
+    }
+    
+    private void _incDepth(Node node) {
+        if (visited.contains(node) || end.equals(node)) {
+            return;
+        }
+        visited.add(node);
+        
+        if (!begin.equals(node)) {
+            node.incDepth();
+        }
+        
+        for (Node child : node.getChildren()) {
+            _incDepth(child);
+        }
     }
 }

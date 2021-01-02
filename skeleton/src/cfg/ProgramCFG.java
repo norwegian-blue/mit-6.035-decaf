@@ -79,5 +79,14 @@ public class ProgramCFG {
             methods.get(method).optimize(optList);
         }
     }
+
+    public String getWebs() {
+        String str = "";
+        for (String method: methods.keySet()) {
+            str += "\nMETHOD " + method + "\n";
+            str += methods.get(method).getWebs().toString() + "\n";
+        }
+        return str;
+    }
     
 }

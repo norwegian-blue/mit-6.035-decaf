@@ -2,9 +2,11 @@ package cfg;
 
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 
 import cfg.Nodes.*;
 import cfg.Optimization.*;
+import cfg.Optimization.RegisterAllocation.Web;
 import codegen.*;
 import ir.Declaration.IrVariableDeclaration;
 import ir.Expression.IrIdentifier;
@@ -108,6 +110,7 @@ public class MethodCFG extends CFG {
         boolean do_cse = optList[0];
         boolean do_cp = optList[1];
         boolean do_dce = optList[2];
+        boolean do_regAlloc = optList[3];
         boolean do_any = do_cse | do_cp | do_dce;
         
         boolean loop = true;
@@ -143,6 +146,11 @@ public class MethodCFG extends CFG {
                 loop |= dce.optimize(this);
             }
         }
+        
+        // Register Allocation
+        if (do_regAlloc) {
+            new RegisterAllocation().allocate(this, this.methodDesc);
+        }
     }
     
     public int getNextTmp() {
@@ -156,6 +164,10 @@ public class MethodCFG extends CFG {
             }
         }
         return tmpInd;
+    }
+
+    public Set<Web> getWebs() {
+        return this.methodDesc.getWebs();
     }
     
 }

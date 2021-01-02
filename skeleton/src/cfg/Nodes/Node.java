@@ -18,6 +18,7 @@ public abstract class Node {
     protected Node childNodes[];
     private Node parentBlock = null;
     protected Set<IrIdentifier> liveVars = new HashSet<IrIdentifier>();
+    private int depth = 0;
         
     public void addParentNode(Node parent) {
         this.parentNodes.add(parent);
@@ -215,6 +216,14 @@ public abstract class Node {
     
     public boolean isStatement() {
         return false;
+    }
+    
+    public int getDepth() {
+        return this.depth;
+    }
+    
+    public void incDepth() {
+        this.depth++;
     }
         
 }
