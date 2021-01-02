@@ -331,7 +331,9 @@ class DestructNodes {
         }
         
         for (Node child : node.getChildren()) {
-            _incDepth(child);
+            if (child != null) {
+                _incDepth(child);
+            }
         }
     }
 }
