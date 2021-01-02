@@ -109,8 +109,12 @@
     <exec executable="${tests}/dataflow-hidden/test.sh"/>
   </target>
 
+  <target name="test_optimizer" depends="jar">
+    <exec executable="${tests}/optimizer/test.sh"/>
+  </target>
+
   <target name="integration_tests" 
-	  depends="test_scanner, test_parser, test_semantic, test_codegen, test_dataflow">
+	  depends="test_scanner, test_parser, test_semantic, test_codegen, test_dataflow, test_optimizer">
   </target>
   
  <!-- to clean, delete everything in the java, classes, and dist
