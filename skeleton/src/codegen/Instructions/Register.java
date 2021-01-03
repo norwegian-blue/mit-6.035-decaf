@@ -1,9 +1,11 @@
 package codegen.Instructions;
 
+import cfg.Optimization.RegisterAllocation.REG;
+
 /**
  * @author Nicola
  */
-public class Register extends Exp {
+public class Register extends Location {
         
     private static enum Registers {
         rax,
@@ -28,6 +30,16 @@ public class Register extends Exp {
     
     private Register(Registers regName) {
         this.regName = regName;
+    }
+    
+    public Register(REG reg) {
+        for (Registers testReg : Registers.values()) {
+            if (testReg.toString().equals(reg.toString())) {
+                this.regName = testReg;
+                return;
+            }
+        }
+        throw new Error("Cannot find corresponding register");
     }
        
     @Override
@@ -108,6 +120,15 @@ public class Register extends Exp {
     
     public static Register r15() {
         return new Register(Registers.r15);
+    }
+    
+    @Override
+    public boolean equals(Object thatObj) {
+        if (!(thatObj instanceof Register)) {
+            return false;
+        }
+        Register that = (Register) thatObj;
+        return this.regName.equals(that.regName);
     }
     
 }

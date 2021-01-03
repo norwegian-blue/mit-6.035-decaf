@@ -44,6 +44,7 @@ public class ProgramCFG {
     }
     
     public AssemblyProgram assemble() {
+        // TODO cleanup: remove everything except method.assemble(prog, globals);
         AssemblyProgram prog = new AssemblyProgram();
         SymbolTable table = new SymbolTable();
         
@@ -59,7 +60,7 @@ public class ProgramCFG {
         
         // Add methods
         for (String method : methods.keySet()) {
-            methods.get(method).assemble(prog, table);
+            methods.get(method).assemble(prog, table, globals);
         }
             
         return prog;

@@ -11,6 +11,7 @@ import ir.Expression.IrBinaryExpression.BinaryOperator;
 import ir.Statement.*;
 import semantic.Descriptor;
 import semantic.KeyNotFoundException;
+import semantic.MethodDescriptor;
 import semantic.SymbolTable;
 
 /**
@@ -21,10 +22,12 @@ public class InstructionAssembler implements IrVisitor<List<LIR>> {
     private final SymbolTable table;
     private final String currentMethod;
     private static int strInd = 0;
+    private MethodDescriptor method;
     
-    public InstructionAssembler(SymbolTable table, String currentMethod) {
+    public InstructionAssembler(SymbolTable table, String currentMethod, MethodDescriptor method) {
         this.table = table;
         this.currentMethod = currentMethod;
+        this.method = method;
     }
 
     @Override

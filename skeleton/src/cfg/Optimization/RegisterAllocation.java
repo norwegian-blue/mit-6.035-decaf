@@ -460,6 +460,7 @@ public class RegisterAllocation {
         private Set<UD> uses;
         private Set<UD> liveRange;
         private boolean spilled;
+        private int offset;
         private REG reg;
         private int symReg;
         
@@ -476,6 +477,7 @@ public class RegisterAllocation {
             this.definitions.add(def);
             this.uses = uses;
             this.spilled = false;
+            this.offset = 0;
             this.symReg = ++webNum;
         }
         
@@ -531,6 +533,11 @@ public class RegisterAllocation {
             }
         }
         
+        public boolean liveAt(Node node) {
+            UD ud = new UD(node.getParentBlock(), node);
+            return this.liveRange.contains(ud);
+        }
+        
         private void dfsCheck(Node node) {
             
             // Stop if definition is found (and not first node)
@@ -560,6 +567,18 @@ public class RegisterAllocation {
             
         }
         
+        public boolean isSpilled() {
+            return this.spilled;
+        }
+        
+        public REG getRegister() {
+            if (!this.isSpilled()) {
+                return this.reg;
+            } else {
+                throw new Error("no register available");
+            }
+        }
+        
         private boolean containsUse(UD ud) {
             return this.uses.contains(ud);
         }
@@ -567,6 +586,16 @@ public class RegisterAllocation {
         private boolean containsDef(UD ud) {
             return this.definitions.contains(ud);
         }
+        
+        public boolean containsDef(Node node) {
+            UD ud = new UD(node.getParentBlock(), node);
+            return containsDef(ud);
+        }
+        
+//        public boolean matchDef(String useId, Node node) {
+//            UD use = new UD(node.getParentBlock(), node);
+//            return this.id.getId().equals(useId) && this.containsDef(use);
+//        }
         
         public boolean interfere(Web that) {
             return this._interfere(that) || that._interfere(this);
@@ -718,7 +747,7 @@ public class RegisterAllocation {
         public String toString() {
             String str = "\nWeb" + this.symReg + " (" + this.id.toString() + ")";
             if (spilled) {
-                str += "\tmemory";
+                str += "\tmemory = " + offset;
             } else {
                 str += "\tregister = " + reg.toString();
             }
@@ -739,6 +768,18 @@ public class RegisterAllocation {
             }
             
             return cost;
+        }
+
+        public IrIdentifier getId() {
+            return this.id;
+        }
+
+        public void setOffset(int offset) {
+            this.offset = offset;
+        }
+        
+        public int getOffset() {
+            return offset;
         }
         
     }
@@ -1133,7 +1174,7 @@ public class RegisterAllocation {
         }
     }
     
-    private static enum REG {
+    public static enum REG {
         rax,        // (return value)
         rbx,        
         rcx,        // (arg 4)
@@ -1152,7 +1193,7 @@ public class RegisterAllocation {
         r15
     }
     
-    private static REG getCallRegister(int i) throws IllegalArgumentException {
+    public static REG getCallRegister(int i) throws IllegalArgumentException {
         switch (i) {
         case 0:
             return REG.rdi;

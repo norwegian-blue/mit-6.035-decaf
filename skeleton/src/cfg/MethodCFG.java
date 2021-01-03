@@ -8,6 +8,7 @@ import cfg.Nodes.*;
 import cfg.Optimization.*;
 import cfg.Optimization.RegisterAllocation.Web;
 import codegen.*;
+import ir.Declaration.IrFieldDeclaration;
 import ir.Declaration.IrVariableDeclaration;
 import ir.Expression.IrIdentifier;
 import semantic.*;
@@ -39,8 +40,9 @@ public class MethodCFG extends CFG {
         return methodBlock;
     }
     
-    public void assemble(AssemblyProgram prog, SymbolTable table) {
+    public void assemble(AssemblyProgram prog, SymbolTable table, List<IrFieldDeclaration> globals) {
 
+        // TODO remove all except new CodeGenerator(prog, methodDesc)
         try {
             table.put(this.methodDesc.getId(), this.methodDesc);
             table.beginScope();
@@ -53,8 +55,13 @@ public class MethodCFG extends CFG {
         } catch (DuplicateKeyException e) {
             throw new Error("Unexpected error");
         }
-               
-        CodeGenerator codegen = new CodeGenerator(prog, table, methodDesc.getId());
+                
+        // Add global descriptor to method descriptor
+        for (IrFieldDeclaration global : globals) {
+            methodDesc.addGlobal(new FieldDescriptor(global.getId(), global.getType()));
+        }
+        
+        CodeGenerator codegen = new CodeGenerator(prog, table, methodDesc.getId(), methodDesc);
         this.root.accept(codegen);
         table.endScope();
     }

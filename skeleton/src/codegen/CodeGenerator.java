@@ -21,15 +21,16 @@ public class CodeGenerator implements NodeVisitor<Void> {
     
     private AssemblyProgram prog;
     private SymbolTable table;
-    private String currentMethod;
     private InstructionAssembler instructionAssembler;
     private boolean isFirst;
+    private MethodDescriptor method;
     
-    public CodeGenerator(AssemblyProgram prog, SymbolTable table, String currentMethod) {
+    public CodeGenerator(AssemblyProgram prog, SymbolTable table, String currentMethod, MethodDescriptor method) {
+        // TODO remove symbol table and current method fields
         this.prog = prog;
         this.table = table;
-        this.currentMethod = currentMethod;
-        this.instructionAssembler = new InstructionAssembler(table, currentMethod);
+        this.instructionAssembler = new InstructionAssembler(table, currentMethod, method);
+        this.method = method;
         isFirst = true;
     }
 
@@ -52,6 +53,7 @@ public class CodeGenerator implements NodeVisitor<Void> {
 
         // Assemble operations
         for (Node atomNode : node.getBlockNodes()) {
+            this.method.setCurrentNode(atomNode);
             atomNode.accept(this);
         }
         
@@ -95,19 +97,17 @@ public class CodeGenerator implements NodeVisitor<Void> {
     @Override
     public Void visit(CfgEntryNode node) {
         
-        // Get current method descriptor
-        MethodDescriptor methodDesc;
-        try {
-            methodDesc = (MethodDescriptor) table.get(currentMethod);
-        } catch (KeyNotFoundException e) { 
-            throw new Error("unexpected error");
-        }
+        // Set stack: assign storage for locals and parameters if needed
+        method.setStack();
+        
+        // Update locations
+        method.updateLocations(node);
         
         // Assign variables location on stack
         int stackTop = 8;
         
         // Assign storage for parameters
-        for (ParameterDescriptor parDesc : methodDesc.getPars()) {
+        for (ParameterDescriptor parDesc : method.getPars()) {
             try {
                 table.get(parDesc.getId()).setOffset(-stackTop);
             } catch (KeyNotFoundException e) {
@@ -117,7 +117,7 @@ public class CodeGenerator implements NodeVisitor<Void> {
         }
                
         // Assign storage for locals
-        for (LocalDescriptor local : methodDesc.getLocals()) {
+        for (LocalDescriptor local : method.getLocals()) {
             try {
                 table.get(local.getId()).setOffset(-stackTop);
             } catch (KeyNotFoundException e) {
@@ -128,29 +128,35 @@ public class CodeGenerator implements NodeVisitor<Void> {
 
         // Preamble
         prog.addInstruction(new NewLine());
-        if (methodDesc.getId().equals("main")) {
+        if (method.getId().equals("main")) {
             prog.addInstruction(new MainDirective());
         }
-        prog.addInstruction(new Label(methodDesc.getId()));   
-        prog.addInstruction(new Enter(stackTop-8));
-        
-        // Move parameters on stack
+        prog.addInstruction(new Label(method.getId()));   
+        prog.addInstruction(new Enter(method.getStackTop()-8));
+                
+        // Move parameters on stack      
         int i = 0;
-        for (ParameterDescriptor par : methodDesc.getPars()) {
-            Local parLocal = new Local(par.getOffset());
-            Exp parSrc = Call.getParamAtIndex(++i);
-            if (parSrc.isReg()) {
-                prog.addInstruction(new Mov(parSrc, parLocal));
-            } else {
-                prog.addInstruction(new Mov(parSrc, Register.r11()));
-                prog.addInstruction(new Mov(Register.r11(), parLocal));
+        for (ParameterDescriptor par : method.getPars()) {
+            Location parLocal = method.getDestination(par.getIrId());
+            Location parSrc = Call.getParamAtIndex(++i);
+            
+            // Move if source != local
+            if (!parSrc.equals(parLocal)) {
+                if (!parSrc.isReg() && !parLocal.isReg()) {
+                    prog.addInstruction(new Mov(parSrc, Register.r10()));
+                    prog.addInstruction(new Mov(Register.r10(), parLocal));
+                } else {
+                    prog.addInstruction(new Mov(parSrc, parLocal));
+                }
             }
         }
         
         // Initialize locals to zero
-        for (LocalDescriptor local : methodDesc.getLocals()) {
-            Local varLocal = new Local(local.getOffset());
-            prog.addInstruction(new Mov(new Literal(0), varLocal));
+        for (LocalDescriptor local : method.getLocals()) {
+            if (method.isLive(local.getIrId())) {
+                Location varLocal = method.getLocation(local.getIrId());
+                prog.addInstruction(new Mov(new Literal(0), varLocal, local.getSize()));
+            }
         }
         
         return null;
@@ -158,21 +164,13 @@ public class CodeGenerator implements NodeVisitor<Void> {
 
     @Override
     public Void visit(CfgExitNode node) {
-        
-        // Get current method descriptor
-        MethodDescriptor methodDesc;
-        try {
-            methodDesc = (MethodDescriptor) table.get(currentMethod);
-        } catch (KeyNotFoundException e) { 
-            throw new Error("unexpected error");
-        }
-        
+                
         // Return 0 on main successful exit or return value if needed
         // also check if control may be falling off
         boolean falloff = false;
-        if (methodDesc.getId().equals("main")) {
+        if (method.getId().equals("main")) {
             prog.addInstruction(new Mov(new Literal(0), Register.rax()));
-        } else if (methodDesc.getType() != BaseTypeDescriptor.VOID) {
+        } else if (method.getType() != BaseTypeDescriptor.VOID) {
             if (node.returnsExp()) {
                 List<LIR> instructions = node.getExp().accept(instructionAssembler);
                 Exp src = (Exp)instructions.get(0);
