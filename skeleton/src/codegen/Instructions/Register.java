@@ -30,9 +30,11 @@ public class Register extends Location {
     
     private Register(Registers regName) {
         this.regName = regName;
+        this.size = 8;
     }
     
-    public Register(REG reg) {
+    public Register(REG reg, int size) {
+        this.size = size;
         for (Registers testReg : Registers.values()) {
             if (testReg.toString().equals(reg.toString())) {
                 this.regName = testReg;

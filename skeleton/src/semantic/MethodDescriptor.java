@@ -158,13 +158,13 @@ public class MethodDescriptor extends Descriptor {
         // If no register allocation, put everything on stack
         if (webs == null) {
             for (ParameterDescriptor par : parameters) {
-                par.setLocation(new Memory(-stackTop));
-                par.setDestination(new Memory(-stackTop));
+                par.setLocation(new Memory(-stackTop, par.getSize()));
+                par.setDestination(new Memory(-stackTop, par.getSize()));
                 stackTop += par.getSize();
             }
             for (LocalDescriptor loc : locals) {
-                loc.setLocation(new Memory(-stackTop));
-                loc.setDestination(new Memory(-stackTop));
+                loc.setLocation(new Memory(-stackTop, loc.getSize()));
+                loc.setDestination(new Memory(-stackTop, loc.getSize()));
                 stackTop += loc.getSize();
             }
             return;
@@ -229,9 +229,9 @@ public class MethodDescriptor extends Descriptor {
                 // Get location
                 Location location;
                 if (web.isSpilled()) {
-                    location = new Memory(web.getOffset());
+                    location = new Memory(web.getOffset(), getSize(web.getId()));
                 } else {
-                    location = new Register(web.getRegister());
+                    location = new Register(web.getRegister(), getSize(web.getId()));
                 }
                 
                 // Update destination if definition
@@ -250,9 +250,28 @@ public class MethodDescriptor extends Descriptor {
         
         for (Web web : webs) {
             if (!web.isSpilled()) {
-                regs.add(new Register(web.getRegister()));
+                regs.add(new Register(web.getRegister(), getSize(web.getId())));
             }
         }
         return regs;        
+    }
+    
+    private int getSize(IrIdentifier id) {
+        // Check parameters
+        for (ParameterDescriptor par : parameters) {
+            if (par.getIrId().equals(id)) {
+                return par.getSize();
+            }
+        }
+        
+        // Check locals
+        for (LocalDescriptor loc : locals) {
+            if (loc.getIrId().equals(id)) {
+                return loc.getSize();
+            }
+        }
+        
+        throw new Error("cannot find id");
+        
     }
 }

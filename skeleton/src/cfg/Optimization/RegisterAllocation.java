@@ -498,6 +498,10 @@ public class RegisterAllocation {
             
             while(!stack.isEmpty()) {
                 DuChain chain = stack.pop();
+                // skip globals
+                if (chain.getId().getId().startsWith("_glb")) {
+                    continue;
+                }
                 Web web = new Web(chain.getId(), chain.getDef(), chain.getUses());
                 
                 // Check if other chains can be merged into same web

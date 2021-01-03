@@ -6,7 +6,6 @@ package codegen.Instructions;
 public class Literal extends Exp {
 
     private final int value;
-    private final int size;
     
     public Literal(int value) {
         // TODO remove
