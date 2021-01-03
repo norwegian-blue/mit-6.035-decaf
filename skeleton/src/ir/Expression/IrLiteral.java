@@ -3,6 +3,8 @@ package ir.Expression;
 import java.util.HashSet;
 import java.util.Set;
 
+import codegen.Instructions.Literal;
+
 public abstract class IrLiteral extends IrExpression {
     
     protected String value;
@@ -29,6 +31,10 @@ public abstract class IrLiteral extends IrExpression {
     @Override
     public Set<IrIdentifier> getUsedVars() {
         return new HashSet<IrIdentifier>();
+    }
+    
+    public Literal getLiteral() {
+        throw new Error("Not available");
     }
     
 }

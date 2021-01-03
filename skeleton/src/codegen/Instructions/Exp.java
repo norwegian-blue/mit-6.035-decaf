@@ -17,4 +17,6 @@ public abstract class Exp extends LIR {
         }
     }
     
+    // TODO size as expression property
+    
 }

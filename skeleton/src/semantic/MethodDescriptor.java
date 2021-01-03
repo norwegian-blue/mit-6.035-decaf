@@ -95,6 +95,13 @@ public class MethodDescriptor extends Descriptor {
                 return loc.getLocation();
             }
         }
+        
+        for (FieldDescriptor glb : globals) {
+            if (glb.getIrId().equals(id)) {
+                return glb.getLocation();
+            }
+        }
+        
         throw new Error("cannot find identifier location");
     }
     

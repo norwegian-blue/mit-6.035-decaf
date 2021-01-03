@@ -1,10 +1,13 @@
 package codegen;
 
+import java.util.Collections;
 import java.util.List;
 
 import cfg.Nodes.*;
 import codegen.Instructions.*;
 import ir.Expression.IrExpression;
+import ir.Expression.IrIdentifier;
+import ir.Expression.IrLiteral;
 import ir.Statement.*;
 import semantic.BaseTypeDescriptor;
 import semantic.KeyNotFoundException;
@@ -36,6 +39,8 @@ public class CodeGenerator implements NodeVisitor<Void> {
 
     @Override
     public Void visit(CfgBlock node) {
+        
+        // TODO
         
         // Skip if visited already
         if (node.isVisited()) {
@@ -78,6 +83,8 @@ public class CodeGenerator implements NodeVisitor<Void> {
     @Override
     public Void visit(CfgCondBranch node) {
         
+        // TODO
+        
         IrExpression exp = node.getCond();
         List<LIR> instructions = exp.accept(instructionAssembler);
         if (instructions.size() > 1) {
@@ -96,6 +103,8 @@ public class CodeGenerator implements NodeVisitor<Void> {
 
     @Override
     public Void visit(CfgEntryNode node) {
+        
+        // TODO cleanup
         
         // Set stack: assign storage for locals and parameters if needed
         method.setStack();
@@ -137,15 +146,15 @@ public class CodeGenerator implements NodeVisitor<Void> {
         // Push callee saved registers on stack
         for (Register reg : method.getUsedRegs()) {
             if (reg.equals(Register.rbx())) {
-                prog.addInstruction(new Push(reg, 8));
+                prog.addInstruction(new Push(reg));
             } else if (reg.equals(Register.r12())) {
-                prog.addInstruction(new Push(reg, 8));
+                prog.addInstruction(new Push(reg));
             } else if (reg.equals(Register.r13())) {
-                prog.addInstruction(new Push(reg, 8));
+                prog.addInstruction(new Push(reg));
             } else if (reg.equals(Register.r14())) {
-                prog.addInstruction(new Push(reg, 8));
+                prog.addInstruction(new Push(reg));
             } else if (reg.equals(Register.r15())) {
-                prog.addInstruction(new Push(reg, 8));
+                prog.addInstruction(new Push(reg));
             }            
         }
                 
@@ -179,6 +188,9 @@ public class CodeGenerator implements NodeVisitor<Void> {
 
     @Override
     public Void visit(CfgExitNode node) {
+        
+        // Update locations
+        method.updateLocations(node);
                 
         // Return 0 on main successful exit or return value if needed
         // also check if control may be falling off
@@ -187,9 +199,19 @@ public class CodeGenerator implements NodeVisitor<Void> {
             prog.addInstruction(new Mov(new Literal(0), Register.rax()));
         } else if (method.getType() != BaseTypeDescriptor.VOID) {
             if (node.returnsExp()) {
-                List<LIR> instructions = node.getExp().accept(instructionAssembler);
-                Exp src = (Exp)instructions.get(0);
-                prog.addInstruction(new Mov(src, Register.rax()));
+                // Move to return address
+                IrExpression exp = node.getExp();
+                if (exp.isLiteral()) {
+                    IrLiteral val = (IrLiteral) exp;
+                    Literal lit = val.getLiteral();
+                    prog.addInstruction(new Mov(lit, Register.rax()));
+                } else {
+                    IrIdentifier id = (IrIdentifier) exp.getUsedVars().toArray()[0];
+                    Location src = method.getLocation(id);
+                    if (!src.equals(Register.rax())) {
+                        prog.addInstruction(new Mov(src, Register.rax()));
+                    }
+                }
             } else {
                 falloff = true;
             }
@@ -205,11 +227,31 @@ public class CodeGenerator implements NodeVisitor<Void> {
             prog.addInstruction(new Return());
         }
         
+        // Restore stack
+        List<Register> regs = method.getUsedRegs();
+        Collections.reverse(regs);
+        for (Register reg : regs) {
+            if (reg.equals(Register.rbx())) {
+                prog.addInstruction(new Pop(reg));
+            } else if (reg.equals(Register.r12())) {
+                prog.addInstruction(new Pop(reg));
+            } else if (reg.equals(Register.r13())) {
+                prog.addInstruction(new Pop(reg));
+            } else if (reg.equals(Register.r14())) {
+                prog.addInstruction(new Pop(reg));
+            } else if (reg.equals(Register.r15())) {
+                prog.addInstruction(new Pop(reg));
+            }
+        }
+        
         return null;
     }
 
     @Override
     public Void visit(CfgStatement node) {
+        
+        // Update locations
+        method.updateLocations(node);
         
         IrStatement stat = node.getStatement();
         List<LIR> instructions = stat.accept(instructionAssembler);

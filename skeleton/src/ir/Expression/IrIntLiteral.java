@@ -1,5 +1,6 @@
 package ir.Expression;
 
+import codegen.Instructions.Literal;
 import ir.IrVisitor;
 import semantic.BaseTypeDescriptor;
 
@@ -56,5 +57,10 @@ public class IrIntLiteral extends IrLiteral {
     @Override
     public int hashCode() {
         return this.value.hashCode();
+    }
+    
+    @Override 
+    public Literal getLiteral() {
+        return new Literal(this.eval(), 8);
     }
 }

@@ -9,7 +9,6 @@ public class Push extends LIR {
     private int size;
     
     public Push(Exp exp) {
-        // TODO remove
         this.exp = exp;
         this.size = 8;
     }

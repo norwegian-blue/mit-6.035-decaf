@@ -3,7 +3,7 @@ package codegen.Instructions;
 /**
  * @author Nicola
  */
-public class Global extends Exp {
+public class Global extends Location {
 
     private final String name;
     private final int lenght;
