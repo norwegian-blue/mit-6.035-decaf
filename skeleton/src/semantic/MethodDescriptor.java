@@ -178,7 +178,7 @@ public class MethodDescriptor extends Descriptor {
                             web.setOffset(-stackTop);               // Push parameter on stack                      
                             stackTop += par.getSize();
                         } else {
-                            web.setOffset(8+(i-6)*par.getSize());   // Parameter already on stack (call convention)
+                            web.setOffset(8+(i-5)*par.getSize());   // Parameter already on stack (call convention)
                         }
                         found = true;
                     }
@@ -197,8 +197,8 @@ public class MethodDescriptor extends Descriptor {
     }
     
     public boolean isLive(IrIdentifier id) {
-        // Always live if no liveness analysis was performed
-        if (currentNode.getLiveVars().isEmpty()) return true;
+        // Always live if register allocation not performed
+        if (webs == null) return true;
         
         for (IrIdentifier live : currentNode.getLiveVars()) {
             if (live.equals(id)) {
@@ -235,5 +235,17 @@ public class MethodDescriptor extends Descriptor {
                 }
             }
         }
+    }
+    
+    public List<Register> getUsedRegs() {
+        List<Register> regs = new ArrayList<Register>();
+        if (webs == null) return regs;
+        
+        for (Web web : webs) {
+            if (!web.isSpilled()) {
+                regs.add(new Register(web.getRegister()));
+            }
+        }
+        return regs;        
     }
 }

@@ -13,6 +13,6 @@ public class Command extends LIR {
     
     @Override
     public String toCode() {
-        return command;
+        return "\t" + command;
     }   
 }

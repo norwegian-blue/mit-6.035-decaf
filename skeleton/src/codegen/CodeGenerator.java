@@ -133,8 +133,23 @@ public class CodeGenerator implements NodeVisitor<Void> {
         }
         prog.addInstruction(new Label(method.getId()));   
         prog.addInstruction(new Enter(method.getStackTop()-8));
+        
+        // Push callee saved registers on stack
+        for (Register reg : method.getUsedRegs()) {
+            if (reg.equals(Register.rbx())) {
+                prog.addInstruction(new Push(reg, 8));
+            } else if (reg.equals(Register.r12())) {
+                prog.addInstruction(new Push(reg, 8));
+            } else if (reg.equals(Register.r13())) {
+                prog.addInstruction(new Push(reg, 8));
+            } else if (reg.equals(Register.r14())) {
+                prog.addInstruction(new Push(reg, 8));
+            } else if (reg.equals(Register.r15())) {
+                prog.addInstruction(new Push(reg, 8));
+            }            
+        }
                 
-        // Move parameters on stack      
+        // Move parameters onto local storage (or to registers if allocated)   
         int i = 0;
         for (ParameterDescriptor par : method.getPars()) {
             Location parLocal = method.getDestination(par.getIrId());
@@ -158,7 +173,7 @@ public class CodeGenerator implements NodeVisitor<Void> {
                 prog.addInstruction(new Mov(new Literal(0), varLocal, local.getSize()));
             }
         }
-        
+
         return null;
     }
 
