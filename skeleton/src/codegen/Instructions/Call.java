@@ -18,7 +18,7 @@ public class Call extends LIR {
         return "\tcall\t" + method;
     }
     
-    public static Location getParamAtIndex(int i) {
+    public static Location getParamAtIndex(int i, int size) {
         switch (i) {
         case 1:
             return Register.rdi();
@@ -33,7 +33,7 @@ public class Call extends LIR {
         case 6:
             return Register.r9();
         default:
-            return new Memory(8+(i-6)*8);
+            return new Memory(8+(i-6)*8, size);
         }
     }
     

@@ -18,14 +18,15 @@ public class InstructionAssembler implements IrVisitor<List<LIR>> {
     
     private static int strInd = 0;
     private MethodDescriptor method;
-    private Exp destLocation;
+    private Exp destination;
+    private Exp location;
     
     public InstructionAssembler(MethodDescriptor method) {
         this.method = method;
     }
     
     public void setDestination(Location dest) {
-        this.destLocation = dest;
+        this.destination = dest;
     }
 
     @Override
@@ -58,14 +59,14 @@ public class InstructionAssembler implements IrVisitor<List<LIR>> {
         List<LIR> instrList = new ArrayList<LIR>();
         
         // Get assignment destination
-        Exp destination = this.destLocation;
+        Exp destination = this.destination;
                 
         // Assemble left & right hand sides
         instrList.addAll(node.getLHS().accept(this));
-        Exp lhs = this.destLocation;
+        Exp lhs = this.location;
         
         instrList.addAll(node.getRHS().accept(this));
-        Exp rhs = this.destLocation;
+        Exp rhs = this.location;
         
         // Do arithmetics and store in destination
         switch (node.getOp()) {
@@ -98,7 +99,7 @@ public class InstructionAssembler implements IrVisitor<List<LIR>> {
             throw new Error("Unrecognized operation");
         }
             
-        this.destLocation = null;
+        this.location = null;
         return instrList;
     }
 
@@ -106,9 +107,9 @@ public class InstructionAssembler implements IrVisitor<List<LIR>> {
     public List<LIR> visit(IrBooleanLiteral node) {
         List<LIR> instrList = new ArrayList<LIR>();
         if (node.eval()) {
-            this.destLocation = new Literal(1, 1);
+            this.location = new Literal(1, 1);
         } else {
-            this.destLocation = new Literal(0, 1);
+            this.location = new Literal(0, 1);
         }
         return instrList;
     }
@@ -120,26 +121,56 @@ public class InstructionAssembler implements IrVisitor<List<LIR>> {
         String calloutName = node.getName();
         calloutName = calloutName.substring(1, calloutName.length()-1);
         
+        // Push live registers (non-callee-saved)
+        instrList.addAll(saveRegs());
+                
+        // Prepare arguments
+        this.prepareFunCall(node.getArgs(), instrList);
+        
         // Set %rax to 0 if calling printf function
         if (calloutName.equals("printf")) {
             instrList.add(new Mov(new Literal(0), Register.rax()));
         }
-        
-        // Prepare arguments
-        this.prepareFunCall(node.getArgs(), instrList);
                 
         // Call function
         instrList.add(new Call(calloutName));
-        instrList.add(new Mov(Register.rax(), Register.r11()));
-        instrList.add(Register.r11());
         
+        // Pop live registers (non-callee-saved)
+        instrList.addAll(restoreRegs());
+        
+        return instrList;
+    }
+
+    private List<LIR> saveRegs() {
+        List<LIR> instrList = new ArrayList<LIR>();
+        if (this.method.isLive(Register.rax())) instrList.add(new Push(Register.rax()));
+        if (this.method.isLive(Register.rcx())) instrList.add(new Push(Register.rcx()));
+        if (this.method.isLive(Register.rdx())) instrList.add(new Push(Register.rdx()));
+        if (this.method.isLive(Register.rsi())) instrList.add(new Push(Register.rsi()));
+        if (this.method.isLive(Register.rdi())) instrList.add(new Push(Register.rdi()));
+        if (this.method.isLive(Register.r8())) instrList.add(new Push(Register.r8()));
+        if (this.method.isLive(Register.r9())) instrList.add(new Push(Register.r9()));
+        if (this.method.isLive(Register.r11())) instrList.add(new Push(Register.r11()));
+        return instrList;
+    }
+
+    private List<LIR> restoreRegs() {
+        List<LIR> instrList = new ArrayList<LIR>();
+        if (this.method.isLive(Register.r11())) instrList.add(new Pop(Register.r11()));
+        if (this.method.isLive(Register.r9())) instrList.add(new Pop(Register.r9()));
+        if (this.method.isLive(Register.r8())) instrList.add(new Pop(Register.r8()));
+        if (this.method.isLive(Register.rdi())) instrList.add(new Pop(Register.rdi()));
+        if (this.method.isLive(Register.rsi())) instrList.add(new Pop(Register.rsi()));
+        if (this.method.isLive(Register.rdx())) instrList.add(new Pop(Register.rdx()));
+        if (this.method.isLive(Register.rcx())) instrList.add(new Pop(Register.rcx()));
+        if (this.method.isLive(Register.rax())) instrList.add(new Pop(Register.rax())); 
         return instrList;
     }
 
     @Override
     public List<LIR> visit(IrStringLiteral node) {
         List<LIR> instrList = new ArrayList<LIR>();
-        instrList.add(new StringLiteral(node.eval(), this.getStringId()));
+        this.location = new StringLiteral(node.eval(), this.getStringId());
         return instrList;
     }
 
@@ -149,24 +180,24 @@ public class InstructionAssembler implements IrVisitor<List<LIR>> {
 
         // Add offset if destination is array element
         if (!node.isArrayElement()) {
-            this.destLocation = this.method.getDestination(node);
+            this.location = this.method.getLocation(node);
         } else {
-            Global location = new Global((Global) this.method.getDestination(node));
-            node.getInd().accept(this);         // Put index location into destLocation field
+            Global glb = new Global((Global) this.method.getLocation(node));
+            node.getInd().accept(this);         // Put index location into location field
             
-            // Get index into register (if not literal or register already)
-            Exp ind = this.destLocation;   
-            if (!ind.isReg() && !ind.isLiteral()) {
+            // Get index into register (if not register already)
+            Exp ind = this.location;   
+            if (!ind.isReg()) {
                 instrList.add(new Mov(ind, Register.r11()));
-                ind = Register.r10();
+                ind = Register.r11();
             }
             
             // Set destination to global array element
-            location.setOffset(ind);
-            this.destLocation = location;
+            glb.setOffset(ind);
+            this.location = glb;
             
             // Check array bounds
-            instrList.addAll(checkArrayBounds(ind, location.getLen()));
+            instrList.addAll(checkArrayBounds(ind, glb.getLen()));
         }
         
         return instrList;
@@ -174,6 +205,8 @@ public class InstructionAssembler implements IrVisitor<List<LIR>> {
 
     @Override
     public List<LIR> visit(IrMethodCallExpression node) {
+        
+        // TODO
         List<LIR> instrList = new ArrayList<LIR>();
         
         String methodName = node.getName();
@@ -191,6 +224,8 @@ public class InstructionAssembler implements IrVisitor<List<LIR>> {
 
     @Override
     public List<LIR> visit(IrUnaryExpression node) {
+        
+        // TODO
         List<LIR> instrList = new ArrayList<LIR>();
         Register r11 = Register.r11();
         
@@ -220,28 +255,63 @@ public class InstructionAssembler implements IrVisitor<List<LIR>> {
     @Override
     public List<LIR> visit(IrIntLiteral node) {
         List<LIR> instrList = new ArrayList<LIR>();
-        this.destLocation = new Literal(node.eval());
+        this.location = new Literal(node.eval());
         return instrList;
     }
 
     @Override
     public List<LIR> visit(IrAssignment node) {
         
-        // TODO destination vs location
         List<LIR> instrList = new ArrayList<LIR>();
          
         // Assemble destination and get destination address
-        instrList.addAll(node.getLocation().accept(this));
-        Exp dest = this.destLocation;
+        instrList.addAll(setDestination(node.getLocation()));
 
         // Process assignment expression
         instrList.addAll(node.getExpression().accept(this));
         
-        // Manually assign if expression is literal
-        if (this.destLocation != null) {
-            instrList.add(new Mov(this.destLocation, dest));
+        // Manually assign if expression is literal or move instruction
+        if (this.location != null) {
+            Exp dest = this.destination;
+            Exp src = this.location;
+            if (src.equals(dest)) {
+                // skip
+            } else if (!src.isImm() && !dest.isImm()) {
+                instrList.add(new Mov(src, Register.r10()));
+                instrList.add(new Mov(Register.r10(), dest));
+            } else {
+                instrList.add(new Mov(src, dest));
+            }
         }
     
+        return instrList;
+    }
+
+    private List<LIR> setDestination(IrIdentifier id) {
+        List<LIR> instrList = new ArrayList<LIR>();
+
+        // Add offset if destination is array element
+        if (!id.isArrayElement()) {
+            this.destination = this.method.getDestination(id);
+        } else {
+            Global glb = new Global((Global) this.method.getDestination(id));
+            id.getInd().accept(this);         // Put index location into location field
+            
+            // Get index into register (if not register already)
+            Exp ind = this.location;   
+            if (!ind.isReg()) {
+                instrList.add(new Mov(ind, Register.r11()));
+                ind = Register.r11();
+            }
+            
+            // Set destination to global array element
+            glb.setOffset(ind);
+            this.destination = glb;
+            
+            // Check array bounds
+            instrList.addAll(checkArrayBounds(ind, glb.getLen()));
+        }
+        
         return instrList;
     }
 
@@ -273,7 +343,6 @@ public class InstructionAssembler implements IrVisitor<List<LIR>> {
     @Override
     public List<LIR> visit(IrInvokeStatement node) {
         List<LIR> invokeList = node.getMethod().accept(this);
-        invokeList.remove(invokeList.size()-1);
         return invokeList;
     }
 
@@ -288,31 +357,32 @@ public class InstructionAssembler implements IrVisitor<List<LIR>> {
     
     private void prepareFunCall(List<IrExpression> args, List<LIR> instrList) {
         
-        // Move arguments on stack
+        // Move arguments according to calling convention
         for (int i = args.size(); i > 0; i--) {
-            List<LIR> argInst = args.get(i-1).accept(this);
-            Exp src = (Exp) argInst.get(0);
+            args.get(i-1).accept(this);
+            Exp arg = this.location;
 
             // Return string arguments
-            if (src.isString()) {
-                instrList.add(src);
+            if (arg.isString()) {
+                instrList.add(arg);
             }
 
-            if (i <= 6) {    // Move to register
-                Exp dst = Call.getParamAtIndex(i);
-                instrList.add(new Mov(src, dst));
-            } else {        // Move to stack
-                instrList.add(new Push(src));
+            // According to Linux ABI
+            if (i <= 6) {       // Move to register
+                Exp dst = Call.getParamAtIndex(i, 8);
+                if (!arg.equals(dst)) {
+                    instrList.add(new Mov(arg, dst));
+                }
+            } else {            // Move to stack
+                instrList.add(new Push(arg));
             }            
         }
     }
     
-    
     private List<LIR> checkArrayBounds(Exp ind, int lenght) {
+        // TODO check
         List<LIR> checkInstr = new ArrayList<LIR>();
         ErrorHandle boundErr = ErrorHandle.outOfBounds();
-        
-        checkInstr.add(new Push(Register.r10()));
         
         // Check lower bound
         checkInstr.add(new Mov(ind, Register.r10()));
@@ -323,14 +393,14 @@ public class InstructionAssembler implements IrVisitor<List<LIR>> {
         checkInstr.add(new Mov(ind, Register.r10()));
         checkInstr.add(new Comp(new Literal(lenght), Register.r10()));
         checkInstr.add(new Jump(boundErr.getLabel(), "ge"));
-        
-        checkInstr.add(new Pop(Register.r10()));        
+     
         checkInstr.add(boundErr);
         
         return checkInstr;
     }
     
     private List<LIR> handlePlus(Exp dest, Exp lhs, Exp rhs) {
+        // TODO check
         List<LIR> instrList = new ArrayList<LIR>();
         Register r10 = Register.r10();
         

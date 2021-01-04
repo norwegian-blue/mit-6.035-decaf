@@ -15,13 +15,13 @@ public class AssemblyProgram {
     
     private List<LIR> instructions;
     private List<Global> globals;
-    private List<StringLiteral> strings;
+    private Set<StringLiteral> strings;
     private Set<ErrorHandle> errors;
     
     public AssemblyProgram() {
         instructions = new ArrayList<LIR>();
         globals = new ArrayList<Global>();
-        strings = new ArrayList<StringLiteral>();
+        strings = new HashSet<StringLiteral>();
         errors = new HashSet<ErrorHandle>();
     }
     

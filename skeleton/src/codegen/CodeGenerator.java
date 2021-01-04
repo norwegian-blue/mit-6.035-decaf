@@ -133,7 +133,7 @@ public class CodeGenerator implements NodeVisitor<Void> {
         int i = 0;
         for (ParameterDescriptor par : method.getPars()) {
             Location parLocal = method.getDestination(par.getIrId());
-            Location parSrc = Call.getParamAtIndex(++i);
+            Location parSrc = Call.getParamAtIndex(++i, par.getSize());
             
             // Move if source != local
             if (!parSrc.equals(parLocal)) {
@@ -150,7 +150,7 @@ public class CodeGenerator implements NodeVisitor<Void> {
         for (LocalDescriptor local : method.getLocals()) {
             if (method.isLive(local.getIrId())) {
                 Location varLocal = method.getLocation(local.getIrId());
-                prog.addInstruction(new Mov(new Literal(0), varLocal, local.getSize()));
+                prog.addInstruction(new Mov(new Literal(0, local.getSize()), varLocal));
             }
         }
 

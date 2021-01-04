@@ -26,6 +26,20 @@ public class StringLiteral extends Exp {
     }
     
     @Override
+    public boolean equals(Object thatObj) {
+        if (!(thatObj instanceof StringLiteral)) {
+            return false;
+        }
+        StringLiteral that = (StringLiteral) thatObj;
+        return that.stringId.equals(this.stringId);
+    }
+    
+    @Override
+    public int hashCode() {
+        return this.stringContent.hashCode();
+    }
+    
+    @Override
     public boolean isString() {
         return true;
     }

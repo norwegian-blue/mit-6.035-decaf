@@ -8,11 +8,6 @@ public class Memory extends Location {
 
     private int offset;
     
-    public Memory(int offset) {
-        // TODO remove
-        this.offset = offset;
-    }
-    
     public Memory(int offset, int size) {
         this.offset = offset;
         this.size = size;

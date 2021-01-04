@@ -222,6 +222,18 @@ public class MethodDescriptor extends Descriptor {
         return false;
     }
     
+    public boolean isLive(Register reg) {
+        // Always dead if register allocation not performed
+        if (webs == null) return false;
+        
+        for (Web web : webs) {
+            if (web.liveAt(currentNode) && reg.equals(new Register(web.getRegister(), getSize(web.getId())))) {
+                return true;
+            }
+        }
+        return false;
+    }
+    
     public int getStackTop() {
         return stackTop;
     }
