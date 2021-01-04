@@ -9,25 +9,23 @@ import ir.Declaration.*;
 import ir.Expression.*;
 import ir.Expression.IrBinaryExpression.BinaryOperator;
 import ir.Statement.*;
-import semantic.Descriptor;
-import semantic.KeyNotFoundException;
 import semantic.MethodDescriptor;
-import semantic.SymbolTable;
 
 /**
  * @author Nicola
  */
 public class InstructionAssembler implements IrVisitor<List<LIR>> {
     
-    private final SymbolTable table;
-    private final String currentMethod;
     private static int strInd = 0;
     private MethodDescriptor method;
+    private Exp destLocation;
     
-    public InstructionAssembler(SymbolTable table, String currentMethod, MethodDescriptor method) {
-        this.table = table;
-        this.currentMethod = currentMethod;
+    public InstructionAssembler(MethodDescriptor method) {
         this.method = method;
+    }
+    
+    public void setDestination(Location dest) {
+        this.destLocation = dest;
     }
 
     @Override
@@ -58,49 +56,35 @@ public class InstructionAssembler implements IrVisitor<List<LIR>> {
     @Override
     public List<LIR> visit(IrBinaryExpression node) {
         List<LIR> instrList = new ArrayList<LIR>();
-        Register r10 = Register.r10();
-        Register r11 = Register.r11();
         
+        // Get assignment destination
+        Exp destination = this.destLocation;
+                
         // Assemble left & right hand sides
-        List<LIR> lhs = node.getLHS().accept(this);
-        List<LIR> rhs = node.getRHS().accept(this);
+        instrList.addAll(node.getLHS().accept(this));
+        Exp lhs = this.destLocation;
         
-        // Move operands to registers %r10 and %r11
-        Exp lhsSrc = (Exp) lhs.get(0);
-        Exp rhsSrc = (Exp) rhs.get(0);
+        instrList.addAll(node.getRHS().accept(this));
+        Exp rhs = this.destLocation;
         
-        instrList.add(new Mov(lhsSrc, r10));
-        instrList.add(new Mov(rhsSrc, r11));
-        
-        // Do arithmetics and store results in %r11        
+        // Do arithmetics and store in destination
         switch (node.getOp()) {
-        case PLUS:           
-            instrList.add(new BinOp("add", r10, r11));
+        case PLUS:
+            instrList.addAll(handlePlus(destination, lhs, rhs));
             break;
         case MINUS:
-            instrList.add(new BinOp("sub", r11, r10));
-            instrList.add(new Mov(r10, r11));
+            instrList.addAll(handleMinus(destination, lhs, rhs));
             break;
         case TIMES:
-            instrList.add(new BinOp("imul", r10, r11));
+            instrList.addAll(handleTimes(destination, lhs, rhs));
             break;
         case DIVIDE:
         case MOD:
-            instrList.add(new Mov(new Literal(0), Register.rdx()));
-            instrList.add(new Mov(r10, Register.rax()));
-            instrList.add(new Command("cqto"));
-            instrList.add(new UnOp("idiv", r11));
-            if (node.getOp().equals(BinaryOperator.DIVIDE)) {
-                instrList.add(new Mov(Register.rax(), r11));
-            }else {
-                instrList.add(new Mov(Register.rdx(), r11));
-            }
+            instrList.addAll(handleDivMod(node.getOp(), destination, lhs, rhs));
             break;
         case AND:
-            instrList.add(new BinOp("and", r10, r11));
-            break;
         case OR:
-            instrList.add(new BinOp("or", r10, r11));
+            instrList.addAll(handleBool(node.getOp(), destination, lhs, rhs));
             break;
         case GT:
         case LT:
@@ -108,16 +92,13 @@ public class InstructionAssembler implements IrVisitor<List<LIR>> {
         case LE:
         case EQ:
         case NEQ:
-            instrList.add(new Comp(r11, r10));
-            instrList.add(new Mov(new Literal(1), r10));
-            instrList.add(new Mov(new Literal(0), r11));
-            instrList.add(new CMov(node.getOp(), r10, r11));
+            instrList.addAll(handleComp(node.getOp(), destination, lhs, rhs));
             break;
         default:
             throw new Error("Unrecognized operation");
         }
-        
-        instrList.add(r11);
+            
+        this.destLocation = null;
         return instrList;
     }
 
@@ -125,9 +106,9 @@ public class InstructionAssembler implements IrVisitor<List<LIR>> {
     public List<LIR> visit(IrBooleanLiteral node) {
         List<LIR> instrList = new ArrayList<LIR>();
         if (node.eval()) {
-            instrList.add(new Literal(1));
+            this.destLocation = new Literal(1, 1);
         } else {
-            instrList.add(new Literal(0));
+            this.destLocation = new Literal(0, 1);
         }
         return instrList;
     }
@@ -166,34 +147,27 @@ public class InstructionAssembler implements IrVisitor<List<LIR>> {
     public List<LIR> visit(IrIdentifier node) {
         List<LIR> instrList = new ArrayList<LIR>();
 
-        Descriptor nodeDesc;
-
-        try {
-            nodeDesc = table.get(node.getId());
-        } catch (KeyNotFoundException e) {
-            throw new Error("Unexpected exception");
-        }
-        
-        
-        // Handle array element
+        // Add offset if destination is array element
         if (!node.isArrayElement()) {
-            if (nodeDesc.isGlobal()) {
-                instrList.add(new Global(nodeDesc.getId()));
-            } else {
-                instrList.add(new Local(nodeDesc.getOffset()));
-            }
+            this.destLocation = this.method.getDestination(node);
         } else {
-            Exp ind = (Exp)node.getInd().accept(this).get(0);
-            int len = 0;
-            try {
-                len = table.get(node.getId()).getType().getLength();
-            } catch (KeyNotFoundException e) {
-                throw new Error("Unexpected error");
+            Global location = new Global((Global) this.method.getDestination(node));
+            node.getInd().accept(this);         // Put index location into destLocation field
+            
+            // Get index into register (if not literal or register already)
+            Exp ind = this.destLocation;   
+            if (!ind.isReg() && !ind.isLiteral()) {
+                instrList.add(new Mov(ind, Register.r11()));
+                ind = Register.r10();
             }
-            instrList.addAll(checkArrayBounds(ind, len));
-            instrList.add(new Mov(ind, Register.r11()));
-            instrList.add(new Global(nodeDesc.getId(), Register.r11()));
-        }  
+            
+            // Set destination to global array element
+            location.setOffset(ind);
+            this.destLocation = location;
+            
+            // Check array bounds
+            instrList.addAll(checkArrayBounds(ind, location.getLen()));
+        }
         
         return instrList;
     }
@@ -246,36 +220,27 @@ public class InstructionAssembler implements IrVisitor<List<LIR>> {
     @Override
     public List<LIR> visit(IrIntLiteral node) {
         List<LIR> instrList = new ArrayList<LIR>();
-        instrList.add(new Literal(node.eval()));
+        this.destLocation = new Literal(node.eval());
         return instrList;
     }
 
     @Override
     public List<LIR> visit(IrAssignment node) {
         
+        // TODO destination vs location
         List<LIR> instrList = new ArrayList<LIR>();
+         
+        // Assemble destination and get destination address
+        instrList.addAll(node.getLocation().accept(this));
+        Exp dest = this.destLocation;
+
+        // Process assignment expression
+        instrList.addAll(node.getExpression().accept(this));
         
-        List<LIR> expList = node.getExpression().accept(this);
-        List<LIR> destList = node.getLocation().accept(this);
-        
-        // Source
-        Exp src;
-        src = (Exp) expList.get(expList.size()-1);
-        if (!node.getExpression().isAtom()) {
-            for (int i = 0; i < expList.size()-1; i++) {
-                instrList.add(expList.get(i));
-            }
+        // Manually assign if expression is literal
+        if (this.destLocation != null) {
+            instrList.add(new Mov(this.destLocation, dest));
         }
-        instrList.add(new Mov(src, Register.r10()));
-        
-        // Assign to local or global (array) 
-        Exp dst = (Exp) destList.get(destList.size()-1);
-        if (!node.getLocation().isAtom()) {
-            for (int i = 0; i < destList.size()-1; i++) {
-                instrList.add(destList.get(i));
-            }
-        }
-        instrList.add(new Mov(Register.r10(), dst));
     
         return instrList;
     }
@@ -318,7 +283,7 @@ public class InstructionAssembler implements IrVisitor<List<LIR>> {
     }
     
     private String getStringId() {
-        return "_" + this.currentMethod + "_str" + strInd++;
+        return "_" + method.getId() + "_str" + strInd++;
     }
     
     private void prepareFunCall(List<IrExpression> args, List<LIR> instrList) {
@@ -363,6 +328,109 @@ public class InstructionAssembler implements IrVisitor<List<LIR>> {
         checkInstr.add(boundErr);
         
         return checkInstr;
+    }
+    
+    private List<LIR> handlePlus(Exp dest, Exp lhs, Exp rhs) {
+        List<LIR> instrList = new ArrayList<LIR>();
+        Register r10 = Register.r10();
+        
+        // Simplifications
+        if (lhs.equals(dest) && rhs.equals(dest)) {
+            // a = a + a
+            instrList.add(new LShift(dest));
+        } else if (lhs.equals(dest)) {
+            if (rhs.equals(new Literal(1))) {
+                // a = a + 1
+                instrList.add(new Inc(dest));
+            } else {
+                // a = a + c
+                if (rhs.isImm() || dest.isImm()) {
+                    instrList.add(new BinOp("addq", rhs, dest));
+                } else {
+                    instrList.add(new Mov(rhs, r10));
+                    instrList.add(new BinOp("addq", r10, dest));
+                }
+            }
+        } else if (rhs.equals(dest)) {
+            if (lhs.equals(new Literal(1))) {
+                // a = 1 + a
+                instrList.add(new Inc(dest));
+            } else {
+                // a = b + a
+                if (lhs.isImm() || dest.isImm()) {
+                    instrList.add(new BinOp("addq", lhs, dest));
+                } else {
+                    instrList.add(new Mov(lhs, r10));
+                    instrList.add(new BinOp("addq", r10, dest));
+                }
+            }
+        
+        // Destination is register
+        } else if (dest.isReg()) {
+            
+            // Both operands immediate
+            if (lhs.isImm() && rhs.isImm()) {
+                instrList.add(new Mov(lhs, dest));
+                instrList.add(new BinOp("addq", rhs, dest));
+             
+            // One operand in memory
+            } else if (lhs.isImm()) {
+                instrList.add(new Mov(rhs, dest));
+                instrList.add(new BinOp("addq", lhs, dest));
+            } else if (lhs.isImm()) {
+                instrList.add(new Mov(lhs, dest));
+                instrList.add(new BinOp("addq", rhs, dest));
+                
+            // Both operands in memory
+            } else {
+                instrList.add(new Mov(lhs, dest));
+                instrList.add(new BinOp("addq", rhs, dest));
+            }
+                
+        // Destination in memory
+        } else {
+            
+            // Make sure the memory is moved in r10 first
+            if (lhs.isImm()) {
+                instrList.add(new Mov(rhs, r10));
+                instrList.add(new BinOp("addq", lhs, r10));
+                instrList.add(new Mov(r10, dest));
+            } else {
+                instrList.add(new Mov(lhs, r10));
+                instrList.add(new BinOp("addq", rhs, r10));
+                instrList.add(new Mov(r10, dest));
+            }
+        }
+        return instrList;
+    }
+    
+    private List<LIR> handleMinus(Exp dest, Exp lhs, Exp rhs) {
+        List<LIR> instrList = new ArrayList<LIR>();
+        // TODO
+        return instrList;
+    }
+    
+    private List<LIR> handleTimes(Exp dest, Exp lhs, Exp rhs) {
+        List<LIR> instrList = new ArrayList<LIR>();
+        // TODO
+        return instrList;
+    }
+    
+    private List<LIR> handleDivMod(BinaryOperator op, Exp dest, Exp lhs, Exp rhs) {
+        List<LIR> instrList = new ArrayList<LIR>();
+        // TODO
+        return instrList;
+    }
+    
+    private List<LIR> handleBool(BinaryOperator op, Exp dest, Exp lhs, Exp rhs) {
+        List<LIR> instrList = new ArrayList<LIR>();
+        // TODO
+        return instrList;
+    }
+    
+    private List<LIR> handleComp(BinaryOperator op, Exp dest, Exp lhs, Exp rhs) {
+        List<LIR> instrList = new ArrayList<LIR>();
+        return instrList;
     }
 
 }

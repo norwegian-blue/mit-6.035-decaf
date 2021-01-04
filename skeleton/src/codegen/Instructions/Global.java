@@ -7,30 +7,28 @@ public class Global extends Location {
 
     private final String name;
     private final int lenght;
-    private final int elSize;
-    private final Exp offset;
+    private Exp offset;
     
     public Global(String name, int lenght, int elSize) {
         this.name = name;
-        this.elSize = elSize;
+        this.size = elSize;
         this.lenght = lenght;
         this.offset = new Literal(0);
     }
     
-    // Global array
-    public Global(String name, Exp offset) {
-        this.name = name;
-        this.offset = offset;
-        this.elSize = 0;
-        this.lenght = 0;
+    public Global(Global glb) {
+        this.name = glb.name;
+        this.size = glb.size;
+        this.lenght= glb.lenght;
+        this.offset = glb.offset;
     }
     
-    // Global scalar
-    public Global(String name) {
-        this.name = name;
-        this.offset = null;
-        this.elSize = 0;
-        this.lenght = 0;
+    public void setOffset(Exp offset) {
+        this.offset = offset;
+    }
+    
+    public int getLen() {
+        return this.lenght;
     }
     
     @Override
@@ -48,7 +46,7 @@ public class Global extends Location {
     }
     
     public String toAllocation() {
-        return ".comm\t" + name + ", " + lenght*elSize + ", 8";
+        return ".comm\t" + name + ", " + lenght*size + ", 8";
     }
 
 }

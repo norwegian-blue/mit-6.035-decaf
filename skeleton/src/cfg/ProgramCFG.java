@@ -7,9 +7,6 @@ import java.util.Map;
 import codegen.AssemblyProgram;
 import codegen.Instructions.*;
 import ir.Declaration.*;
-import semantic.DuplicateKeyException;
-import semantic.FieldDescriptor;
-import semantic.SymbolTable;
 
 /**
  * @author Nicola
@@ -44,23 +41,16 @@ public class ProgramCFG {
     }
     
     public AssemblyProgram assemble() {
-        // TODO cleanup: remove everything except method.assemble(prog, globals);
         AssemblyProgram prog = new AssemblyProgram();
-        SymbolTable table = new SymbolTable();
         
         // Add globals
         for (IrFieldDeclaration glb : globals) {
             prog.addGlobal(new Global(glb.getId(), glb.getType().getLength(), glb.getType().getSize()));
-            try {
-                table.put(glb.getId(), new FieldDescriptor(glb.getId(), glb.getType()));
-            } catch (DuplicateKeyException e) {
-                throw new Error("unexpected behavior");
-            }
         }
         
         // Add methods
         for (String method : methods.keySet()) {
-            methods.get(method).assemble(prog, table, globals);
+            methods.get(method).assemble(prog, globals);
         }
             
         return prog;

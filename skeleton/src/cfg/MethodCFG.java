@@ -40,30 +40,15 @@ public class MethodCFG extends CFG {
         return methodBlock;
     }
     
-    public void assemble(AssemblyProgram prog, SymbolTable table, List<IrFieldDeclaration> globals) {
-
-        // TODO remove all except new CodeGenerator(prog, methodDesc)
-        try {
-            table.put(this.methodDesc.getId(), this.methodDesc);
-            table.beginScope();
-            for (ParameterDescriptor par : this.methodDesc.getPars()) {
-                table.put(par.getId(), par);
-            }
-            for (LocalDescriptor local : this.methodDesc.getLocals()) {
-                table.put(local.getId(), local);
-            }
-        } catch (DuplicateKeyException e) {
-            throw new Error("Unexpected error");
-        }
+    public void assemble(AssemblyProgram prog, List<IrFieldDeclaration> globals) {
                 
         // Add global descriptor to method descriptor
         for (IrFieldDeclaration global : globals) {
             methodDesc.addGlobal(new FieldDescriptor(global.getId(), global.getType()));
         }
         
-        CodeGenerator codegen = new CodeGenerator(prog, table, methodDesc.getId(), methodDesc);
+        CodeGenerator codegen = new CodeGenerator(prog, methodDesc);
         this.root.accept(codegen);
-        table.endScope();
     }
     
     protected CfgBlock blockifyTree(Node node) {

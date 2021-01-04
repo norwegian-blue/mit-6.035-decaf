@@ -10,11 +10,9 @@ import ir.Expression.IrIdentifier;
 import ir.Expression.IrLiteral;
 import ir.Statement.*;
 import semantic.BaseTypeDescriptor;
-import semantic.KeyNotFoundException;
 import semantic.LocalDescriptor;
 import semantic.MethodDescriptor;
 import semantic.ParameterDescriptor;
-import semantic.SymbolTable;
 
 /**
  * @author Nicola
@@ -23,16 +21,13 @@ import semantic.SymbolTable;
 public class CodeGenerator implements NodeVisitor<Void> {
     
     private AssemblyProgram prog;
-    private SymbolTable table;
     private InstructionAssembler instructionAssembler;
     private boolean isFirst;
     private MethodDescriptor method;
     
-    public CodeGenerator(AssemblyProgram prog, SymbolTable table, String currentMethod, MethodDescriptor method) {
-        // TODO remove symbol table and current method fields
+    public CodeGenerator(AssemblyProgram prog, MethodDescriptor method) {
         this.prog = prog;
-        this.table = table;
-        this.instructionAssembler = new InstructionAssembler(table, currentMethod, method);
+        this.instructionAssembler = new InstructionAssembler(method);
         this.method = method;
         isFirst = true;
     }
@@ -103,37 +98,12 @@ public class CodeGenerator implements NodeVisitor<Void> {
 
     @Override
     public Void visit(CfgEntryNode node) {
-        
-        // TODO cleanup
-        
+                
         // Set stack: assign storage for locals and parameters if needed
         method.setStack();
         
         // Update locations
-        method.updateLocations(node);
-        
-        // Assign variables location on stack
-        int stackTop = 8;
-        
-        // Assign storage for parameters
-        for (ParameterDescriptor parDesc : method.getPars()) {
-            try {
-                table.get(parDesc.getId()).setOffset(-stackTop);
-            } catch (KeyNotFoundException e) {
-                throw new Error("unexpected error");
-            }
-            stackTop += parDesc.getSize();
-        }
-               
-        // Assign storage for locals
-        for (LocalDescriptor local : method.getLocals()) {
-            try {
-                table.get(local.getId()).setOffset(-stackTop);
-            } catch (KeyNotFoundException e) {
-                throw new Error("unexpected error");
-            }
-            stackTop += local.getSize();
-        }
+        method.updateLocations(node);        
 
         // Preamble
         prog.addInstruction(new NewLine());
@@ -145,6 +115,7 @@ public class CodeGenerator implements NodeVisitor<Void> {
         
         // Push callee saved registers on stack
         for (Register reg : method.getUsedRegs()) {
+            if (method.getId().equals("main")) continue;
             if (reg.equals(Register.rbx())) {
                 prog.addInstruction(new Push(reg));
             } else if (reg.equals(Register.r12())) {
@@ -216,21 +187,12 @@ public class CodeGenerator implements NodeVisitor<Void> {
                 falloff = true;
             }
         }
-        
-        // Return to caller or throw runtime error
-        if (falloff) {
-            ErrorHandle fall = ErrorHandle.fallOver();
-            prog.addInstruction(new Jump(fall.getLabel(), "none"));
-            prog.addErrorHandler(fall);
-        } else {
-            prog.addInstruction(new Leave());
-            prog.addInstruction(new Return());
-        }
-        
+                
         // Restore stack
         List<Register> regs = method.getUsedRegs();
         Collections.reverse(regs);
         for (Register reg : regs) {
+            if (method.getId().equals("main")) continue;
             if (reg.equals(Register.rbx())) {
                 prog.addInstruction(new Pop(reg));
             } else if (reg.equals(Register.r12())) {
@@ -242,6 +204,16 @@ public class CodeGenerator implements NodeVisitor<Void> {
             } else if (reg.equals(Register.r15())) {
                 prog.addInstruction(new Pop(reg));
             }
+        }
+        
+        // Return to caller or throw runtime error
+        if (falloff) {
+            ErrorHandle fall = ErrorHandle.fallOver();
+            prog.addInstruction(new Jump(fall.getLabel(), "none"));
+            prog.addErrorHandler(fall);
+        } else {
+            prog.addInstruction(new Leave());
+            prog.addInstruction(new Return());
         }
         
         return null;

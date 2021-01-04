@@ -29,7 +29,7 @@ public class Mov extends LIR {
 
     @Override
     public String toCode() {
-        return "\tmov" + Exp.getSuffix(size) + "\t" + src.toCode() + ", " + dest.toCode();
+        return "\tmov" + src.getSuffix() + "\t" + src.toCode() + ", " + dest.toCode();
     }
         
 }

@@ -1190,7 +1190,7 @@ public class RegisterAllocation {
         r8,         // (arg 5)
         r9,         // (arg 6)
         //r10,      // Scrap register
-        r11,
+        //r11,      // Scrap register (move to array if both src and index in main memory e.g. movq a(,%r11,8), %r10)
         r12,
         r13,
         r14,

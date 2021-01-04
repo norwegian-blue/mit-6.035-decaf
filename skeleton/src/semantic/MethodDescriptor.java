@@ -132,6 +132,13 @@ public class MethodDescriptor extends Descriptor {
                 return loc.getDestination();
             }
         }
+        
+        for (FieldDescriptor glb : globals) {
+            if (glb.getIrId().equals(id)) {
+                return glb.getLocation();
+            }
+        }
+        
         throw new Error("cannot find identifier destination");
     }
     
@@ -224,7 +231,7 @@ public class MethodDescriptor extends Descriptor {
         
         // Update variables location based on live webs
         for (Web web : webs) {
-            if (web.liveAt(node)) {
+            if (web.liveAt(node) || web.containsDef(node)) {
                 
                 // Get location
                 Location location;
@@ -250,7 +257,10 @@ public class MethodDescriptor extends Descriptor {
         
         for (Web web : webs) {
             if (!web.isSpilled()) {
-                regs.add(new Register(web.getRegister(), getSize(web.getId())));
+                Register reg = new Register(web.getRegister(), getSize(web.getId()));
+                if (!regs.contains(reg)) {
+                    regs.add(reg);
+                }
             }
         }
         return regs;        

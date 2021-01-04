@@ -13,7 +13,7 @@ public class FieldDescriptor extends Descriptor {
     
     public FieldDescriptor(String name, TypeDescriptor type) {
         super(name, type);
-        this.location = new Global(name);
+        this.location = new Global(name, type.getLength(), type.getSize());
     }
     
     @Override

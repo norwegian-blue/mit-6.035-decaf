@@ -8,18 +8,15 @@ public abstract class Exp extends LIR {
         return false;
     }
     
-    public static String getSuffix(int size) {
-        switch (size) {
-        case (1):
-            return "b";
-        case (8):
-            return "q";
-        default:
-            throw new Error("Unexpected");
-        }
+    public boolean isLiteral() {
+        return false;
     }
     
-    public String getSuffix1() {
+    public boolean isImm() {
+        return isReg() || isLiteral();
+    }
+        
+    public String getSuffix() {
         switch (this.size) {
         case (1):
             return "b";
@@ -29,7 +26,5 @@ public abstract class Exp extends LIR {
             throw new Error("Unexpected");
         }
     }
-    
-    // TODO size as expression property
     
 }
