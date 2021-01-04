@@ -43,11 +43,6 @@ public class Register extends Location {
         }
         throw new Error("Cannot find corresponding register");
     }
-       
-    @Override
-    public String toString() {
-        return regName.name();
-    }
     
     @Override
     public String toCode() {

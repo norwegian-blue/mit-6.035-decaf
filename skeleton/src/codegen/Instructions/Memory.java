@@ -14,12 +14,6 @@ public class Memory extends Location {
     }
     
     @Override
-    public String toString() {
-        String sign = (offset>0) ? "+" : "";
-        return "BP" + sign + offset;
-    }
-    
-    @Override
     public String toCode() {
         return offset + "(%rbp)";
     }

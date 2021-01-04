@@ -7,11 +7,6 @@ public class Call extends LIR {
     public Call(String method) {
         this.method = method;
     }
-    
-    @Override
-    public String toString() {
-        return "call\t" + method;
-    }
 
     @Override
     public String toCode() {

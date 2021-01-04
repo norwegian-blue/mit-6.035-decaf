@@ -121,8 +121,11 @@ public class InstructionAssembler implements IrVisitor<List<LIR>> {
         String calloutName = node.getName();
         calloutName = calloutName.substring(1, calloutName.length()-1);
         
+        // Check if value is returned to %rax
+        boolean skipRax = (destination != null && destination.equals(Register.rax()));
+        
         // Push live registers (non-callee-saved)
-        instrList.addAll(saveRegs());
+        instrList.addAll(saveRegs(skipRax));
                 
         // Prepare arguments
         this.prepareFunCall(node.getArgs(), instrList);
@@ -135,15 +138,22 @@ public class InstructionAssembler implements IrVisitor<List<LIR>> {
         // Call function
         instrList.add(new Call(calloutName));
         
+        // Return value
+        if (destination != null && !destination.equals(Register.rax())) {
+            instrList.add(new Mov(Register.rax(), this.destination));   
+        }
+        
         // Pop live registers (non-callee-saved)
-        instrList.addAll(restoreRegs());
+        instrList.addAll(restoreRegs(skipRax));
+        
+        this.location = null;
         
         return instrList;
     }
 
-    private List<LIR> saveRegs() {
+    private List<LIR> saveRegs(boolean skipRax) {
         List<LIR> instrList = new ArrayList<LIR>();
-        if (this.method.isLive(Register.rax())) instrList.add(new Push(Register.rax()));
+        if (!skipRax && this.method.isLive(Register.rax())) instrList.add(new Push(Register.rax()));
         if (this.method.isLive(Register.rcx())) instrList.add(new Push(Register.rcx()));
         if (this.method.isLive(Register.rdx())) instrList.add(new Push(Register.rdx()));
         if (this.method.isLive(Register.rsi())) instrList.add(new Push(Register.rsi()));
@@ -154,7 +164,7 @@ public class InstructionAssembler implements IrVisitor<List<LIR>> {
         return instrList;
     }
 
-    private List<LIR> restoreRegs() {
+    private List<LIR> restoreRegs(boolean skipRax) {
         List<LIR> instrList = new ArrayList<LIR>();
         if (this.method.isLive(Register.r11())) instrList.add(new Pop(Register.r11()));
         if (this.method.isLive(Register.r9())) instrList.add(new Pop(Register.r9()));
@@ -163,7 +173,7 @@ public class InstructionAssembler implements IrVisitor<List<LIR>> {
         if (this.method.isLive(Register.rsi())) instrList.add(new Pop(Register.rsi()));
         if (this.method.isLive(Register.rdx())) instrList.add(new Pop(Register.rdx()));
         if (this.method.isLive(Register.rcx())) instrList.add(new Pop(Register.rcx()));
-        if (this.method.isLive(Register.rax())) instrList.add(new Pop(Register.rax())); 
+        if (!skipRax && this.method.isLive(Register.rax())) instrList.add(new Pop(Register.rax())); 
         return instrList;
     }
 
@@ -206,18 +216,31 @@ public class InstructionAssembler implements IrVisitor<List<LIR>> {
     @Override
     public List<LIR> visit(IrMethodCallExpression node) {
         
-        // TODO
         List<LIR> instrList = new ArrayList<LIR>();
         
         String methodName = node.getName();
+        
+        // Check if value is returned to %rax
+        boolean skipRax = (destination != null && destination.equals(Register.rax()));
+        
+        // Push live registers (non-callee-saved)
+        instrList.addAll(saveRegs(skipRax));
         
         // Prepare arguments
         this.prepareFunCall(node.getArgs(), instrList);
                 
         // Call function
         instrList.add(new Call(methodName));
-        instrList.add(new Mov(Register.rax(), Register.r11()));
-        instrList.add(Register.r11());
+        
+        // Return value
+        if (destination != null && !destination.equals(Register.rax())) {
+            instrList.add(new Mov(Register.rax(), this.destination));   
+        }
+        
+        // Pop live registers (non-callee-saved)
+        instrList.addAll(restoreRegs(skipRax));
+        
+        this.location = null;
         
         return instrList;
     }
@@ -283,6 +306,8 @@ public class InstructionAssembler implements IrVisitor<List<LIR>> {
                 instrList.add(new Mov(src, dest));
             }
         }
+        
+        this.destination = null;
     
         return instrList;
     }
@@ -400,7 +425,7 @@ public class InstructionAssembler implements IrVisitor<List<LIR>> {
     }
     
     private List<LIR> handlePlus(Exp dest, Exp lhs, Exp rhs) {
-        // TODO check
+
         List<LIR> instrList = new ArrayList<LIR>();
         Register r10 = Register.r10();
         
@@ -434,6 +459,16 @@ public class InstructionAssembler implements IrVisitor<List<LIR>> {
                     instrList.add(new BinOp("addq", r10, dest));
                 }
             }
+        } else if (lhs.equals(rhs)) {
+            // a = b + b;
+            if (dest.isReg() || lhs.isImm()) {
+                instrList.add(new Mov(lhs, dest));
+            } else {
+                instrList.add(new Mov(lhs, r10));
+                instrList.add(new Mov(r10, dest));
+            }
+            instrList.add(new LShift(dest));
+            
         
         // Destination is register
         } else if (dest.isReg()) {
@@ -456,6 +491,7 @@ public class InstructionAssembler implements IrVisitor<List<LIR>> {
                 instrList.add(new Mov(lhs, dest));
                 instrList.add(new BinOp("addq", rhs, dest));
             }
+            
                 
         // Destination in memory
         } else {
@@ -476,16 +512,154 @@ public class InstructionAssembler implements IrVisitor<List<LIR>> {
     
     private List<LIR> handleMinus(Exp dest, Exp lhs, Exp rhs) {
         List<LIR> instrList = new ArrayList<LIR>();
-        // TODO
+        Register r10 = Register.r10();
+        
+        // Simplifications
+        if (rhs.equals(new Literal(1))) {
+            if (lhs.equals(dest)) {
+                // a = a - 1
+                instrList.add(new Dec(dest));
+            } else {
+                // a = b - 1
+                if (dest.isReg()) {
+                    instrList.add(new Mov(lhs, dest)); 
+                    instrList.add(new Dec(dest));
+                } else {
+                    instrList.add(new Mov(lhs, r10));
+                    instrList.add(new Dec(r10));
+                    instrList.add(new Mov(r10, dest));
+                }                
+            }
+        } else if (dest.equals(lhs)) {
+            if (dest.isReg() || rhs.isImm()) {
+                instrList.add(new BinOp("subq", rhs, dest)); 
+            } else {
+                instrList.add(new Mov(rhs, r10));
+                instrList.add(new BinOp("subq", r10, dest)); 
+            }
+
+            
+        // Destination is register
+        } else if (dest.isReg()) {   
+            instrList.add(new Mov(lhs, dest));
+            instrList.add(new BinOp("subq", rhs, dest));
+            
+            
+        // Destination in memory
+        } else {   
+            instrList.add(new Mov(lhs, r10));
+            instrList.add(new BinOp("subq", rhs, r10));
+            instrList.add(new Mov(r10, dest));
+        }
+            
         return instrList;
     }
     
     private List<LIR> handleTimes(Exp dest, Exp lhs, Exp rhs) {
+
         List<LIR> instrList = new ArrayList<LIR>();
-        // TODO
+        Register r10 = Register.r10();
+        
+        // Simplifications
+        if (lhs.equals(dest)) {
+            if (rhs.isLiteral()) {
+                // a = a * 2^i
+                int pow2 = log2(((Literal) rhs).getValue());
+                if (pow2 > 0) {
+                    instrList.add(new LShift(dest, pow2));
+                }
+            } else {
+                // a = a * c
+                if (rhs.isImm() || dest.isImm()) {
+                    instrList.add(new BinOp("imulq", rhs, dest));
+                } else {
+                    instrList.add(new Mov(rhs, r10));
+                    instrList.add(new BinOp("imulq", r10, dest));
+                }
+            }
+        } else if (rhs.equals(dest)) {
+            if (lhs.isLiteral()) {
+                // a = a * 2^i
+                int pow2 = log2(((Literal) lhs).getValue());
+                if (pow2 > 0) {
+                    instrList.add(new LShift(dest, pow2));
+                }
+            } else {
+                // a = b * a
+                if (lhs.isImm() || dest.isImm()) {
+                    instrList.add(new BinOp("imulq", lhs, dest));
+                } else {
+                    instrList.add(new Mov(lhs, r10));
+                    instrList.add(new BinOp("imulq", r10, dest));
+                }
+            }
+            
+        } else if (lhs.isLiteral()) {
+            // a = 2^i * c
+            int pow2 = log2(((Literal) lhs).getValue());
+            if (pow2 > 0) {
+                if (dest.isReg() || rhs.isImm()) {
+                    instrList.add(new Mov(rhs, dest));
+                } else {
+                    instrList.add(new Mov(rhs, r10));
+                    instrList.add(new Mov(r10, dest));
+                }                    
+                instrList.add(new LShift(dest, pow2));
+            }
+            
+        } else if (rhs.isLiteral()) {
+            // a = b * 2^i
+            int pow2 = log2(((Literal) rhs).getValue());
+            if (pow2 > 0) {
+                if (dest.isReg() || lhs.isImm()) {
+                    instrList.add(new Mov(lhs, dest));
+                } else {
+                    instrList.add(new Mov(lhs, r10));
+                    instrList.add(new Mov(r10, dest));
+                }  
+                instrList.add(new LShift(dest, pow2));
+            }
+            
+        
+        // Destination is register
+        } else if (dest.isReg()) {
+            
+            // Both operands immediate
+            if (lhs.isImm() && rhs.isImm()) {
+                instrList.add(new Mov(lhs, dest));
+                instrList.add(new BinOp("imulq", rhs, dest));
+             
+            // One operand in memory
+            } else if (lhs.isImm()) {
+                instrList.add(new Mov(rhs, dest));
+                instrList.add(new BinOp("imulq", lhs, dest));
+            } else if (lhs.isImm()) {
+                instrList.add(new Mov(lhs, dest));
+                instrList.add(new BinOp("imulq", rhs, dest));
+                
+            // Both operands in memory
+            } else {
+                instrList.add(new Mov(lhs, dest));
+                instrList.add(new BinOp("imulq", rhs, dest));
+            }
+                
+        // Destination in memory
+        } else {
+            
+            // Make sure the memory is moved in r10 first
+            if (lhs.isImm()) {
+                instrList.add(new Mov(rhs, r10));
+                instrList.add(new BinOp("imulq", lhs, r10));
+                instrList.add(new Mov(r10, dest));
+            } else {
+                instrList.add(new Mov(lhs, r10));
+                instrList.add(new BinOp("imulq", rhs, r10));
+                instrList.add(new Mov(r10, dest));
+            }
+        }
         return instrList;
     }
-    
+
     private List<LIR> handleDivMod(BinaryOperator op, Exp dest, Exp lhs, Exp rhs) {
         List<LIR> instrList = new ArrayList<LIR>();
         // TODO
@@ -500,7 +674,21 @@ public class InstructionAssembler implements IrVisitor<List<LIR>> {
     
     private List<LIR> handleComp(BinaryOperator op, Exp dest, Exp lhs, Exp rhs) {
         List<LIR> instrList = new ArrayList<LIR>();
+        // TODO
         return instrList;
+    }
+    
+    private int log2(int value) {
+        int res = 1;
+        int pow = 0;
+        while (res <= value) {
+            if (res == value) {
+                return pow;
+            }
+            res *= 2;
+            pow++;
+        }
+        return -1;
     }
 
 }

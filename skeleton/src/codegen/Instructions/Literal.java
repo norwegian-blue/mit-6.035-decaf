@@ -17,9 +17,8 @@ public class Literal extends Exp {
         this.size = size;
     }
     
-    @Override
-    public String toString() {
-        return "" + this.value;
+    public int getValue() {
+        return value;
     }
 
     @Override

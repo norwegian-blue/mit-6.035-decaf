@@ -25,12 +25,14 @@ public class AlgebraicSimplification extends ExpressionSimplifier {
             } else if (rhs.isLiteral() && ((IrBooleanLiteral)rhs).eval() == true)  {
                 return lhs;
             }
+            break;
         case DIVIDE:
             if (lhs.isLiteral() && ((IrIntLiteral)lhs).eval() == 0) {
                 return lhs;
             } else if (rhs.isLiteral() && ((IrIntLiteral)rhs).eval() == 1) {
                 return lhs;
             }
+            break;
         case EQ:
             break;
         case GE:
@@ -51,12 +53,14 @@ public class AlgebraicSimplification extends ExpressionSimplifier {
             } else if (rhs.equals(lhs)) {
                 return new IrIntLiteral("0");
             }
+            break;
         case MOD:
             if (lhs.isLiteral() && ((IrIntLiteral)lhs).eval() == 0) {
                 return lhs;
             } else if (rhs.isLiteral() && ((IrIntLiteral)rhs).eval() == 1) {
                 return lhs;
             }
+            break;
         case NEQ:
             break;
         case OR:
@@ -69,6 +73,7 @@ public class AlgebraicSimplification extends ExpressionSimplifier {
             } else if (rhs.isLiteral() && ((IrBooleanLiteral)rhs).eval() == true)  {
                 return rhs;
             }
+            break;
         case PLUS:
             if (lhs.isLiteral() && ((IrIntLiteral)lhs).eval() == 0) {
                 return rhs;

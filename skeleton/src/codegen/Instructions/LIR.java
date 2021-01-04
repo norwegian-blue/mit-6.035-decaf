@@ -19,5 +19,10 @@ public abstract class LIR {
     public boolean isErrorHandler() {
         return false;
     }
+    
+    @Override 
+    public String toString() {
+        return this.toCode();
+    }
 
 }

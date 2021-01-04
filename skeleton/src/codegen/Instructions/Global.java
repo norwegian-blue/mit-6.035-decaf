@@ -32,11 +32,6 @@ public class Global extends Location {
     }
     
     @Override
-    public String toString() {
-        return name + "[" + offset.toString() + "]";
-    }
-    
-    @Override
     public String toCode() {
         if (this.offset == null) {
             return name + "(%rip)";

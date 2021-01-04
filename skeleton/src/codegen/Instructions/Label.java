@@ -13,11 +13,6 @@ public class Label extends LIR {
     }
     
     @Override
-    public String toString() {
-        return "LABEL: " + this.labelName;
-    }
-    
-    @Override
     public String toCode() {
         return this.labelName + ":";
     }
