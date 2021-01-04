@@ -23,7 +23,7 @@ public abstract class Exp extends LIR {
         case (8):
             return "q";
         default:
-            throw new Error("Unexpected");
+            return "";
         }
     }
     
