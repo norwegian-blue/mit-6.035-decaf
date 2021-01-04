@@ -469,7 +469,7 @@ public class RegisterAllocation {
         
         private Set<Node> visited;
         private Stack<UD> range;
-        
+               
         public Web(IrIdentifier id, UD def, Set<UD> uses) {
             this.id = id;
             this.liveRange = new HashSet<UD>();
@@ -800,6 +800,8 @@ public class RegisterAllocation {
         private Map<REG, Set<Web>> boundRegs;
         private Map<Web, Set<REG>> boundWebs;
         
+        private Set<Web> boundStack = new HashSet<Web>();
+        
         public void color() {
             Stack<NodeRecord> stack = new Stack<NodeRecord>();
             
@@ -926,6 +928,8 @@ public class RegisterAllocation {
         
         private void attemptBound(Web web, Set<REG> regs) {
             
+            boundStack.add(web);
+            
             // First try all possible for current
             Iterator<REG> it = regs.iterator();  
             while(it.hasNext()) {
@@ -946,6 +950,7 @@ public class RegisterAllocation {
                 if (!skip) {
                     bind(web, reg);
                     this.boundWebs.get(web).remove(reg);
+                    boundStack.remove(web);
                     return;
                 }
 
@@ -957,10 +962,13 @@ public class RegisterAllocation {
                 REG reg = it.next();
                 Set<Web> conflict = this.boundRegs.get(reg);
                 for (Web confWeb : conflict) {
-                    attemptBound(confWeb, this.boundWebs.get(confWeb));
+                    if (!boundStack.contains(confWeb)) {
+                        attemptBound(confWeb, this.boundWebs.get(confWeb));
+                    }
                 }
                 bind(web, reg);
                 this.boundWebs.get(web).remove(reg);
+                boundStack.remove(web);
                 return;
             }
             
@@ -968,6 +976,8 @@ public class RegisterAllocation {
             for (int i = 0; i < nPhys; i++) {
                 adjMat[getInd(web)][i] = false;
             }
+            
+            boundStack.remove(web);
             
         }
         

@@ -729,6 +729,9 @@ public class InstructionAssembler implements IrVisitor<List<LIR>> {
             if (this.method.isLive(rax) && !dest.equals(rax)) {
                 instrList.add(new Push(rax)); 
             }
+            if (rhs.equals(rax)) {
+                instrList.add(new Mov(rhs, r10));
+            }
             if (!lhs.equals(rax)) {
                 instrList.add(new Mov(lhs, rax));
             }
@@ -744,7 +747,7 @@ public class InstructionAssembler implements IrVisitor<List<LIR>> {
             
             // Integer division
             instrList.add(new Command("cqto"));
-            if (rhs.equals(rdx)) {
+            if (rhs.equals(rdx) || rhs.equals(rax)) {
                 instrList.add(new UnOp("idivq", r10));
             } else {
                 instrList.add(new UnOp("idivq", rhs));
