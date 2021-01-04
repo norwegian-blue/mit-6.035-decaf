@@ -1,6 +1,8 @@
 package codegen;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 
 import codegen.Instructions.*;
@@ -382,26 +384,53 @@ public class InstructionAssembler implements IrVisitor<List<LIR>> {
     
     private void prepareFunCall(List<IrExpression> args, List<LIR> instrList) {
         
+        // Get list of arguments locations
+        List<Exp> argLocs = new ArrayList<Exp>();
+        for (IrExpression arg : args) {
+            arg.accept(this);
+            argLocs.add(this.location);
+        }
+        
         // Move arguments according to calling convention
-        for (int i = args.size(); i > 0; i--) {
-            args.get(i-1).accept(this);
-            Exp arg = this.location;
-
+        Collections.reverse(argLocs);
+        Iterator<Exp> it = argLocs.iterator();
+        int i = argLocs.size();
+        while (it.hasNext()) {
+            Exp arg = it.next();
+            it.remove();
+            
             // Return string arguments
             if (arg.isString()) {
                 instrList.add(arg);
             }
-
-            // According to Linux ABI
-            if (i <= 6) {       // Move to register
+            
+            // Linux ABI
+            if (i <= 6) {       
+                // Move to register
                 Exp dst = Call.getParamAtIndex(i, 8);
                 if (!arg.equals(dst)) {
-                    instrList.add(new Mov(arg, dst));
+                    
+                    // Preserve not argument yet to be added
+                    if (argLocs.contains(dst)) {
+                        instrList.add(new Mov(dst, Register.r10()));
+                        instrList.add(new Mov(arg, dst));
+                        instrList.add(new Mov(Register.r10(), arg));
+                        for (int j = 0; j < argLocs.size(); j++) {
+                            if (argLocs.get(j).equals(dst)) {
+                                argLocs.set(j, arg);
+                            }
+                        }
+                    } else {
+                        instrList.add(new Mov(arg, dst));
+                    }
                 }
-            } else {            // Move to stack
+            } else {            
+                // Move to stack
                 instrList.add(new Push(arg));
-            }            
+            }
+            i--;
         }
+        
     }
     
     private List<LIR> checkArrayBounds(Exp ind, int lenght) {
@@ -429,7 +458,7 @@ public class InstructionAssembler implements IrVisitor<List<LIR>> {
         List<LIR> instrList = new ArrayList<LIR>();
         Register r10 = Register.r10();
         
-        // Simplifications
+        // Special cases
         if (lhs.equals(dest) && rhs.equals(dest)) {
             // a = a + a
             instrList.add(new LShift(dest));
@@ -514,7 +543,7 @@ public class InstructionAssembler implements IrVisitor<List<LIR>> {
         List<LIR> instrList = new ArrayList<LIR>();
         Register r10 = Register.r10();
         
-        // Simplifications
+        // Special cases
         if (rhs.equals(new Literal(1))) {
             if (lhs.equals(dest)) {
                 // a = a - 1
@@ -560,7 +589,7 @@ public class InstructionAssembler implements IrVisitor<List<LIR>> {
         List<LIR> instrList = new ArrayList<LIR>();
         Register r10 = Register.r10();
         
-        // Simplifications
+        // Special cases
         if (lhs.equals(dest)) {
             if (rhs.isLiteral()) {
                 // a = a * 2^i
@@ -662,7 +691,81 @@ public class InstructionAssembler implements IrVisitor<List<LIR>> {
 
     private List<LIR> handleDivMod(BinaryOperator op, Exp dest, Exp lhs, Exp rhs) {
         List<LIR> instrList = new ArrayList<LIR>();
-        // TODO
+        
+        Register r10 = Register.r10();
+        Register rax = Register.rax();
+        Register rdx = Register.rdx();
+        
+        // Special cases
+        if (rhs.isLiteral()) {
+            int pow2 = log2(((Literal) rhs).getValue());
+            if (pow2 > 0) {
+                // Move lhs to destination
+                if (!dest.equals(lhs)) {
+                    if (dest.isReg() || lhs.isImm()) {
+                        instrList.add(new Mov(lhs, dest));
+                    } else {
+                        instrList.add(new Mov(lhs, r10));
+                        instrList.add(new Mov(r10, dest));
+                    }
+                }
+                
+                // a = a /|% 2^i
+                if (op.equals(BinaryOperator.DIVIDE)) {
+                    // lsh(a, i)
+                    instrList.add(new RShift(dest, pow2));   
+                } else if (op.equals(BinaryOperator.MOD)) {
+                    // bitAnd(a, i-1)
+                    instrList.add(new BinOp("andq", new Literal(pow(2, pow2)-1), dest));
+                } else {
+                    throw new Error("Unexpected");
+                }
+            }
+        
+        
+        // Base case 
+        } else {
+            // %rax <-- lhs
+            if (this.method.isLive(rax) && !dest.equals(rax)) {
+                instrList.add(new Push(rax)); 
+            }
+            if (!lhs.equals(rax)) {
+                instrList.add(new Mov(lhs, rax));
+            }
+            
+            // %rdx <-- 0
+            if (this.method.isLive(rdx) && !dest.equals(rdx)) {
+                instrList.add(new Push(rdx)); 
+            }
+            if (rhs.equals(rdx)) {
+                instrList.add(new Mov(rhs, r10));
+            }
+            instrList.add(new BinOp("xorq", rdx, rdx));
+            
+            // Integer division
+            instrList.add(new Command("cqto"));
+            if (rhs.equals(rdx)) {
+                instrList.add(new UnOp("idivq", r10));
+            } else {
+                instrList.add(new UnOp("idivq", rhs));
+            }
+            
+            // Return result to correct register
+            if (op.equals(BinaryOperator.DIVIDE) && !dest.equals(rax)) {
+                instrList.add(new Mov(rax, dest));  
+            } else if (op.equals(BinaryOperator.MOD) && !dest.equals(rdx)) {
+                instrList.add(new Mov(rdx, dest)); 
+            }
+            
+            // Restore %rax, %rdx
+            if (this.method.isLive(rdx) && !dest.equals(rdx)) {
+                instrList.add(new Pop(rdx)); 
+            }
+            if (this.method.isLive(rax) && !dest.equals(rax)) {
+                instrList.add(new Pop(rax)); 
+            }
+        }        
+        
         return instrList;
     }
     
@@ -689,6 +792,14 @@ public class InstructionAssembler implements IrVisitor<List<LIR>> {
             pow++;
         }
         return -1;
+    }
+    
+    private int pow(int base, int exp) {
+        int res = 1;
+        while(exp-- > 0) {
+            res *= base;
+        }
+        return res;
     }
 
 }
