@@ -127,7 +127,7 @@ public class CodeGenerator implements NodeVisitor<Void> {
             prog.addInstruction(new MainDirective());
         }
         prog.addInstruction(new Label(method.getId()));   
-        prog.addInstruction(new Enter(method.getStackTop()-8));
+        prog.addInstruction(new Enter(method.getStackTop()));
         
         // Push callee saved registers on stack
         for (Register reg : method.getUsedRegs()) {

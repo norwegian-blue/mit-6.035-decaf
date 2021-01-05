@@ -23,7 +23,7 @@ public class MethodDescriptor extends Descriptor {
     private Node currentNode;    
     private Set<Web> webs;
     
-    private int stackTop = 8;
+    private int stackTop = 0;
     
     public MethodDescriptor(String name, TypeDescriptor returnType, List<ParameterDescriptor> parameters) {
         super(name, returnType);
@@ -165,14 +165,14 @@ public class MethodDescriptor extends Descriptor {
         // If no register allocation, put everything on stack
         if (webs == null) {
             for (ParameterDescriptor par : parameters) {
-                par.setLocation(new Memory(-stackTop, par.getSize()));
-                par.setDestination(new Memory(-stackTop, par.getSize()));
                 stackTop += par.getSize();
+                par.setLocation(new Memory(-stackTop, par.getSize()));
+                par.setDestination(new Memory(-stackTop, par.getSize())); 
             }
             for (LocalDescriptor loc : locals) {
+                stackTop += loc.getSize();
                 loc.setLocation(new Memory(-stackTop, loc.getSize()));
                 loc.setDestination(new Memory(-stackTop, loc.getSize()));
-                stackTop += loc.getSize();
             }
             return;
         }
@@ -189,8 +189,8 @@ public class MethodDescriptor extends Descriptor {
                     if (par.getIrId().equals(id)) {
                         int i = parameters.indexOf(par);
                         if (i < 6) {
-                            web.setOffset(-stackTop);               // Push parameter on stack                      
                             stackTop += par.getSize();
+                            web.setOffset(-stackTop);               // Push parameter on stack                       
                         } else {
                             web.setOffset(8+(i-5)*par.getSize());   // Parameter already on stack (call convention)
                         }
@@ -200,8 +200,8 @@ public class MethodDescriptor extends Descriptor {
                 
                 for (LocalDescriptor loc : locals) {
                     if (loc.getIrId().equals(id)) {
-                        web.setOffset(stackTop);                    // Push local on stack                      
                         stackTop += loc.getSize();
+                        web.setOffset(stackTop);                    // Push local on stack                       
                     }
                 }
                 
