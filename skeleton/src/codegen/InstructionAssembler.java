@@ -513,10 +513,10 @@ public class InstructionAssembler implements IrVisitor<List<LIR>> {
             } else {
                 // a = a + c
                 if (rhs.isImm() || dest.isImm()) {
-                    instrList.add(new BinOp("addq", rhs, dest));
+                    instrList.add(new BinOp("add", rhs, dest));
                 } else {
                     instrList.add(new Mov(rhs, r10));
-                    instrList.add(new BinOp("addq", r10, dest));
+                    instrList.add(new BinOp("add", r10, dest));
                 }
             }
         } else if (rhs.equals(dest)) {
@@ -526,10 +526,10 @@ public class InstructionAssembler implements IrVisitor<List<LIR>> {
             } else {
                 // a = b + a
                 if (lhs.isImm() || dest.isImm()) {
-                    instrList.add(new BinOp("addq", lhs, dest));
+                    instrList.add(new BinOp("add", lhs, dest));
                 } else {
                     instrList.add(new Mov(lhs, r10));
-                    instrList.add(new BinOp("addq", r10, dest));
+                    instrList.add(new BinOp("add", r10, dest));
                 }
             }
         } else if (lhs.equals(rhs)) {
@@ -549,20 +549,20 @@ public class InstructionAssembler implements IrVisitor<List<LIR>> {
             // Both operands immediate
             if (lhs.isImm() && rhs.isImm()) {
                 instrList.add(new Mov(lhs, dest));
-                instrList.add(new BinOp("addq", rhs, dest));
+                instrList.add(new BinOp("add", rhs, dest));
              
             // One operand in memory
             } else if (lhs.isImm()) {
                 instrList.add(new Mov(rhs, dest));
-                instrList.add(new BinOp("addq", lhs, dest));
+                instrList.add(new BinOp("add", lhs, dest));
             } else if (lhs.isImm()) {
                 instrList.add(new Mov(lhs, dest));
-                instrList.add(new BinOp("addq", rhs, dest));
+                instrList.add(new BinOp("add", rhs, dest));
                 
             // Both operands in memory
             } else {
                 instrList.add(new Mov(lhs, dest));
-                instrList.add(new BinOp("addq", rhs, dest));
+                instrList.add(new BinOp("add", rhs, dest));
             }
             
                 
@@ -572,11 +572,11 @@ public class InstructionAssembler implements IrVisitor<List<LIR>> {
             // Make sure the memory is moved in r10 first
             if (lhs.isImm()) {
                 instrList.add(new Mov(rhs, r10));
-                instrList.add(new BinOp("addq", lhs, r10));
+                instrList.add(new BinOp("add", lhs, r10));
                 instrList.add(new Mov(r10, dest));
             } else {
                 instrList.add(new Mov(lhs, r10));
-                instrList.add(new BinOp("addq", rhs, r10));
+                instrList.add(new BinOp("add", rhs, r10));
                 instrList.add(new Mov(r10, dest));
             }
         }
@@ -605,23 +605,23 @@ public class InstructionAssembler implements IrVisitor<List<LIR>> {
             }
         } else if (dest.equals(lhs)) {
             if (dest.isReg() || rhs.isImm()) {
-                instrList.add(new BinOp("subq", rhs, dest)); 
+                instrList.add(new BinOp("sub", rhs, dest)); 
             } else {
                 instrList.add(new Mov(rhs, r10));
-                instrList.add(new BinOp("subq", r10, dest)); 
+                instrList.add(new BinOp("sub", r10, dest)); 
             }
 
             
         // Destination is register
         } else if (dest.isReg()) {   
             instrList.add(new Mov(lhs, dest));
-            instrList.add(new BinOp("subq", rhs, dest));
+            instrList.add(new BinOp("sub", rhs, dest));
             
             
         // Destination in memory
         } else {   
             instrList.add(new Mov(lhs, r10));
-            instrList.add(new BinOp("subq", rhs, r10));
+            instrList.add(new BinOp("sub", rhs, r10));
             instrList.add(new Mov(r10, dest));
         }
             
@@ -642,10 +642,10 @@ public class InstructionAssembler implements IrVisitor<List<LIR>> {
             } else {
                 // a = a * c
                 if (rhs.isImm() || dest.isImm()) {
-                    instrList.add(new BinOp("imulq", rhs, dest));
+                    instrList.add(new BinOp("imul", rhs, dest));
                 } else {
                     instrList.add(new Mov(rhs, r10));
-                    instrList.add(new BinOp("imulq", r10, dest));
+                    instrList.add(new BinOp("imul", r10, dest));
                 }
             }
         } else if (rhs.equals(dest)) {
@@ -656,10 +656,10 @@ public class InstructionAssembler implements IrVisitor<List<LIR>> {
             } else {
                 // a = b * a
                 if (lhs.isImm() || dest.isImm()) {
-                    instrList.add(new BinOp("imulq", lhs, dest));
+                    instrList.add(new BinOp("imul", lhs, dest));
                 } else {
                     instrList.add(new Mov(lhs, r10));
-                    instrList.add(new BinOp("imulq", r10, dest));
+                    instrList.add(new BinOp("imul", r10, dest));
                 }
             }
             
@@ -692,20 +692,20 @@ public class InstructionAssembler implements IrVisitor<List<LIR>> {
             // Both operands immediate
             if (lhs.isImm() && rhs.isImm()) {
                 instrList.add(new Mov(lhs, dest));
-                instrList.add(new BinOp("imulq", rhs, dest));
+                instrList.add(new BinOp("imul", rhs, dest));
              
             // One operand in memory
             } else if (lhs.isImm()) {
                 instrList.add(new Mov(rhs, dest));
-                instrList.add(new BinOp("imulq", lhs, dest));
+                instrList.add(new BinOp("imul", lhs, dest));
             } else if (lhs.isImm()) {
                 instrList.add(new Mov(lhs, dest));
-                instrList.add(new BinOp("imulq", rhs, dest));
+                instrList.add(new BinOp("imul", rhs, dest));
                 
             // Both operands in memory
             } else {
                 instrList.add(new Mov(lhs, dest));
-                instrList.add(new BinOp("imulq", rhs, dest));
+                instrList.add(new BinOp("imul", rhs, dest));
             }
                 
         // Destination in memory
@@ -714,11 +714,11 @@ public class InstructionAssembler implements IrVisitor<List<LIR>> {
             // Make sure the memory is moved in r10 first
             if (lhs.isImm()) {
                 instrList.add(new Mov(rhs, r10));
-                instrList.add(new BinOp("imulq", lhs, r10));
+                instrList.add(new BinOp("imul", lhs, r10));
                 instrList.add(new Mov(r10, dest));
             } else {
                 instrList.add(new Mov(lhs, r10));
-                instrList.add(new BinOp("imulq", rhs, r10));
+                instrList.add(new BinOp("imul", rhs, r10));
                 instrList.add(new Mov(r10, dest));
             }
         }
@@ -751,7 +751,7 @@ public class InstructionAssembler implements IrVisitor<List<LIR>> {
                 instrList.add(new RShift(dest, pow2));   
             } else if (op.equals(BinaryOperator.MOD)) {
                 // bitAnd(a, i-1)
-                instrList.add(new BinOp("andq", new Literal(pow(2, pow2)-1), dest));
+                instrList.add(new BinOp("and", new Literal(pow(2, pow2)-1), dest));
             } else {
                 throw new Error("Unexpected");
             }
@@ -777,14 +777,14 @@ public class InstructionAssembler implements IrVisitor<List<LIR>> {
             if (rhs.equals(rdx)) {
                 instrList.add(new Mov(rhs, r10));
             }
-            instrList.add(new BinOp("xorq", rdx, rdx));
+            instrList.add(new BinOp("xor", rdx, rdx));
             
             // Integer division
             instrList.add(new Command("cqto"));
             if (rhs.equals(rdx) || rhs.equals(rax)) {
-                instrList.add(new UnOp("idivq", r10));
+                instrList.add(new UnOp("idiv", r10));
             } else {
-                instrList.add(new UnOp("idivq", rhs));
+                instrList.add(new UnOp("idiv", rhs));
             }
             
             // Return result to correct register
@@ -808,7 +808,7 @@ public class InstructionAssembler implements IrVisitor<List<LIR>> {
     
     private List<LIR> handleBool(BinaryOperator op, Exp dest, Exp lhs, Exp rhs) {
         List<LIR> instrList = new ArrayList<LIR>();
-        String opStr = (op.equals(BinaryOperator.AND)) ? "andb" : "orb";
+        String opStr = (op.equals(BinaryOperator.AND)) ? "and" : "or";
         
         Register r10 = Register.r10();
         r10.setSize(1);
@@ -861,7 +861,11 @@ public class InstructionAssembler implements IrVisitor<List<LIR>> {
         Register r11 = Register.r11();
         
         // Do comparison
-        if (rhs.isImm()) {
+        if (lhs.isLiteral() && rhs.isLiteral()) {
+            // Should be taken care of by expression simplification when optimization is on
+            instrList.add(new Mov(lhs, r10));
+            instrList.add(new BinOp("cmp", rhs, r10));
+        } else if (rhs.isImm()) {                
             instrList.add(new BinOp("cmp", rhs, lhs)); 
         } else {
             instrList.add(new Mov(rhs, r10));
