@@ -145,11 +145,11 @@ public class CodeGenerator implements NodeVisitor<Void> {
             }            
         }
                 
-        // Move parameters onto local storage (or to registers if allocated)   
-        int i = 0;
+        // Move parameters onto local storage (or to registers if allocated)  
+        Call.resetBase();
         for (ParameterDescriptor par : method.getPars()) {
             Location parLocal = method.getDestination(par.getIrId());
-            Location parSrc = Call.getParamAtIndex(++i, par.getSize());
+            Location parSrc = Call.getParam(par.getSize());
             
             // Move if source != local
             if (!parSrc.equals(parLocal)) {

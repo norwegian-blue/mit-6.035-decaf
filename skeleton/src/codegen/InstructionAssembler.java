@@ -457,7 +457,7 @@ public class InstructionAssembler implements IrVisitor<List<LIR>> {
                 Exp dst = Call.getParamAtIndex(i, 8);
                 if (!arg.equals(dst)) {
                     
-                    // Preserve not argument yet to be added
+                    // Preserve argument yet to be added
                     if (argLocs.contains(dst)) {
                         instrList.add(new Mov(dst, Register.r10()));
                         instrList.add(new MovSx(arg, dst));
