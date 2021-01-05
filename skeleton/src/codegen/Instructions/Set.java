@@ -3,16 +3,15 @@ package codegen.Instructions;
 import ir.Expression.IrBinaryExpression.BinaryOperator;
 
 /**
- * @author Nicola
+ * @author Nicola 
  */
-public class CMov extends LIR {
-   
+
+public class Set extends LIR {
+    
     private final BinaryOperator cond;
-    private Register src;
-    private Register dest;
+    private Exp dest;
         
-    public CMov(BinaryOperator cond, Register src, Register dest) {
-        this.src = src;
+    public Set(BinaryOperator cond, Exp dest) {
         this.dest = dest;
         this.cond = cond;
     }
@@ -45,11 +44,7 @@ public class CMov extends LIR {
             throw new Error("Undefined comparison operator");
         }
         
-        if (src.getSuffix().equals("b") || dest.getSuffix().equals("b")) {
-            src = new Register(src, 2);
-            dest = new Register(dest, 2);
-        }
-        
-        return "\tcmov" + sfx + "\t" + this.src.toCode() + ", " + this.dest.toCode();
+        return "\tset" + sfx + "\t" + this.dest.toCode();
     }
+
 }

@@ -314,7 +314,7 @@ public class InstructionAssembler implements IrVisitor<List<LIR>> {
             instrList.add(new UnOp("neg", destination));
             break;
         case NOT:
-            instrList.add(new UnOp("not", destination));
+            instrList.add(new BinOp("xor", new Literal(1), destination));
             break;
         default:
             throw new Error("Unexpected operator");
@@ -860,7 +860,6 @@ public class InstructionAssembler implements IrVisitor<List<LIR>> {
         List<LIR> instrList = new ArrayList<LIR>();
         
         Register r10 = Register.r10();
-        Register r11 = Register.r11();
         
         // Do comparison
         if (lhs.isLiteral()) {
@@ -874,19 +873,8 @@ public class InstructionAssembler implements IrVisitor<List<LIR>> {
         }
         
         // Eventually store result
-        r10 = new Register(r10, 1);
-        r11 = new Register(r11, 1);
         if (dest != null) {
-            if (dest.isReg()) {
-                instrList.add(new BinOp("xor", dest, dest));
-                instrList.add(new Mov(new Literal(1), r10));
-                instrList.add(new CMov(op, r10, (Register) dest));
-            } else {
-                instrList.add(new BinOp("xor", r10, r10));
-                instrList.add(new Mov(new Literal(1), r11));
-                instrList.add(new CMov(op, r11, r10));
-                instrList.add(new Mov(r10, dest));
-            }
+            instrList.add(new Set(op, dest));
         }
         
         return instrList;
