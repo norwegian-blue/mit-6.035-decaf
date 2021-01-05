@@ -813,8 +813,7 @@ public class InstructionAssembler implements IrVisitor<List<LIR>> {
         List<LIR> instrList = new ArrayList<LIR>();
         String opStr = (op.equals(BinaryOperator.AND)) ? "and" : "or";
         
-        Register r10 = Register.r10();
-        r10.setSize(1);
+        Register r10 = new Register(Register.r10(), 1);
         
         // Special cases
         if (dest.equals(lhs)) {
@@ -875,11 +874,13 @@ public class InstructionAssembler implements IrVisitor<List<LIR>> {
         }
         
         // Eventually store result
+        r10 = new Register(r10, 1);
+        r11 = new Register(r11, 1);
         if (dest != null) {
             if (dest.isReg()) {
                 instrList.add(new BinOp("xor", dest, dest));
                 instrList.add(new Mov(new Literal(1), r10));
-                instrList.add(new CMov(op, r10, dest));
+                instrList.add(new CMov(op, r10, (Register) dest));
             } else {
                 instrList.add(new BinOp("xor", r10, r10));
                 instrList.add(new Mov(new Literal(1), r11));

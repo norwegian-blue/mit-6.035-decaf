@@ -5,12 +5,15 @@ import ir.Expression.IrBinaryExpression.BinaryOperator;
 /**
  * @author Nicola
  */
-public class CMov extends Mov {
+public class CMov extends LIR {
 
     private final BinaryOperator cond;
+    private Register src;
+    private Register dest;
         
-    public CMov(BinaryOperator cond, Exp src, Exp dest) {
-        super(src, dest);
+    public CMov(BinaryOperator cond, Register src, Register dest) {
+        this.src = src;
+        this.dest = dest;
         this.cond = cond;
     }
     
@@ -40,6 +43,11 @@ public class CMov extends Mov {
             break;
         default:
             throw new Error("Undefined comparison operator");
+        }
+        
+        if (src.getSuffix().equals("b") || dest.getSuffix().equals("b")) {
+            src = new Register(src, 2);
+            dest = new Register(dest, 2);
         }
         
         return "\tcmov" + sfx + "\t" + this.src.toCode() + ", " + this.dest.toCode();

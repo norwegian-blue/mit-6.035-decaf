@@ -5,8 +5,8 @@ package codegen.Instructions;
  */
 public class Mov extends LIR {
     
-    protected final Exp src;
-    protected final Exp dest;
+    protected Exp src;
+    protected Exp dest;
     
     public Mov(Exp src, Exp dest) {
         this.src = src;
@@ -16,11 +16,17 @@ public class Mov extends LIR {
     @Override
     public String toCode() {
         
-        if (src.getSuffix().equals("b") && dest.isReg()) {
-            dest.size = 1;
+        String suffix = getSuffix(src, dest);
+        
+        if (suffix.equals("b") && dest.isReg()) {
+            dest = new Register((Register) dest, 1);
         }
         
-        return "\tmov" + src.getSuffix() + "\t" + src.toCode() + ", " + dest.toCode();
+        if (suffix.equals("b") && src.isReg()) {
+            src = new Register((Register) src, 1);
+        }
+        
+        return "\tmov" + suffix + "\t" + src.toCode() + ", " + dest.toCode();
     }
         
 }

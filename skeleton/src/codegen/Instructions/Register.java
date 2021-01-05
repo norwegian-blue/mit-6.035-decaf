@@ -26,6 +26,11 @@ public class Register extends Location {
         r15
     }
     
+    public Register(Register reg, int size) {
+        this.regName = reg.regName;
+        this.size = size;
+    }
+    
     private final Registers regName;
     
     private Register(Registers regName) {
@@ -44,10 +49,46 @@ public class Register extends Location {
         throw new Error("Cannot find corresponding register");
     }
     
-    public void setSize(int size) {
-        this.size = size;
+    private String toWord(Registers reg) {
+        
+        switch (reg) {
+        case r10:
+            return "r10w";
+        case r11:
+            return "r11w";
+        case r12:
+            return "r12w";
+        case r13:
+            return "r13w";
+        case r14:
+            return "r14w";
+        case r15:
+            return "r15w";
+        case r8:
+            return "r8w";
+        case r9:
+            return "r9w";
+        case rax:
+            return "ax";
+        case rbp:
+            return "bp";
+        case rbx:
+            return "bx";
+        case rcx:
+            return "cx";
+        case rdi:
+            return "di";
+        case rdx:
+            return "dx";
+        case rsi:
+            return "si";
+        case rsp:
+            return "sp";
+        default:
+            throw new Error("unexpected");
+        }
     }
-    
+        
     private String toLow(Registers reg) {
         switch (reg) {
         case r10:
@@ -91,6 +132,8 @@ public class Register extends Location {
     public String toCode() {
         if (size == 8) {
             return "%" + regName.name();
+        } else if (size == 2) {
+            return "%" + toWord(regName);
         } else {
             return "%" + toLow(regName);
         }

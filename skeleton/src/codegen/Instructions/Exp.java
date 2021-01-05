@@ -16,7 +16,7 @@ public abstract class Exp extends LIR {
         return isReg() || isLiteral();
     }
     
-    public void setSize(int size) {
+    public void setSizee(int size) {
         this.size = size;
     }
         
