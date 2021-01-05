@@ -204,6 +204,8 @@ public class GrammarLoader extends GrammarBaseListener {
             invStat.setLineNum(ctx.getStart().getLine());
             invStat.setColNum(ctx.getStart().getCharPositionInLine());
             stack.push(invStat);
+        } else if (ctx.block() != null) {
+            // Nested block, do nothing
         } else {
             throw new RuntimeException("cannot identify method type");
         }      
