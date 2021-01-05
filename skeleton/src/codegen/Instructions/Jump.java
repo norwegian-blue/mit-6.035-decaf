@@ -26,33 +26,35 @@ public class Jump extends LIR {
         
         String op = "";
         
-        // Unconditional jump
         if (cond == null) {
+            // Unconditional jump
             op = "jmp";
-        }
         
-        // Conditional jump
-        switch (cond) {
-        case EQ:
-            op = "je";
-            break;
-        case GE:
-            op = "jae";
-            break;
-        case GT:
-            op = "ja";
-            break;
-        case LE:
-            op = "jbe";
-            break;
-        case LT:
-            op = "jb";
-            break;
-        case NEQ:
-            op = "jne";
-            break;
-        default:
-            throw new Error("Unsupported condition");
+        } else {
+        
+            // Conditional jump
+            switch (cond) {
+            case EQ:
+                op = "je";
+                break;
+            case GE:
+                op = "jae";
+                break;
+            case GT:
+                op = "ja";
+                break;
+            case LE:
+                op = "jbe";
+                break;
+            case LT:
+                op = "jb";
+                break;
+            case NEQ:
+                op = "jne";
+                break;
+            default:
+                throw new Error("Unsupported condition");
+            }
         }
         
         return "\t" + op + "\t" + this.destLabel;

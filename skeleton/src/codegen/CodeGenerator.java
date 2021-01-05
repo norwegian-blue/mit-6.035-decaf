@@ -102,9 +102,7 @@ public class CodeGenerator implements NodeVisitor<Void> {
         default:
             throw new Error("Unexpected conditional expression");
         }
-        
-        instrList.addAll(exp.accept(instructionAssembler));
-                
+                        
         for (LIR instr : instrList) {
             this.prog.addInstruction(instr);
         }
