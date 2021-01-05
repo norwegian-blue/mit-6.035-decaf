@@ -635,12 +635,10 @@ public class InstructionAssembler implements IrVisitor<List<LIR>> {
         
         // Special cases
         if (lhs.equals(dest)) {
-            if (rhs.isLiteral()) {
+            if (isPow2(rhs)) {
                 // a = a * 2^i
                 int pow2 = log2(((Literal) rhs).getValue());
-                if (pow2 > 0) {
-                    instrList.add(new LShift(dest, pow2));
-                }
+                instrList.add(new LShift(dest, pow2));
             } else {
                 // a = a * c
                 if (rhs.isImm() || dest.isImm()) {
@@ -651,12 +649,10 @@ public class InstructionAssembler implements IrVisitor<List<LIR>> {
                 }
             }
         } else if (rhs.equals(dest)) {
-            if (lhs.isLiteral()) {
+            if (isPow2(lhs)) {
                 // a = a * 2^i
                 int pow2 = log2(((Literal) lhs).getValue());
-                if (pow2 > 0) {
-                    instrList.add(new LShift(dest, pow2));
-                }
+                instrList.add(new LShift(dest, pow2));
             } else {
                 // a = b * a
                 if (lhs.isImm() || dest.isImm()) {
@@ -667,31 +663,27 @@ public class InstructionAssembler implements IrVisitor<List<LIR>> {
                 }
             }
             
-        } else if (lhs.isLiteral()) {
+        } else if (isPow2(lhs)) {
             // a = 2^i * c
             int pow2 = log2(((Literal) lhs).getValue());
-            if (pow2 > 0) {
-                if (dest.isReg() || rhs.isImm()) {
-                    instrList.add(new Mov(rhs, dest));
-                } else {
-                    instrList.add(new Mov(rhs, r10));
-                    instrList.add(new Mov(r10, dest));
-                }                    
-                instrList.add(new LShift(dest, pow2));
-            }
+            if (dest.isReg() || rhs.isImm()) {
+                instrList.add(new Mov(rhs, dest));
+            } else {
+                instrList.add(new Mov(rhs, r10));
+                instrList.add(new Mov(r10, dest));
+            }                    
+            instrList.add(new LShift(dest, pow2));
             
-        } else if (rhs.isLiteral()) {
+        } else if (isPow2(rhs)) {
             // a = b * 2^i
             int pow2 = log2(((Literal) rhs).getValue());
-            if (pow2 > 0) {
-                if (dest.isReg() || lhs.isImm()) {
-                    instrList.add(new Mov(lhs, dest));
-                } else {
-                    instrList.add(new Mov(lhs, r10));
-                    instrList.add(new Mov(r10, dest));
-                }  
-                instrList.add(new LShift(dest, pow2));
-            }
+            if (dest.isReg() || lhs.isImm()) {
+                instrList.add(new Mov(lhs, dest));
+            } else {
+                instrList.add(new Mov(lhs, r10));
+                instrList.add(new Mov(r10, dest));
+            }  
+            instrList.add(new LShift(dest, pow2));
             
         
         // Destination is register
@@ -741,29 +733,27 @@ public class InstructionAssembler implements IrVisitor<List<LIR>> {
         Register rdx = Register.rdx();
         
         // Special cases
-        if (rhs.isLiteral()) {
+        if (isPow2(rhs)) {
             int pow2 = log2(((Literal) rhs).getValue());
-            if (pow2 > 0) {
-                // Move lhs to destination
-                if (!dest.equals(lhs)) {
-                    if (dest.isReg() || lhs.isImm()) {
-                        instrList.add(new Mov(lhs, dest));
-                    } else {
-                        instrList.add(new Mov(lhs, r10));
-                        instrList.add(new Mov(r10, dest));
-                    }
-                }
-                
-                // a = a /|% 2^i
-                if (op.equals(BinaryOperator.DIVIDE)) {
-                    // lsh(a, i)
-                    instrList.add(new RShift(dest, pow2));   
-                } else if (op.equals(BinaryOperator.MOD)) {
-                    // bitAnd(a, i-1)
-                    instrList.add(new BinOp("andq", new Literal(pow(2, pow2)-1), dest));
+            // Move lhs to destination
+            if (!dest.equals(lhs)) {
+                if (dest.isReg() || lhs.isImm()) {
+                    instrList.add(new Mov(lhs, dest));
                 } else {
-                    throw new Error("Unexpected");
+                    instrList.add(new Mov(lhs, r10));
+                    instrList.add(new Mov(r10, dest));
                 }
+            }
+
+            // a = a /|% 2^i
+            if (op.equals(BinaryOperator.DIVIDE)) {
+                // lsh(a, i)
+                instrList.add(new RShift(dest, pow2));   
+            } else if (op.equals(BinaryOperator.MOD)) {
+                // bitAnd(a, i-1)
+                instrList.add(new BinOp("andq", new Literal(pow(2, pow2)-1), dest));
+            } else {
+                throw new Error("Unexpected");
             }
         
         
@@ -914,6 +904,14 @@ public class InstructionAssembler implements IrVisitor<List<LIR>> {
             res *= base;
         }
         return res;
+    }
+    
+    private boolean isPow2(Exp exp) {
+        if (exp.isLiteral()) {
+            Literal value = (Literal) exp;
+            return log2(value.getValue()) > 0;
+        } 
+        return false;
     }
 
 }
