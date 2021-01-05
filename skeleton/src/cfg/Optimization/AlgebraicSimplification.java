@@ -24,6 +24,8 @@ public class AlgebraicSimplification extends ExpressionSimplifier {
                 return rhs;
             } else if (rhs.isLiteral() && ((IrBooleanLiteral)rhs).eval() == true)  {
                 return lhs;
+            } else if (lhs.equals(rhs)) {
+                return lhs;
             }
             break;
         case DIVIDE:
@@ -72,6 +74,8 @@ public class AlgebraicSimplification extends ExpressionSimplifier {
                 return lhs;
             } else if (rhs.isLiteral() && ((IrBooleanLiteral)rhs).eval() == true)  {
                 return rhs;
+            } else if (lhs.equals(rhs)) {
+                return lhs;
             }
             break;
         case PLUS:

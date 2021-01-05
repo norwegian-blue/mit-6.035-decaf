@@ -44,9 +44,56 @@ public class Register extends Location {
         throw new Error("Cannot find corresponding register");
     }
     
+    public void setSize(int size) {
+        this.size = size;
+    }
+    
+    private String toLow(Registers reg) {
+        switch (reg) {
+        case r10:
+            return "r10b";
+        case r11:
+            return "r11b";
+        case r12:
+            return "r12b";
+        case r13:
+            return "r13b";
+        case r14:
+            return "r14b";
+        case r15:
+            return "r15b";
+        case r8:
+            return "r8b";
+        case r9:
+            return "r9b";
+        case rax:
+            return "al";
+        case rbp:
+            return "bpl";
+        case rbx:
+            return "bl";
+        case rcx:
+            return "cl";
+        case rdi:
+            return "dil";
+        case rdx:
+            return "dl";
+        case rsi:
+            return "sil";
+        case rsp:
+            return "spl";
+        default:
+            throw new Error("unexpected");
+        }
+    }
+    
     @Override
     public String toCode() {
-        return "%" + regName.name();
+        if (size == 8) {
+            return "%" + regName.name();
+        } else {
+            return "%" + toLow(regName);
+        }
     }
     
     @Override

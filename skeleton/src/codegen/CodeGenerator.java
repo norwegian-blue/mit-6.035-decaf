@@ -1,10 +1,13 @@
 package codegen;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
 import cfg.Nodes.*;
 import codegen.Instructions.*;
+import ir.Expression.IrBinaryExpression;
+import ir.Expression.IrBinaryExpression.BinaryOperator;
 import ir.Expression.IrExpression;
 import ir.Expression.IrIdentifier;
 import ir.Expression.IrLiteral;
@@ -34,12 +37,10 @@ public class CodeGenerator implements NodeVisitor<Void> {
 
     @Override
     public Void visit(CfgBlock node) {
-        
-        // TODO
-        
+
         // Skip if visited already
         if (node.isVisited()) {
-            prog.addInstruction(new Jump(node.getBlockName(), "none"));
+            prog.addInstruction(new Jump(node.getBlockName()));
             return null;
         }
         node.visit();
@@ -61,9 +62,6 @@ public class CodeGenerator implements NodeVisitor<Void> {
         if (node.isFork()) {
             CfgBlock trueBlock = node.getTrueBlock();
             CfgBlock falseBlock = node.getFalseBlock();
-            prog.addInstruction(new Mov(new Literal(1), Register.r10()));
-            prog.addInstruction(new Comp(Register.r10(), Register.r11()));
-            prog.addInstruction(new Jump(trueBlock.getBlockName(), "eq"));
             falseBlock.accept(this);
             if (!trueBlock.isVisited()){
                 trueBlock.accept(this);
@@ -78,18 +76,36 @@ public class CodeGenerator implements NodeVisitor<Void> {
     @Override
     public Void visit(CfgCondBranch node) {
         
-        // TODO
+        List<LIR> instrList = new ArrayList<LIR>();
         
+        // Process condition expression and get result location
         IrExpression exp = node.getCond();
-        List<LIR> instructions = exp.accept(instructionAssembler);
-        if (instructions.size() > 1) {
-            instructions.remove(instructions.size()-1);
-        } else {
-            Exp var = (Exp)instructions.get(0);
-            instructions.set(0, new Mov(var, Register.r11()));
+        instructionAssembler.setJmpCond(null);
+        instrList.addAll(exp.accept(instructionAssembler));
+        Exp jmpCond = instructionAssembler.getJmpCond();
+        
+        // Get true branch label
+        String dest = node.getParentBlock().getTrueBlock().getBlockName();
+        
+        switch (exp.getExpKind()) {
+        case BOOL:
+        case ID:        
+        case CALL:
+        case METH:
+            instrList.add(new BinOp("cmp", new Literal(1), jmpCond));
+            instrList.add(new Jump(dest, BinaryOperator.EQ));
+            break;
+        case BIN:
+            IrBinaryExpression binExp = (IrBinaryExpression) exp;
+            instrList.add(new Jump(dest, binExp.getOp()));
+            break;
+        default:
+            throw new Error("Unexpected conditional expression");
         }
         
-        for (LIR instr : instructions) {
+        instrList.addAll(exp.accept(instructionAssembler));
+                
+        for (LIR instr : instrList) {
             this.prog.addInstruction(instr);
         }
         
@@ -209,7 +225,7 @@ public class CodeGenerator implements NodeVisitor<Void> {
         // Return to caller or throw runtime error
         if (falloff) {
             ErrorHandle fall = ErrorHandle.fallOver();
-            prog.addInstruction(new Jump(fall.getLabel(), "none"));
+            prog.addInstruction(new Jump(fall.getLabel()));
             prog.addErrorHandler(fall);
         } else {
             prog.addInstruction(new Leave());

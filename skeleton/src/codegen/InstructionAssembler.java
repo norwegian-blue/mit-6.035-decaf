@@ -22,13 +22,18 @@ public class InstructionAssembler implements IrVisitor<List<LIR>> {
     private MethodDescriptor method;
     private Exp destination;
     private Exp location;
+    private Exp jmpCond = Register.r10();
     
     public InstructionAssembler(MethodDescriptor method) {
         this.method = method;
     }
     
-    public void setDestination(Location dest) {
-        this.destination = dest;
+    public void setJmpCond(Exp exp) {
+        this.jmpCond = exp;
+    }
+    
+    public Exp getJmpCond() {
+        return this.jmpCond;
     }
 
     @Override
@@ -108,11 +113,15 @@ public class InstructionAssembler implements IrVisitor<List<LIR>> {
     @Override
     public List<LIR> visit(IrBooleanLiteral node) {
         List<LIR> instrList = new ArrayList<LIR>();
-        if (node.eval()) {
-            this.location = new Literal(1, 1);
-        } else {
-            this.location = new Literal(0, 1);
+        
+        Literal value = (node.eval()) ? new Literal(1, 1) : new Literal(0, 1);
+        this.location = value;
+        
+        // Set jmp conditions
+        if (this.jmpCond == null) {
+            this.jmpCond = value;
         }
+        
         return instrList;
     }
 
@@ -143,6 +152,16 @@ public class InstructionAssembler implements IrVisitor<List<LIR>> {
         // Return value
         if (destination != null && !destination.equals(Register.rax())) {
             instrList.add(new Mov(Register.rax(), this.destination));   
+        }
+        
+        // Jmp condition
+        if (jmpCond == null) {
+            if (method.isLive(Register.rax())) {
+                instrList.add(new Mov(Register.rax(), Register.r10()));
+                jmpCond = Register.r10();
+            } else {
+                jmpCond = Register.rax();
+            }
         }
         
         // Pop live registers (non-callee-saved)
@@ -212,6 +231,11 @@ public class InstructionAssembler implements IrVisitor<List<LIR>> {
             instrList.addAll(checkArrayBounds(ind, glb.getLen()));
         }
         
+        // Jump condition
+        if (this.jmpCond == null) {
+            this.jmpCond = this.location;
+        }
+        
         return instrList;
     }
 
@@ -239,6 +263,16 @@ public class InstructionAssembler implements IrVisitor<List<LIR>> {
             instrList.add(new Mov(Register.rax(), this.destination));   
         }
         
+        // Jmp condition
+        if (jmpCond == null) {
+            if (method.isLive(Register.rax())) {
+                instrList.add(new Mov(Register.rax(), Register.r10()));
+                jmpCond = Register.r10();
+            } else {
+                jmpCond = Register.rax();
+            }
+        }
+        
         // Pop live registers (non-callee-saved)
         instrList.addAll(restoreRegs(skipRax));
         
@@ -250,30 +284,40 @@ public class InstructionAssembler implements IrVisitor<List<LIR>> {
     @Override
     public List<LIR> visit(IrUnaryExpression node) {
         
-        // TODO
         List<LIR> instrList = new ArrayList<LIR>();
-        Register r11 = Register.r11();
         
-        // Assemble right hand sides
-        List<LIR> exp = node.getExp().accept(this);
+        Register r10 = Register.r10();
         
-        // Move operand to registers %r11
-        Exp expSrc = (Exp) exp.get(0);
-        instrList.add(new Mov(expSrc, r11));
+        // Get assignment destination
+        Exp destination = this.destination;
+                
+        // Assemble left & right hand sides
+        instrList.addAll(node.getExp().accept(this));
+        Exp exp = this.location;
         
-        // Do arithmetics and store results in %r11        
+        // Move exp to destination
+        if (!exp.equals(destination)) {
+            if (destination.isReg() || exp.isImm()) {
+                instrList.add(new Mov(exp, destination));
+            } else {
+                instrList.add(new Mov(exp, r10));
+                instrList.add(new Mov(r10, destination));
+            }
+        }
+        
+        // Do arithmetics on destination        
         switch (node.getOp()) {
         case MINUS:
-            instrList.add(new UnOp("neg", r11));
+            instrList.add(new UnOp("negq", destination));
             break;
         case NOT:
-            instrList.add(new BinOp("xorq", new Literal(1), r11));
+            instrList.add(new BinOp("xorb", new Literal(1, 1), destination));
             break;
         default:
             throw new Error("Unexpected operator");
         }
         
-        instrList.add(r11);
+        this.location = null;
         return instrList;
     }
 
@@ -434,19 +478,19 @@ public class InstructionAssembler implements IrVisitor<List<LIR>> {
     }
     
     private List<LIR> checkArrayBounds(Exp ind, int lenght) {
-        // TODO check
+
         List<LIR> checkInstr = new ArrayList<LIR>();
         ErrorHandle boundErr = ErrorHandle.outOfBounds();
         
         // Check lower bound
         checkInstr.add(new Mov(ind, Register.r10()));
-        checkInstr.add(new Comp(new Literal(0), Register.r10()));
-        checkInstr.add(new Jump(boundErr.getLabel(), "lt"));
+        checkInstr.add(new BinOp("cmp", new Literal(0), Register.r10()));
+        checkInstr.add(new Jump(boundErr.getLabel(), BinaryOperator.LT));
         
         // Check upper bound
         checkInstr.add(new Mov(ind, Register.r10()));
-        checkInstr.add(new Comp(new Literal(lenght), Register.r10()));
-        checkInstr.add(new Jump(boundErr.getLabel(), "ge"));
+        checkInstr.add(new BinOp("cmp", new Literal(lenght), Register.r10()));
+        checkInstr.add(new Jump(boundErr.getLabel(), BinaryOperator.GE));
      
         checkInstr.add(boundErr);
         
@@ -774,13 +818,80 @@ public class InstructionAssembler implements IrVisitor<List<LIR>> {
     
     private List<LIR> handleBool(BinaryOperator op, Exp dest, Exp lhs, Exp rhs) {
         List<LIR> instrList = new ArrayList<LIR>();
-        // TODO
+        String opStr = (op.equals(BinaryOperator.AND)) ? "andb" : "orb";
+        
+        Register r10 = Register.r10();
+        r10.setSize(1);
+        
+        // Special cases
+        if (dest.equals(lhs)) {
+            // a = a && c
+            if (dest.isReg() || rhs.isImm()) {
+                instrList.add(new BinOp(opStr, rhs, dest));
+            } else {
+                instrList.add(new Mov(rhs, r10));
+                instrList.add(new BinOp(opStr, r10, dest));
+            }
+        } else if (dest.equals(rhs)) {
+            // a = b && a
+            if (dest.isReg() || lhs.isImm()) {
+                instrList.add(new BinOp(opStr, lhs, dest));
+            } else {
+                instrList.add(new Mov(lhs, r10));
+                instrList.add(new BinOp(opStr, r10, dest));
+            }
+        
+        
+        // Destination in register
+        } else if (dest.isReg()) {
+            instrList.add(new Mov(lhs, dest));
+            instrList.add(new BinOp(opStr, rhs, dest));
+        
+        
+        // Destination in memory     
+        } else {
+            if (lhs.isImm()) {
+                instrList.add(new Mov(lhs, r10));
+                instrList.add(new BinOp(opStr, rhs, r10));
+                instrList.add(new Mov(r10, dest));
+            } else {
+                instrList.add(new Mov(rhs, r10));
+                instrList.add(new BinOp(opStr, lhs, r10));
+                instrList.add(new Mov(r10, dest));
+            }
+        }
+        
         return instrList;
     }
     
     private List<LIR> handleComp(BinaryOperator op, Exp dest, Exp lhs, Exp rhs) {
         List<LIR> instrList = new ArrayList<LIR>();
-        // TODO
+        
+        Register r10 = Register.r10();
+        Register r11 = Register.r11();
+        
+        // Do comparison
+        if (lhs.isImm()) {
+            instrList.add(new BinOp("cmp", lhs, rhs)); 
+        } else {
+            instrList.add(new Mov(lhs, r10));
+            instrList.add(new BinOp("cmp", r10, rhs));
+        }
+        
+        // Eventually store result
+        if (dest != null) {
+            if (dest.isReg()) {
+                instrList.add(new BinOp("xor", dest, dest));
+                instrList.add(new Mov(new Literal(1), r10));
+                instrList.add(new CMov(op, r10, dest));
+            } else {
+                instrList.add(new BinOp("xor", r10, r10));
+                instrList.add(new Mov(new Literal(1), r11));
+                instrList.add(new CMov(op, r11, r10));
+                instrList.add(new Mov(r10, dest));
+            }
+        }
+        
         return instrList;
     }
     
