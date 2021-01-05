@@ -13,6 +13,10 @@ public class Push extends LIR {
     
     @Override
     public String toCode() {
-        return "\tpush" + exp.getSuffix() + "\t" + exp.toCode();
+        String suffix = "q";
+        if (exp.getSuffix().equals("b")) {
+            suffix = "w";
+        }
+        return "\tpush" + suffix + "\t" + exp.toCode();
     }
 }

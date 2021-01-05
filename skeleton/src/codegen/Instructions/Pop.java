@@ -13,7 +13,11 @@ public class Pop extends LIR {
     
     @Override
     public String toCode() {
-        return "\tpop" + destReg.getSuffix() + "\t" + destReg.toCode();
+        String suffix = "q";
+        if (destReg.getSuffix().equals("b")) {
+            suffix = "w";
+        }
+        return "\tpop" + suffix + "\t" + destReg.toCode();
     }
     
     
