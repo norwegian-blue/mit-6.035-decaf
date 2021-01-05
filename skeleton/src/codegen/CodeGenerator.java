@@ -89,6 +89,9 @@ public class CodeGenerator implements NodeVisitor<Void> {
         
         switch (exp.getExpKind()) {
         case BOOL:
+            instrList.add(new Mov(jmpCond, Register.r10()));
+            jmpCond = Register.r10();
+            jmpCond.setSize(1);
         case ID:        
         case CALL:
         case METH:

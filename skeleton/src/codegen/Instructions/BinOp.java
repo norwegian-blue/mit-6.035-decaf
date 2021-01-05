@@ -19,6 +19,11 @@ public class BinOp extends LIR {
     @Override
     public String toCode() {
         String suffix = getSuffix(lhs, rhs);
+        if (suffix.equals("b")) {
+            if (lhs.isReg()) lhs.size = 1;
+            if (rhs.isReg()) rhs.size = 1;
+        }
+        
         return "\t" + operation + suffix + "\t" + lhs.toCode() + ", " + rhs.toCode();            
     }
 

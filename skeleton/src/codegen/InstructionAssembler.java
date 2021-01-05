@@ -131,6 +131,7 @@ public class InstructionAssembler implements IrVisitor<List<LIR>> {
         
         String calloutName = node.getName();
         calloutName = calloutName.substring(1, calloutName.length()-1);
+        boolean updateJump = (this.jmpCond == null);
         
         // Check if value is returned to %rax
         boolean skipRax = (destination != null && destination.equals(Register.rax()));
@@ -155,7 +156,7 @@ public class InstructionAssembler implements IrVisitor<List<LIR>> {
         }
         
         // Jmp condition
-        if (jmpCond == null) {
+        if (updateJump) {
             if (method.isLive(Register.rax())) {
                 instrList.add(new Mov(Register.rax(), Register.r10()));
                 jmpCond = Register.r10();
@@ -246,6 +247,8 @@ public class InstructionAssembler implements IrVisitor<List<LIR>> {
         
         String methodName = node.getName();
         
+        boolean updateJump = (this.jmpCond == null);
+        
         // Check if value is returned to %rax
         boolean skipRax = (destination != null && destination.equals(Register.rax()));
         
@@ -264,7 +267,7 @@ public class InstructionAssembler implements IrVisitor<List<LIR>> {
         }
         
         // Jmp condition
-        if (jmpCond == null) {
+        if (updateJump) {
             if (method.isLive(Register.rax())) {
                 instrList.add(new Mov(Register.rax(), Register.r10()));
                 jmpCond = Register.r10();
@@ -861,8 +864,7 @@ public class InstructionAssembler implements IrVisitor<List<LIR>> {
         Register r11 = Register.r11();
         
         // Do comparison
-        if (lhs.isLiteral() && rhs.isLiteral()) {
-            // Should be taken care of by expression simplification when optimization is on
+        if (lhs.isLiteral()) {
             instrList.add(new Mov(lhs, r10));
             instrList.add(new BinOp("cmp", rhs, r10));
         } else if (rhs.isImm()) {                

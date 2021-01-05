@@ -15,6 +15,10 @@ public abstract class Exp extends LIR {
     public boolean isImm() {
         return isReg() || isLiteral();
     }
+    
+    public void setSize(int size) {
+        this.size = size;
+    }
         
     public String getSuffix() {
         switch (this.size) {
