@@ -38,16 +38,16 @@ public class Jump extends LIR {
                 op = "je";
                 break;
             case GE:
-                op = "jae";
+                op = "jge";
                 break;
             case GT:
-                op = "ja";
+                op = "jg";
                 break;
             case LE:
-                op = "jbe";
+                op = "jle";
                 break;
             case LT:
-                op = "jb";
+                op = "jl";
                 break;
             case NEQ:
                 op = "jne";
