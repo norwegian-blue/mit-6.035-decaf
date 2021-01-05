@@ -19,10 +19,10 @@ METHOD (VOID) main()
 main:
 BLOCK main1    
     NODE ENTRY
-    NODE STMT	_tmp2 ASSIGN get_int(2)
-    NODE STMT	_main1_a ASSIGN _tmp2
-    NODE STMT	_tmp1 ASSIGN get_int(3)
-    NODE STMT	_main2_b ASSIGN _tmp1
+    NODE STMT	_tmp1 ASSIGN get_int(2)
+    NODE STMT	_main1_a ASSIGN _tmp1
+    NODE STMT	_tmp2 ASSIGN get_int(3)
+    NODE STMT	_main2_b ASSIGN _tmp2
     NODE STMT	_main3_c ASSIGN 0
     NODE STMT	_tmp3 ASSIGN (_main1_a PLUS _main2_b)
     NODE STMT	_tmp4 ASSIGN (_main1_a PLUS _main2_b)
@@ -42,9 +42,9 @@ BLOCK get_int1
 main:
 BLOCK main1    
     NODE ENTRY
-    NODE STMT	_tmp2 ASSIGN get_int(2)
-    NODE STMT	_tmp1 ASSIGN get_int(3)
-    NODE STMT	_tmp5 ASSIGN (_tmp2 PLUS _tmp1)
+    NODE STMT	_tmp1 ASSIGN get_int(2)
+    NODE STMT	_tmp2 ASSIGN get_int(3)
+    NODE STMT	_tmp5 ASSIGN (_tmp1 PLUS _tmp2)
     NODE STMT	_main3_c ASSIGN (_tmp5 TIMES _tmp5)
     NODE STMT	Callout("printf", "%%d\n", _main3_c)
     NODE EXIT

@@ -32,12 +32,12 @@ METHOD (VOID) main()
 foo:
 BLOCK foo1    
     NODE ENTRY
-    NODE STMT	_tmp7 ASSIGN get_int(7)
-    NODE STMT	_foo1_a ASSIGN _tmp7
-    NODE STMT	_tmp3 ASSIGN get_int(2)
-    NODE STMT	_foo2_b ASSIGN _tmp3
-    NODE STMT	_tmp8 ASSIGN get_bool(true)
-    NODE STMT	_foo5_x ASSIGN _tmp8
+    NODE STMT	_tmp5 ASSIGN get_int(7)
+    NODE STMT	_foo1_a ASSIGN _tmp5
+    NODE STMT	_tmp4 ASSIGN get_int(2)
+    NODE STMT	_foo2_b ASSIGN _tmp4
+    NODE STMT	_tmp3 ASSIGN get_bool(true)
+    NODE STMT	_foo5_x ASSIGN _tmp3
     NODE STMT	_foo3_c ASSIGN 0
     NODE STMT	_foo6_i ASSIGN (_foo1_a PLUS _foo2_b)
 		GOTO   --> foo2
@@ -50,10 +50,10 @@ BLOCK foo2
 		COND F --> foo4
 
 BLOCK foo3    
-    NODE STMT	_tmp4 ASSIGN (_foo6_i TIMES _foo6_i)
-    NODE STMT	_tmp5 ASSIGN (_foo1_a PLUS _foo2_b)
-    NODE STMT	_tmp6 ASSIGN (_tmp4 TIMES _tmp5)
-    NODE STMT	_foo3_c ASSIGN (_foo3_c PLUS _tmp6)
+    NODE STMT	_tmp6 ASSIGN (_foo6_i TIMES _foo6_i)
+    NODE STMT	_tmp7 ASSIGN (_foo1_a PLUS _foo2_b)
+    NODE STMT	_tmp8 ASSIGN (_tmp6 TIMES _tmp7)
+    NODE STMT	_foo3_c ASSIGN (_foo3_c PLUS _tmp8)
     NODE STMT	_foo6_i ASSIGN (_foo6_i PLUS 1)
 		GOTO   --> foo2
 
@@ -87,23 +87,23 @@ BLOCK get_int1
 foo:
 BLOCK foo1    
     NODE ENTRY
-    NODE STMT	_tmp7 ASSIGN get_int(7)
-    NODE STMT	_tmp3 ASSIGN get_int(2)
+    NODE STMT	_tmp5 ASSIGN get_int(7)
+    NODE STMT	_tmp4 ASSIGN get_int(2)
     NODE STMT	_foo3_c ASSIGN 0
-    NODE STMT	_tmp9 ASSIGN (_tmp7 PLUS _tmp3)
-    NODE STMT	_foo6_i ASSIGN _tmp9
+    NODE STMT	_tmp10 ASSIGN (_tmp5 PLUS _tmp4)
+    NODE STMT	_foo6_i ASSIGN _tmp10
 		GOTO   --> foo2
 
 BLOCK foo2    
-    NODE STMT	_tmp2 ASSIGN (2 TIMES _tmp9)
+    NODE STMT	_tmp2 ASSIGN (2 TIMES _tmp10)
     NODE CMP	 ((_foo6_i LT _tmp2))
 		COND T --> foo3
 		COND F --> foo4
 
 BLOCK foo3    
-    NODE STMT	_tmp4 ASSIGN (_foo6_i TIMES _foo6_i)
-    NODE STMT	_tmp6 ASSIGN (_tmp4 TIMES _tmp9)
-    NODE STMT	_foo3_c ASSIGN (_foo3_c PLUS _tmp6)
+    NODE STMT	_tmp6 ASSIGN (_foo6_i TIMES _foo6_i)
+    NODE STMT	_tmp8 ASSIGN (_tmp6 TIMES _tmp10)
+    NODE STMT	_foo3_c ASSIGN (_foo3_c PLUS _tmp8)
     NODE STMT	_foo6_i ASSIGN (_foo6_i PLUS 1)
 		GOTO   --> foo2
 

@@ -31,10 +31,10 @@ BLOCK main1
     NODE ENTRY
     NODE STMT	_tmp1 ASSIGN get_int(2)
     NODE STMT	_main1_a ASSIGN _tmp1
-    NODE STMT	_tmp3 ASSIGN get_int(3)
-    NODE STMT	_main2_b ASSIGN _tmp3
-    NODE STMT	_tmp2 ASSIGN get_int(5)
-    NODE STMT	_main5_y ASSIGN _tmp2
+    NODE STMT	_tmp2 ASSIGN get_int(3)
+    NODE STMT	_main2_b ASSIGN _tmp2
+    NODE STMT	_tmp3 ASSIGN get_int(5)
+    NODE STMT	_main5_y ASSIGN _tmp3
     NODE STMT	_main3_c ASSIGN 0
     NODE STMT	_main4_d ASSIGN 0
     NODE STMT	_main3_c ASSIGN (_main1_a PLUS _main2_b)
@@ -71,20 +71,20 @@ BLOCK main1
     NODE ENTRY
     NODE STMT	_tmp1 ASSIGN get_int(2)
     NODE STMT	_main1_a ASSIGN _tmp1
-    NODE STMT	_tmp3 ASSIGN get_int(3)
-    NODE STMT	_tmp2 ASSIGN get_int(5)
+    NODE STMT	_tmp2 ASSIGN get_int(3)
+    NODE STMT	_tmp3 ASSIGN get_int(5)
     NODE STMT	_main4_d ASSIGN 0
-    NODE STMT	_main3_c ASSIGN (_tmp1 PLUS _tmp3)
+    NODE STMT	_main3_c ASSIGN (_tmp1 PLUS _tmp2)
     NODE STMT	_main7_i ASSIGN 7
 		GOTO   --> main2
 
 BLOCK main2    
-    NODE CMP	 ((_main7_i LT _tmp2))
+    NODE CMP	 ((_main7_i LT _tmp3))
 		COND T --> main3
 		COND F --> main4
 
 BLOCK main3    
-    NODE STMT	_main4_d ASSIGN (_main1_a PLUS _tmp3)
+    NODE STMT	_main4_d ASSIGN (_main1_a PLUS _tmp2)
     NODE STMT	_main1_a ASSIGN 1
     NODE STMT	_main7_i ASSIGN (_main7_i PLUS 1)
 		GOTO   --> main2

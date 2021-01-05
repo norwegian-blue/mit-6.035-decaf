@@ -32,12 +32,12 @@ METHOD (VOID) main()
 foo:
 BLOCK foo1    
     NODE ENTRY
-    NODE STMT	_tmp2 ASSIGN get_int(7)
-    NODE STMT	_foo1_a ASSIGN _tmp2
-    NODE STMT	_tmp1 ASSIGN get_int(2)
-    NODE STMT	_foo2_b ASSIGN _tmp1
-    NODE STMT	_tmp4 ASSIGN get_bool(true)
-    NODE STMT	_foo4_x ASSIGN _tmp4
+    NODE STMT	_tmp4 ASSIGN get_int(7)
+    NODE STMT	_foo1_a ASSIGN _tmp4
+    NODE STMT	_tmp2 ASSIGN get_int(2)
+    NODE STMT	_foo2_b ASSIGN _tmp2
+    NODE STMT	_tmp1 ASSIGN get_bool(true)
+    NODE STMT	_foo4_x ASSIGN _tmp1
     NODE STMT	_foo3_c ASSIGN 0
     NODE STMT	_foo3_c ASSIGN (_foo1_a PLUS _foo2_b)
     NODE CMP	 (_foo4_x)
@@ -45,12 +45,12 @@ BLOCK foo1
 		COND F --> foo3
 
 BLOCK foo2    
-    NODE STMT	_tmp5 ASSIGN (_foo1_a PLUS _foo2_b)
-    NODE EXIT	return _tmp5
+    NODE STMT	_tmp3 ASSIGN (_foo1_a PLUS _foo2_b)
+    NODE EXIT	return _tmp3
 
 BLOCK foo3    
-    NODE STMT	_tmp3 ASSIGN (_foo3_c MINUS 3)
-    NODE EXIT	return _tmp3
+    NODE STMT	_tmp5 ASSIGN (_foo3_c MINUS 3)
+    NODE EXIT	return _tmp5
 
 
 get_bool:
@@ -79,11 +79,11 @@ BLOCK get_int1
 foo:
 BLOCK foo1    
     NODE ENTRY
-    NODE STMT	_tmp2 ASSIGN get_int(7)
-    NODE STMT	_tmp1 ASSIGN get_int(2)
-    NODE STMT	_tmp4 ASSIGN get_bool(true)
-    NODE STMT	_tmp6 ASSIGN (_tmp2 PLUS _tmp1)
-    NODE CMP	 (_tmp4)
+    NODE STMT	_tmp4 ASSIGN get_int(7)
+    NODE STMT	_tmp2 ASSIGN get_int(2)
+    NODE STMT	_tmp1 ASSIGN get_bool(true)
+    NODE STMT	_tmp6 ASSIGN (_tmp4 PLUS _tmp2)
+    NODE CMP	 (_tmp1)
 		COND T --> foo2
 		COND F --> foo3
 
@@ -91,8 +91,8 @@ BLOCK foo2
     NODE EXIT	return _tmp6
 
 BLOCK foo3    
-    NODE STMT	_tmp3 ASSIGN (_tmp6 MINUS 3)
-    NODE EXIT	return _tmp3
+    NODE STMT	_tmp5 ASSIGN (_tmp6 MINUS 3)
+    NODE EXIT	return _tmp5
 
 
 get_bool:
