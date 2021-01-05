@@ -861,11 +861,11 @@ public class InstructionAssembler implements IrVisitor<List<LIR>> {
         Register r11 = Register.r11();
         
         // Do comparison
-        if (lhs.isImm()) {
-            instrList.add(new BinOp("cmp", lhs, rhs)); 
+        if (rhs.isImm()) {
+            instrList.add(new BinOp("cmp", rhs, lhs)); 
         } else {
-            instrList.add(new Mov(lhs, r10));
-            instrList.add(new BinOp("cmp", r10, rhs));
+            instrList.add(new Mov(rhs, r10));
+            instrList.add(new BinOp("cmp", r10, lhs));
         }
         
         // Eventually store result
