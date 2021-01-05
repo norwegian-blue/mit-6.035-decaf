@@ -14,12 +14,12 @@ public class Mov extends LIR {
     }
     
     @Override
-    public String toString() {
-        return "move\t" + src.toString() + ", " + dest.toString();
-    }
-
-    @Override
     public String toCode() {
+        
+        if (src.getSuffix().equals("b") && dest.isReg()) {
+            dest.size = 1;
+        }
+        
         return "\tmov" + src.getSuffix() + "\t" + src.toCode() + ", " + dest.toCode();
     }
         

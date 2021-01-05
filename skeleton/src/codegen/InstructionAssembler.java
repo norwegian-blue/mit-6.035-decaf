@@ -311,7 +311,7 @@ public class InstructionAssembler implements IrVisitor<List<LIR>> {
             instrList.add(new UnOp("neg", destination));
             break;
         case NOT:
-            instrList.add(new BinOp("not", new Literal(1, 1), destination));
+            instrList.add(new UnOp("not", destination));
             break;
         default:
             throw new Error("Unexpected operator");
@@ -457,7 +457,7 @@ public class InstructionAssembler implements IrVisitor<List<LIR>> {
                     // Preserve not argument yet to be added
                     if (argLocs.contains(dst)) {
                         instrList.add(new Mov(dst, Register.r10()));
-                        instrList.add(new Mov(arg, dst));
+                        instrList.add(new MovSx(arg, dst));
                         instrList.add(new Mov(Register.r10(), arg));
                         for (int j = 0; j < argLocs.size(); j++) {
                             if (argLocs.get(j).equals(dst)) {
@@ -465,7 +465,7 @@ public class InstructionAssembler implements IrVisitor<List<LIR>> {
                             }
                         }
                     } else {
-                        instrList.add(new Mov(arg, dst));
+                        instrList.add(new MovSx(arg, dst));
                     }
                 }
             } else {            

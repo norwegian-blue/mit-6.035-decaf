@@ -16,7 +16,7 @@ public class UnOp extends LIR {
    
     @Override
     public String toCode() {
-        return "\t" + operation + "\t" + term.toCode();            
+        return "\t" + operation + term.getSuffix() + "\t" + term.toCode();            
     }
 
 }
