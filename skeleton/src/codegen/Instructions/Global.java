@@ -33,7 +33,7 @@ public class Global extends Location {
     
     @Override
     public String toCode() {
-        if (this.offset == null) {
+        if (this.lenght == 1) {
             return name + "(%rip)";
         } else {
             return name + "(, " + offset.toCode() + ", 8)";

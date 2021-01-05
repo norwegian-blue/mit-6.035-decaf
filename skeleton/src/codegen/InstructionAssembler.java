@@ -308,10 +308,10 @@ public class InstructionAssembler implements IrVisitor<List<LIR>> {
         // Do arithmetics on destination        
         switch (node.getOp()) {
         case MINUS:
-            instrList.add(new UnOp("negq", destination));
+            instrList.add(new UnOp("neg", destination));
             break;
         case NOT:
-            instrList.add(new BinOp("xorb", new Literal(1, 1), destination));
+            instrList.add(new BinOp("not", new Literal(1, 1), destination));
             break;
         default:
             throw new Error("Unexpected operator");
