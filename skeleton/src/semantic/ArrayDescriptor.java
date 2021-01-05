@@ -38,4 +38,9 @@ public class ArrayDescriptor extends TypeDescriptor {
     public int getLength() {
         return length;
     }
+
+    @Override
+    public int getSize() {
+        return elementType.getSize();
+    }
 }

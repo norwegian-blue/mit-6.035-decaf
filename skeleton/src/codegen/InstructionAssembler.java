@@ -637,57 +637,45 @@ public class InstructionAssembler implements IrVisitor<List<LIR>> {
         Register r10 = Register.r10();
         
         // Special cases
-        if (lhs.equals(dest)) {
-            if (isPow2(rhs)) {
-                // a = a * 2^i
-                int pow2 = log2(((Literal) rhs).getValue());
+        if (isPow2(lhs)) {
+            int pow2 = log2(((Literal) lhs).getValue());
+            if (rhs.equals(dest)) {
+                // a = 2^i * a
                 instrList.add(new LShift(dest, pow2));
             } else {
-                // a = a * c
-                if (rhs.isImm() || dest.isImm()) {
-                    instrList.add(new BinOp("imul", rhs, dest));
+                // a = 2^i * c
+                if (dest.isReg() || rhs.isImm()) {
+                    instrList.add(new Mov(rhs, dest));
                 } else {
                     instrList.add(new Mov(rhs, r10));
-                    instrList.add(new BinOp("imul", r10, dest));
-                }
+                    instrList.add(new Mov(r10, dest));
+                }                    
+                instrList.add(new LShift(dest, pow2));
             }
-        } else if (rhs.equals(dest)) {
-            if (isPow2(lhs)) {
+                
+        } else if (isPow2(rhs)) {
+            int pow2 = log2(((Literal) rhs).getValue());
+            if (lhs.equals(dest)) {
                 // a = a * 2^i
-                int pow2 = log2(((Literal) lhs).getValue());
                 instrList.add(new LShift(dest, pow2));
             } else {
-                // a = b * a
-                if (lhs.isImm() || dest.isImm()) {
-                    instrList.add(new BinOp("imul", lhs, dest));
+                // a = b * 2^i
+                if (dest.isReg() || lhs.isImm()) {
+                    instrList.add(new Mov(lhs, dest));
                 } else {
                     instrList.add(new Mov(lhs, r10));
-                    instrList.add(new BinOp("imul", r10, dest));
-                }
+                    instrList.add(new Mov(r10, dest));
+                }                    
+                instrList.add(new LShift(dest, pow2));
             }
-            
-        } else if (isPow2(lhs)) {
-            // a = 2^i * c
-            int pow2 = log2(((Literal) lhs).getValue());
-            if (dest.isReg() || rhs.isImm()) {
-                instrList.add(new Mov(rhs, dest));
-            } else {
-                instrList.add(new Mov(rhs, r10));
-                instrList.add(new Mov(r10, dest));
-            }                    
-            instrList.add(new LShift(dest, pow2));
-            
-        } else if (isPow2(rhs)) {
-            // a = b * 2^i
-            int pow2 = log2(((Literal) rhs).getValue());
-            if (dest.isReg() || lhs.isImm()) {
-                instrList.add(new Mov(lhs, dest));
-            } else {
-                instrList.add(new Mov(lhs, r10));
-                instrList.add(new Mov(r10, dest));
-            }  
-            instrList.add(new LShift(dest, pow2));
-            
+        
+        } else if (lhs.equals(dest) && dest.isReg()) {
+            // a = a * c
+            instrList.add(new BinOp("imul", rhs, dest));
+        } else if (rhs.equals(dest) && dest.isReg()) {
+            // a = b * a
+            instrList.add(new BinOp("imul", lhs, dest));      
+   
         
         // Destination is register
         } else if (dest.isReg()) {
@@ -711,20 +699,14 @@ public class InstructionAssembler implements IrVisitor<List<LIR>> {
                 instrList.add(new BinOp("imul", rhs, dest));
             }
                 
-        // Destination in memory
-        } else {
             
-            // Make sure the memory is moved in r10 first
-            if (lhs.isImm()) {
-                instrList.add(new Mov(rhs, r10));
-                instrList.add(new BinOp("imul", lhs, r10));
-                instrList.add(new Mov(r10, dest));
-            } else {
-                instrList.add(new Mov(lhs, r10));
-                instrList.add(new BinOp("imul", rhs, r10));
-                instrList.add(new Mov(r10, dest));
-            }
+        // Destination in memory
+        } else {            
+            instrList.add(new Mov(lhs, r10));
+            instrList.add(new BinOp("imul", rhs, r10));
+            instrList.add(new Mov(r10, dest));
         }
+        
         return instrList;
     }
 
