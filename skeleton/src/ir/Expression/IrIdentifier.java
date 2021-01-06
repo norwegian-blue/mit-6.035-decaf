@@ -93,7 +93,11 @@ public class IrIdentifier extends IrExpression {
     @Override
     public Set<IrIdentifier> getUsedVars() {
         Set<IrIdentifier> vars = new HashSet<IrIdentifier>();
-        vars.add(this);
+        if (this.isArrayElement()) {
+            vars.addAll(this.arrayInd.getUsedVars());
+        } else {
+            vars.add(this);
+        }
         return vars;
     }
     

@@ -78,6 +78,9 @@ public class CodeGenerator implements NodeVisitor<Void> {
         
         List<LIR> instrList = new ArrayList<LIR>();
         
+        // Update locations
+        method.updateLocations(node);  
+        
         // Process condition expression and get result location
         IrExpression exp = node.getCond();
         instructionAssembler.setJmpCond(null);
