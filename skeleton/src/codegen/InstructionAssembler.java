@@ -150,6 +150,12 @@ public class InstructionAssembler implements IrVisitor<List<LIR>> {
         // Call function
         instrList.add(new Call(calloutName));
         
+        // Remove extra parameters from stack when calling printf function
+        if (calloutName.equals("printf")) {
+            int nargs = node.getArgs().size();
+            if (nargs > 6) instrList.add(new BinOp("add", new Literal(8*(nargs-6)), Register.rsp()));
+        }
+        
         // Return value
         if (destination != null && !destination.equals(Register.rax())) {
             instrList.add(new Mov(Register.rax(), this.destination));   
