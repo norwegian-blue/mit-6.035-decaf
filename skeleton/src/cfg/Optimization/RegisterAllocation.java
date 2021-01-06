@@ -516,7 +516,7 @@ public class RegisterAllocation {
                 web.getLiveRange();
                 webs.add(web);
             }
-            
+
             return webs;
             
         }
@@ -530,13 +530,13 @@ public class RegisterAllocation {
         }
         
         private void getLiveRange() {
-            visited = new HashSet<Node>();
             for (UD def : this.definitions) {
+                visited = new HashSet<Node>();
                 range = new Stack<UD>();
                 dfsCheck(def.getNode());
             }
         }
-        
+                
         public boolean liveAt(Node node) {
             UD ud = new UD(node.getParentBlock(), node);
             return this.liveRange.contains(ud);
@@ -556,8 +556,15 @@ public class RegisterAllocation {
                         
             // Search children
             for (Node child : node.getChildren()) {
-                if (child!=null && !visited.contains(child)) {
-                    dfsCheck(child);
+                if (child!=null) {
+                    if (!visited.contains(child)) {
+                        dfsCheck(child);
+                    } else {
+                        // Loop, check if it was live
+                        if (node.getLiveVars().contains(this.id)) {
+                            this.liveRange.addAll(range);
+                        }
+                    }
                 }
             } 
             
@@ -756,9 +763,13 @@ public class RegisterAllocation {
         public String toString() {
             String str = "\nWeb" + this.symReg + " (" + this.id.toString() + ")";
             if (spilled) {
-                str += "\tmemory = " + offset;
+                if (offset != 0) {
+                    str += "\tmemory = " + offset;
+                }
             } else {
-                str += "\tregister = " + reg.toString();
+                if (reg != null) {
+                    str += "\tregister = " + reg.toString();
+                }
             }
             for (UD def : definitions) {
                 str += "\n\t" + def.toString();
