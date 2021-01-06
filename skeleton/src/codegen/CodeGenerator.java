@@ -172,7 +172,7 @@ public class CodeGenerator implements NodeVisitor<Void> {
         // Initialize locals to zero
         for (LocalDescriptor local : method.getLocals()) {
             if (method.isLive(local.getIrId())) {
-                Location varLocal = method.getLocation(local.getIrId());
+                Location varLocal = method.getDestination(local.getIrId());
                 prog.addInstruction(new Mov(new Literal(0, local.getSize()), varLocal));
             }
         }

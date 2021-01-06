@@ -596,6 +596,11 @@ public class RegisterAllocation {
             return containsDef(ud);
         }
         
+        public boolean containsUse(Node node) {
+            UD ud = new UD(node.getParentBlock(), node);
+            return containsUse(ud);
+        }
+        
 //        public boolean matchDef(String useId, Node node) {
 //            UD use = new UD(node.getParentBlock(), node);
 //            return this.id.getId().equals(useId) && this.containsDef(use);
