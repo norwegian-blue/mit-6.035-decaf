@@ -638,9 +638,13 @@ public class RegisterAllocation {
             
             boolean check = true;
             for (Node child : use.getNode().getChildren()) {
-                if (child != null && !visited.contains(child)) {
+                if (child != null) {
                     UD childUd = new UD(child.getParentBlock(), child);
-                    check &= lastUse(childUd);
+                    if (!visited.contains(child)) {
+                        check &= lastUse(childUd);
+                    } else {
+                        return check && !this.containsUse(childUd);
+                    }
                 }
             }
             return check;
