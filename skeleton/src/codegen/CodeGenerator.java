@@ -135,6 +135,7 @@ public class CodeGenerator implements NodeVisitor<Void> {
         // Push callee saved registers on stack
         for (Register reg : method.getUsedRegs()) {
             if (method.getId().equals("main")) continue;
+            reg = new Register(reg, 8);
             if (reg.equals(Register.rbx())) {
                 prog.addInstruction(new Push(reg));
             } else if (reg.equals(Register.r12())) {
@@ -216,6 +217,7 @@ public class CodeGenerator implements NodeVisitor<Void> {
         Collections.reverse(regs);
         for (Register reg : regs) {
             if (method.getId().equals("main")) continue;
+            reg = new Register(reg, 8);
             if (reg.equals(Register.rbx())) {
                 prog.addInstruction(new Pop(reg));
             } else if (reg.equals(Register.r12())) {
