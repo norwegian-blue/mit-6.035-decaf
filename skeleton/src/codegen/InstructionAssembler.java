@@ -455,7 +455,7 @@ public class InstructionAssembler implements IrVisitor<List<LIR>> {
             if (i <= 6) {       
                 // Move to register
                 Exp dst = Call.getParamAtIndex(i, 8);
-                if (!arg.equals(dst)) {
+                if (!arg.equals(dst) || arg.getSuffix().equals("b")) {
                     
                     // Preserve argument yet to be added
                     if (arg.isReg() && argLocs.contains(dst)) {
@@ -752,7 +752,7 @@ public class InstructionAssembler implements IrVisitor<List<LIR>> {
         // Base case 
         } else {
             // %rax <-- lhs
-            if (this.method.isLive(rax) && !dest.equals(rax)) {
+            if (this.method.isLive(Register.rax()) && !dest.equals(rax)) {
                 instrList.add(new Push(rax)); 
             }
             if (rhs.equals(rax)) {
@@ -763,7 +763,7 @@ public class InstructionAssembler implements IrVisitor<List<LIR>> {
             }
             
             // %rdx <-- 0
-            if (this.method.isLive(rdx) && !dest.equals(rdx)) {
+            if (this.method.isLive(Register.rdx()) && !dest.equals(rdx)) {
                 instrList.add(new Push(rdx)); 
             }
             if (rhs.equals(rdx)) {
@@ -787,10 +787,10 @@ public class InstructionAssembler implements IrVisitor<List<LIR>> {
             }
             
             // Restore %rax, %rdx
-            if (this.method.isLive(rdx) && !dest.equals(rdx)) {
+            if (this.method.isLive(Register.rdx()) && !dest.equals(rdx)) {
                 instrList.add(new Pop(rdx)); 
             }
-            if (this.method.isLive(rax) && !dest.equals(rax)) {
+            if (this.method.isLive(Register.rax()) && !dest.equals(rax)) {
                 instrList.add(new Pop(rax)); 
             }
         }        
