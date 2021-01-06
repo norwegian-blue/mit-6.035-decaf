@@ -607,6 +607,7 @@ public class InstructionAssembler implements IrVisitor<List<LIR>> {
                 }                
             }
         } else if (dest.equals(lhs)) {
+            // a = a - c
             if (dest.isReg() || rhs.isImm()) {
                 instrList.add(new BinOp("sub", rhs, dest)); 
             } else {
@@ -617,8 +618,14 @@ public class InstructionAssembler implements IrVisitor<List<LIR>> {
             
         // Destination is register
         } else if (dest.isReg()) {   
-            instrList.add(new Mov(lhs, dest));
-            instrList.add(new BinOp("sub", rhs, dest));
+            if (dest.equals(rhs)) {
+                instrList.add(new Mov(rhs, r10));
+                instrList.add(new Mov(lhs, dest));
+                instrList.add(new BinOp("sub", r10, dest));
+            } else {
+                instrList.add(new Mov(lhs, dest));
+                instrList.add(new BinOp("sub", rhs, dest));
+            }
             
             
         // Destination in memory
