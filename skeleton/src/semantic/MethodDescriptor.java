@@ -260,7 +260,8 @@ public class MethodDescriptor extends Descriptor {
                 // Update destination if definition
                 if (web.containsDef(node)) {
                     this.setDestination(web.getId(), location);
-                } else {
+                }
+                if (web.containsUse(node)) {
                     this.setLocation(web.getId(), location);
                 }
             }
