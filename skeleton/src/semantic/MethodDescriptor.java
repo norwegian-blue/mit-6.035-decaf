@@ -228,10 +228,13 @@ public class MethodDescriptor extends Descriptor {
         if (webs == null) return false;
         
         for (Web web : webs) {
-            if (web.liveAt(currentNode) && !web.isSpilled() && reg.equals(new Register(web.getRegister(), getSize(web.getId())))) {
-                for (Node child : currentNode.getChildren()) {
-                    if (child != null && web.liveAt(child)) {
-                        return true;
+            if (web.liveAt(currentNode) && !web.isSpilled()) {
+                Register webReg = new Register(web.getRegister(), 8);
+                if (reg.equals(webReg)) {
+                    for (Node child : currentNode.getChildren()) {
+                        if (child != null && web.liveAt(child)) {
+                            return true;
+                        }
                     }
                 }
             }
