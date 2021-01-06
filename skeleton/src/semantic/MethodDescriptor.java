@@ -201,7 +201,7 @@ public class MethodDescriptor extends Descriptor {
                 for (LocalDescriptor loc : locals) {
                     if (loc.getIrId().equals(id)) {
                         stackTop += loc.getSize();
-                        web.setOffset(stackTop);                    // Push local on stack 
+                        web.setOffset(-stackTop);                   // Push local on stack 
                         found = true;
                     }
                 }

@@ -1,5 +1,8 @@
 package codegen.Instructions;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class Call extends LIR {
 
     private String method;
@@ -58,6 +61,20 @@ public class Call extends LIR {
         default:
             throw new Error("unknown memory location");
         }
+    }
+    
+    public static List<Register> getCalleeSaved() {
+        List<Register> calleeSaved = new ArrayList<Register>();
+        calleeSaved.add(Register.rax());
+        calleeSaved.add(Register.rcx());
+        calleeSaved.add(Register.rdx());
+        calleeSaved.add(Register.rsi());
+        calleeSaved.add(Register.rdi());
+        calleeSaved.add(Register.r8());
+        calleeSaved.add(Register.r9());
+        calleeSaved.add(Register.r11());
+        
+        return calleeSaved;
     }
     
 }

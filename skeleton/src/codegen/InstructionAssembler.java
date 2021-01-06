@@ -175,27 +175,32 @@ public class InstructionAssembler implements IrVisitor<List<LIR>> {
 
     private List<LIR> saveRegs(boolean skipRax) {
         List<LIR> instrList = new ArrayList<LIR>();
-        if (!skipRax && this.method.isLive(Register.rax())) instrList.add(new Push(Register.rax()));
-        if (this.method.isLive(Register.rcx())) instrList.add(new Push(Register.rcx()));
-        if (this.method.isLive(Register.rdx())) instrList.add(new Push(Register.rdx()));
-        if (this.method.isLive(Register.rsi())) instrList.add(new Push(Register.rsi()));
-        if (this.method.isLive(Register.rdi())) instrList.add(new Push(Register.rdi()));
-        if (this.method.isLive(Register.r8())) instrList.add(new Push(Register.r8()));
-        if (this.method.isLive(Register.r9())) instrList.add(new Push(Register.r9()));
-        if (this.method.isLive(Register.r11())) instrList.add(new Push(Register.r11()));
+        List<Register> calleeSaved = Call.getCalleeSaved();
+        
+        for (Register reg : calleeSaved) {
+            // Do not save register if it is used to store result
+            if (this.destination != null && this.destination.isReg() && reg.equals(new Register((Register) destination, 8))) {
+                continue;
+            }
+            if (this.method.isLive(reg)) instrList.add(new Push(reg));
+        }
+
         return instrList;
     }
 
     private List<LIR> restoreRegs(boolean skipRax) {
         List<LIR> instrList = new ArrayList<LIR>();
-        if (this.method.isLive(Register.r11())) instrList.add(new Pop(Register.r11()));
-        if (this.method.isLive(Register.r9())) instrList.add(new Pop(Register.r9()));
-        if (this.method.isLive(Register.r8())) instrList.add(new Pop(Register.r8()));
-        if (this.method.isLive(Register.rdi())) instrList.add(new Pop(Register.rdi()));
-        if (this.method.isLive(Register.rsi())) instrList.add(new Pop(Register.rsi()));
-        if (this.method.isLive(Register.rdx())) instrList.add(new Pop(Register.rdx()));
-        if (this.method.isLive(Register.rcx())) instrList.add(new Pop(Register.rcx()));
-        if (!skipRax && this.method.isLive(Register.rax())) instrList.add(new Pop(Register.rax())); 
+        List<Register> calleeSaved = Call.getCalleeSaved();
+        Collections.reverse(calleeSaved);
+        
+        for (Register reg : calleeSaved) {
+            // Do not save register if it is used to store result
+            if (this.destination != null && this.destination.isReg() && reg.equals(new Register((Register) destination, 8))) {
+                continue;
+            }
+            if (this.method.isLive(reg)) instrList.add(new Pop(reg));
+        }
+        
         return instrList;
     }
 
