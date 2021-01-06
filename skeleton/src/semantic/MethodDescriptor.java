@@ -183,7 +183,7 @@ public class MethodDescriptor extends Descriptor {
                 IrIdentifier id = web.getId();
                 
                 boolean found = false;
-                
+                                
                 // Push parameter on stack only if not already there by call convention
                 for (ParameterDescriptor par : parameters) {
                     if (par.getIrId().equals(id)) {
@@ -201,7 +201,8 @@ public class MethodDescriptor extends Descriptor {
                 for (LocalDescriptor loc : locals) {
                     if (loc.getIrId().equals(id)) {
                         stackTop += loc.getSize();
-                        web.setOffset(stackTop);                    // Push local on stack                       
+                        web.setOffset(stackTop);                    // Push local on stack 
+                        found = true;
                     }
                 }
                 
@@ -227,7 +228,7 @@ public class MethodDescriptor extends Descriptor {
         if (webs == null) return false;
         
         for (Web web : webs) {
-            if (web.liveAt(currentNode) && reg.equals(new Register(web.getRegister(), getSize(web.getId())))) {
+            if (web.liveAt(currentNode) && !web.isSpilled() && reg.equals(new Register(web.getRegister(), getSize(web.getId())))) {
                 for (Node child : currentNode.getChildren()) {
                     if (child != null && web.liveAt(child)) {
                         return true;
