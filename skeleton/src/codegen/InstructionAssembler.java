@@ -458,7 +458,7 @@ public class InstructionAssembler implements IrVisitor<List<LIR>> {
                 if (!arg.equals(dst)) {
                     
                     // Preserve argument yet to be added
-                    if (argLocs.contains(dst)) {
+                    if (arg.isReg() && argLocs.contains(dst)) {
                         instrList.add(new Mov(dst, Register.r10()));
                         instrList.add(new MovSx(arg, dst));
                         instrList.add(new Mov(Register.r10(), arg));
