@@ -489,7 +489,7 @@ public class InstructionAssembler implements IrVisitor<List<LIR>> {
             // Linux ABI
             if (i <= 6) {       
                 // Move to register
-                Exp dst = Call.getParamAtIndex(i, 8);
+                Exp dst = Call.getParamAtIndex(i);
                 if (!arg.equals(dst) || arg.getSuffix().equals("b")) {
                     
                     // Preserve argument yet to be added

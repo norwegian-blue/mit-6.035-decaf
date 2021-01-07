@@ -33,15 +33,17 @@ public class Call extends LIR {
         case 5:
             return Register.r9();
         default:
-            int offset = 8;
+            int offset = 16;
+            int size = pars.get(ind).getSize();
+            int memSize = (size == 1) ? 2 : 8;
             for (int i = 6; i <= ind; i++) {
                 offset += (pars.get(i).getSize() == 1) ? 2 : 8;
             }
-            return new Memory(offset, pars.get(ind).getSize());
+            return new Memory(offset-memSize, size);
         }
     }
     
-    public static Location getParamAtIndex(int i, int size) {
+    public static Location getParamAtIndex(int i) {
         switch (i) {
         case 1:
             return Register.rdi();
