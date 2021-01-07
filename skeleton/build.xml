@@ -110,6 +110,7 @@
   </target>
 
   <target name="test_optimizer" depends="jar">
+    <exec executable="${tests}/optimizer/test_regalloc.sh"/>
     <exec executable="${tests}/optimizer/test.sh"/>
   </target>
 
