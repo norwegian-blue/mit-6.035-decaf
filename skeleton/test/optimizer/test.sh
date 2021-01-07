@@ -1,7 +1,7 @@
 #!/bin/bash
 
 runassembler() {
-  $(git rev-parse --show-toplevel)/skeleton/run.sh -target codegen -opt -o $2 -debug $1
+  $(git rev-parse --show-toplevel)/skeleton/run.sh -target codegen -opt all -o $2 -debug $1
 }
 
 fail=0
