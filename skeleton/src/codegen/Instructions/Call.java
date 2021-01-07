@@ -45,17 +45,17 @@ public class Call extends LIR {
     
     public static Location getParamAtIndex(int i) {
         switch (i) {
-        case 1:
+        case 0:
             return Register.rdi();
-        case 2:
+        case 1:
             return Register.rsi();
-        case 3:
+        case 2:
             return Register.rdx();
-        case 4:
+        case 3:
             return Register.rcx();
-        case 5:
+        case 4:
             return Register.r8();
-        case 6:
+        case 5:
             return Register.r9();
         default:
             throw new Error("unknown memory location");

@@ -474,43 +474,88 @@ public class InstructionAssembler implements IrVisitor<List<LIR>> {
         }
         
         // Move arguments according to calling convention
+        //      1. push on stack arguments over 6
+        //      2. move registers to destination (avoid later conflicts)
+        //      3. move other parameters to destination (no conflicts with registers)
+        
+        // 1. Push arg > 6 onto stack
         Collections.reverse(argLocs);
         Iterator<Exp> it = argLocs.iterator();
         int i = argLocs.size();
-        while (it.hasNext()) {
+        while(i-- > 6) {
             Exp arg = it.next();
             it.remove();
             
-            // Return string arguments
+            // Add string to program if used as argument
             if (arg.isString()) {
                 instrList.add(arg);
             }
             
-            // Linux ABI
-            if (i <= 6) {       
-                // Move to register
-                Exp dst = Call.getParamAtIndex(i);
-                if (!arg.equals(dst) || arg.getSuffix().equals("b")) {
-                    
-                    // Preserve argument yet to be added
-                    if (arg.isReg() && argLocs.contains(dst)) {
-                        instrList.add(new Mov(dst, Register.r10()));
-                        instrList.add(new MovSx(arg, dst));
-                        instrList.add(new Mov(Register.r10(), arg));
-                        for (int j = 0; j < argLocs.size(); j++) {
-                            if (argLocs.get(j).equals(dst)) {
-                                argLocs.set(j, arg);
-                            }
-                        }
-                    } else {
-                        instrList.add(new MovSx(arg, dst));
-                    }
-                }
-            } else {            
-                // Move to stack
-                instrList.add(new Push(arg));
+            // Move on stack
+            instrList.add(new Push(arg));
+        }
+        
+        
+        // 2. Move registers to destination (swap if conflicting src/dest)
+        Collections.reverse(argLocs);
+        for (int j = 0; j < argLocs.size(); j++) {
+            Exp arg = argLocs.get(j);
+            if (!arg.isReg()) continue;
+            
+            // Add string to program if used as argument
+            if (arg.isString()) {
+                instrList.add(arg);
             }
-            i--;
+
+            // Mark as not conflicting anymore (scrap register)
+            argLocs.set(j, Register.r11()); 
+            
+            // If conflict: move 2nd(conflict) to %r10, move 1st arg to dest, move 2nd to 1st arg reg
+            Exp dest = Call.getParamAtIndex(j);
+            
+            // Move only if needed or if sign extension is needed
+            if (!arg.equals(dest)) {
+                
+                if (argLocs.contains(dest)) {
+                    // Preserve if conflict with destination
+                    instrList.add(new Mov(dest, Register.r10()));
+                    instrList.add(new MovSx(arg, dest));
+                    instrList.add(new Mov(Register.r10(), arg));
+                    
+                    // Update argument list
+                    for (int k = 0; k < 6; k++) {
+                        // future conflicted registers are moved to current arg location
+                        int size = argLocs.get(k).getSize();
+                        if (argLocs.get(k).equals(dest)) {
+                            argLocs.set(k, new Register((Register) arg, size));
+                        } else if (argLocs.get(k).equals(arg)) {
+                            argLocs.set(k, new Register((Register) dest, size));
+                        }
+                    }
+                    
+                } else {
+                    instrList.add(new MovSx(arg, dest));
+                }
+                
+            }   else if (arg.getSize() == 1) {
+                // Sign extend if src == dest but src is boolean
+                instrList.add(new MovSx(arg, dest));
+            }
+        }
+        
+        
+        // 3. Move rest of arguments
+        for (int j = 0; j < argLocs.size(); j++) {
+            Exp arg = argLocs.get(j);
+            if (arg.isReg()) continue;
+            
+            // Add string to program if used as argument
+            if (arg.isString()) {
+                instrList.add(arg);
+            }
+            
+            Exp dest = Call.getParamAtIndex(j);
+            instrList.add(new MovSx(arg, dest));
         }
         
     }
