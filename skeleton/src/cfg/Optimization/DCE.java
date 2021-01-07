@@ -70,12 +70,21 @@ public class DCE implements NodeVisitor<Boolean> {
         if (!node.getStatement().isAssignment()) {
             return false;
         }
-        
+                
         boolean check = false;
         
         IrAssignment ass = (IrAssignment) node.getStatement();
         IrIdentifier id = (IrIdentifier) ass.getLocation();
-        IrExpression val = (IrExpression) ass.getExpression();
+        IrExpression val = (IrExpression) ass.getExpression(); 
+        
+        // Skip if function call (does not matter if assigned variable is dead, side effect from call may be needed)
+        switch (val.getExpKind()) {
+        case CALL:
+        case METH:
+            return false;
+        default:
+            break;
+        }
         
         // Skip globals
         if (id.getId().startsWith("_glb")) {

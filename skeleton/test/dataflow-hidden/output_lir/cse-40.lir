@@ -78,6 +78,7 @@ BLOCK get_int1
 foo:
 BLOCK foo1    
     NODE ENTRY
+    NODE STMT	_tmp3 ASSIGN get_bool(true)
     NODE STMT	_tmp1 ASSIGN get_int(0)
     NODE STMT	_foo4_i ASSIGN _tmp1
     NODE CMP	 (true)

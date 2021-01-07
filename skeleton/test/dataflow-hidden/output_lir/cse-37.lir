@@ -73,6 +73,7 @@ BLOCK foo1
     NODE ENTRY
     NODE STMT	_tmp1 ASSIGN get_int(7)
     NODE STMT	_tmp4 ASSIGN get_int(2)
+    NODE STMT	_tmp2 ASSIGN get_bool(true)
     NODE STMT	_foo2_b ASSIGN (_tmp1 TIMES _tmp4)
     NODE STMT	_foo3_c ASSIGN (_tmp1 TIMES _foo2_b)
     NODE STMT	_tmp3 ASSIGN (_foo3_c PLUS _foo2_b)

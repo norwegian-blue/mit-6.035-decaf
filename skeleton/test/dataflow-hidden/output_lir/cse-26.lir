@@ -89,6 +89,7 @@ BLOCK foo1
     NODE ENTRY
     NODE STMT	_tmp5 ASSIGN get_int(7)
     NODE STMT	_tmp4 ASSIGN get_int(2)
+    NODE STMT	_tmp3 ASSIGN get_bool(true)
     NODE STMT	_foo3_c ASSIGN 0
     NODE STMT	_tmp10 ASSIGN (_tmp5 PLUS _tmp4)
     NODE STMT	_foo6_i ASSIGN _tmp10
