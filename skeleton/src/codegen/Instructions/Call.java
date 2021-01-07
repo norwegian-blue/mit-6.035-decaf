@@ -3,11 +3,11 @@ package codegen.Instructions;
 import java.util.ArrayList;
 import java.util.List;
 
+import semantic.ParameterDescriptor;
+
 public class Call extends LIR {
 
     private String method;
-    private static int base;
-    private static int ind;
     
     public Call(String method) {
         this.method = method;
@@ -17,30 +17,27 @@ public class Call extends LIR {
     public String toCode() {
         return "\tcall\t" + method;
     }
-    
-    public static void resetBase() {
-        base = 16;
-        ind = 1;
-    }
-    
-    public static Location getParam(int size) {
-        switch (ind++) {
-        case 1:
+        
+    public static Location getParam(List<ParameterDescriptor> pars, int ind) {
+        switch (ind) {
+        case 0:
             return Register.rdi();
-        case 2:
+        case 1:
             return Register.rsi();
-        case 3:
+        case 2:
             return Register.rdx();
-        case 4:
+        case 3:
             return Register.rcx();
-        case 5:
+        case 4:
             return Register.r8();
-        case 6:
+        case 5:
             return Register.r9();
         default:
-            int inc = (size == 1) ? 2 : size;
-            base += inc;
-            return new Memory(base-inc, size);
+            int offset = 8;
+            for (int i = 6; i <= ind; i++) {
+                offset += (pars.get(i).getSize() == 1) ? 2 : 8;
+            }
+            return new Memory(offset, pars.get(ind).getSize());
         }
     }
     

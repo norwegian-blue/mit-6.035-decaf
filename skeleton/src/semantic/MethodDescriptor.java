@@ -158,8 +158,6 @@ public class MethodDescriptor extends Descriptor {
         throw new Error("cannot find identifier");
     }
     
-    
-    
     public void setStack() {
         
         // If no register allocation, put everything on stack
@@ -185,14 +183,19 @@ public class MethodDescriptor extends Descriptor {
                 boolean found = false;
                                 
                 // Push parameter on stack only if not already there by call convention
+                int parOffset = 8;
                 for (ParameterDescriptor par : parameters) {
+                    int i = parameters.indexOf(par);
+                    if (i > 5) {
+                        parOffset += (par.getSize() == 1) ? 2 : 8;
+                    }
+                    
                     if (par.getIrId().equals(id)) {
-                        int i = parameters.indexOf(par);
                         if (i < 6) {
                             stackTop += par.getSize();
-                            web.setOffset(-stackTop);               // Push parameter on stack                       
+                            web.setOffset(-stackTop);       // Push parameter on stack                       
                         } else {
-                            web.setOffset(8+(i-5)*par.getSize());   // Parameter already on stack (call convention)
+                            web.setOffset(parOffset);       // Parameter already on stack (call convention)
                         }
                         found = true;
                     }

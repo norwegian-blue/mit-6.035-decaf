@@ -151,10 +151,7 @@ public class InstructionAssembler implements IrVisitor<List<LIR>> {
         instrList.add(new Call(calloutName));
         
         // Remove extra parameters from stack if more than 6 arguments
-        int nargs = node.getArgs().size(); 
-        if (nargs > 6) {
-            instrList.add(new BinOp("add", new Literal(8*(nargs-6)), Register.rsp()));
-        }
+        instrList.addAll(cleanupStack(node.getArgs()));
         
         // Return value
         if (destination != null && !destination.equals(Register.rax())) {
@@ -271,6 +268,9 @@ public class InstructionAssembler implements IrVisitor<List<LIR>> {
                 
         // Call function
         instrList.add(new Call(methodName));
+        
+        // Remove extra parameters from stack if more than 6 arguments
+        instrList.addAll(cleanupStack(node.getArgs()));
         
         // Return value
         if (destination != null && !destination.equals(Register.rax())) {
@@ -439,6 +439,30 @@ public class InstructionAssembler implements IrVisitor<List<LIR>> {
     private String getStringId() {
         return "_" + method.getId() + "_str" + strInd++;
     }
+    
+    private List<LIR> cleanupStack(List<IrExpression> args) {
+        
+        List<LIR> instrList = new ArrayList<LIR>();
+        
+        // Get list of arguments locations
+        List<Exp> argLocs = new ArrayList<Exp>();
+        for (IrExpression arg : args) {
+            arg.accept(this);
+            argLocs.add(this.location);
+        }
+        
+        // Extra offset to be removed
+        int offset = 0;
+        for (int i = 6; i < argLocs.size(); i++) {
+            offset += (argLocs.get(i).getSize() == 1) ? 2 : 8;
+        }
+        if (offset > 0) {
+            instrList.add(new BinOp("add", new Literal(offset), Register.rsp()));
+        }
+                
+        return instrList;
+        
+    }   
     
     private void prepareFunCall(List<IrExpression> args, List<LIR> instrList) {
         
