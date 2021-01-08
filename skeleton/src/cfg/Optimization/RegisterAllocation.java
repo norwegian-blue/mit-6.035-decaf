@@ -530,6 +530,10 @@ public class RegisterAllocation {
         }
         
         private void getLiveRange() {
+            // Skip if variable is never used
+            if (this.uses.isEmpty()) return;
+            
+            // Get live range of each definition
             for (UD def : this.definitions) {
                 visited = new HashSet<Node>();
                 range = new Stack<UD>();
@@ -981,10 +985,22 @@ public class RegisterAllocation {
             while(it.hasNext()) {
                 REG reg = it.next();
                 Set<Web> conflict = this.boundRegs.get(reg);
+                
+                // See if there is an unsolvable conflict and unbound if so
                 for (Web confWeb : conflict) {
-                    if (!boundStack.contains(confWeb)) {
-                        attemptBound(confWeb, this.boundWebs.get(confWeb));
+                    if (boundStack.contains(confWeb)) {
+                        // Unbound if no binding possible
+                        for (int i = 0; i < nPhys; i++) {
+                            adjMat[getInd(web)][i] = false;
+                        }
+                        boundStack.remove(web);
+                        return;
                     }
+                }
+                
+                // Else rebound conflicts
+                for (Web confWeb : conflict) {
+                    attemptBound(confWeb, this.boundWebs.get(confWeb));
                 }
                 bind(web, reg);
                 this.boundWebs.get(web).remove(reg);
