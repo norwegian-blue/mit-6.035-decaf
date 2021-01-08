@@ -22,17 +22,17 @@ METHOD (VOID) main()
 main:
 BLOCK main1    
     NODE ENTRY
-    NODE STMT	_tmp1 ASSIGN get_int(2)
-    NODE STMT	_main1_b ASSIGN _tmp1
-    NODE STMT	_tmp3 ASSIGN get_int(3)
-    NODE STMT	_main2_c ASSIGN _tmp3
+    NODE STMT	_tmp3 ASSIGN get_int(2)
+    NODE STMT	_main1_b ASSIGN _tmp3
+    NODE STMT	_tmp4 ASSIGN get_int(3)
+    NODE STMT	_main2_c ASSIGN _tmp4
     NODE STMT	_main3_d ASSIGN 0
     NODE STMT	_main3_d ASSIGN (_main1_b PLUS _main2_c)
-    NODE STMT	_tmp4 ASSIGN (_main1_b PLUS _main2_c)
-    NODE STMT	_glb1_a[_tmp4] ASSIGN 7
+    NODE STMT	_tmp2 ASSIGN (_main1_b PLUS _main2_c)
+    NODE STMT	_glb1_a[_tmp2] ASSIGN 7
     NODE STMT	Callout("printf", "%%d\n", _main3_d)
-    NODE STMT	_tmp2 ASSIGN _glb1_a[5]
-    NODE STMT	Callout("printf", "%%d\n", _tmp2)
+    NODE STMT	_tmp1 ASSIGN _glb1_a[5]
+    NODE STMT	Callout("printf", "%%d\n", _tmp1)
     NODE EXIT
 
 
@@ -47,13 +47,13 @@ BLOCK get_int1
 main:
 BLOCK main1    
     NODE ENTRY
-    NODE STMT	_tmp1 ASSIGN get_int(2)
-    NODE STMT	_tmp3 ASSIGN get_int(3)
-    NODE STMT	_tmp5 ASSIGN (_tmp1 PLUS _tmp3)
+    NODE STMT	_tmp3 ASSIGN get_int(2)
+    NODE STMT	_tmp4 ASSIGN get_int(3)
+    NODE STMT	_tmp5 ASSIGN (_tmp3 PLUS _tmp4)
     NODE STMT	_glb1_a[_tmp5] ASSIGN 7
     NODE STMT	Callout("printf", "%%d\n", _tmp5)
-    NODE STMT	_tmp2 ASSIGN _glb1_a[5]
-    NODE STMT	Callout("printf", "%%d\n", _tmp2)
+    NODE STMT	_tmp1 ASSIGN _glb1_a[5]
+    NODE STMT	Callout("printf", "%%d\n", _tmp1)
     NODE EXIT
 
 

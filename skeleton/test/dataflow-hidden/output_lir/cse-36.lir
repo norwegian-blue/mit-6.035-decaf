@@ -32,8 +32,8 @@ METHOD (VOID) main()
 foo:
 BLOCK foo1    
     NODE ENTRY
-    NODE STMT	_tmp1 ASSIGN get_int(7)
-    NODE STMT	_foo1_a ASSIGN _tmp1
+    NODE STMT	_tmp3 ASSIGN get_int(7)
+    NODE STMT	_foo1_a ASSIGN _tmp3
     NODE STMT	_tmp4 ASSIGN get_int(2)
     NODE STMT	_foo2_b ASSIGN _tmp4
     NODE STMT	_tmp2 ASSIGN get_bool(true)
@@ -41,8 +41,8 @@ BLOCK foo1
     NODE STMT	_foo3_c ASSIGN 0
     NODE STMT	_foo1_a ASSIGN (_foo1_a TIMES _foo2_b)
     NODE STMT	_foo3_c ASSIGN (_foo1_a TIMES _foo2_b)
-    NODE STMT	_tmp3 ASSIGN (_foo3_c PLUS _foo1_a)
-    NODE EXIT	return _tmp3
+    NODE STMT	_tmp1 ASSIGN (_foo3_c PLUS _foo1_a)
+    NODE EXIT	return _tmp1
 
 
 get_bool:
@@ -71,13 +71,13 @@ BLOCK get_int1
 foo:
 BLOCK foo1    
     NODE ENTRY
-    NODE STMT	_tmp1 ASSIGN get_int(7)
+    NODE STMT	_tmp3 ASSIGN get_int(7)
     NODE STMT	_tmp4 ASSIGN get_int(2)
     NODE STMT	_tmp2 ASSIGN get_bool(true)
-    NODE STMT	_foo1_a ASSIGN (_tmp1 TIMES _tmp4)
+    NODE STMT	_foo1_a ASSIGN (_tmp3 TIMES _tmp4)
     NODE STMT	_foo3_c ASSIGN (_foo1_a TIMES _tmp4)
-    NODE STMT	_tmp3 ASSIGN (_foo3_c PLUS _foo1_a)
-    NODE EXIT	return _tmp3
+    NODE STMT	_tmp1 ASSIGN (_foo3_c PLUS _foo1_a)
+    NODE EXIT	return _tmp1
 
 
 get_bool:

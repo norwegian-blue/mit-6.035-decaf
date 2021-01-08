@@ -38,10 +38,10 @@ BLOCK foo1
     NODE ENTRY
     NODE STMT	_tmp7 ASSIGN get_int(7)
     NODE STMT	_foo1_a ASSIGN _tmp7
-    NODE STMT	_tmp3 ASSIGN get_int(2)
-    NODE STMT	_foo2_b ASSIGN _tmp3
-    NODE STMT	_tmp2 ASSIGN get_bool(true)
-    NODE STMT	_foo6_x ASSIGN _tmp2
+    NODE STMT	_tmp9 ASSIGN get_int(2)
+    NODE STMT	_foo2_b ASSIGN _tmp9
+    NODE STMT	_tmp8 ASSIGN get_bool(true)
+    NODE STMT	_foo6_x ASSIGN _tmp8
     NODE STMT	_foo3_c ASSIGN 0
     NODE STMT	_foo5_d ASSIGN (_foo1_a PLUS _foo2_b)
     NODE STMT	_foo7_i ASSIGN 1
@@ -53,20 +53,20 @@ BLOCK foo2
 		COND F --> foo4
 
 BLOCK foo3    
-    NODE STMT	_tmp4 ASSIGN (_foo7_i TIMES _foo7_i)
-    NODE STMT	_tmp5 ASSIGN (_foo1_a PLUS _foo2_b)
-    NODE STMT	_tmp6 ASSIGN (_tmp4 TIMES _tmp5)
-    NODE STMT	_foo3_c ASSIGN (_foo3_c PLUS _tmp6)
+    NODE STMT	_tmp1 ASSIGN (_foo7_i TIMES _foo7_i)
+    NODE STMT	_tmp2 ASSIGN (_foo1_a PLUS _foo2_b)
+    NODE STMT	_tmp3 ASSIGN (_tmp1 TIMES _tmp2)
+    NODE STMT	_foo3_c ASSIGN (_foo3_c PLUS _tmp3)
     NODE STMT	_foo1_a ASSIGN 3
     NODE STMT	_foo7_i ASSIGN (_foo7_i PLUS 1)
 		GOTO   --> foo2
 
 BLOCK foo4    
-    NODE STMT	_tmp8 ASSIGN (_foo1_a PLUS _foo2_b)
-    NODE STMT	_tmp9 ASSIGN (10 TIMES _tmp8)
-    NODE STMT	_foo3_c ASSIGN (_foo3_c PLUS _tmp9)
-    NODE STMT	_tmp1 ASSIGN (_foo3_c PLUS _foo5_d)
-    NODE EXIT	return _tmp1
+    NODE STMT	_tmp4 ASSIGN (_foo1_a PLUS _foo2_b)
+    NODE STMT	_tmp5 ASSIGN (10 TIMES _tmp4)
+    NODE STMT	_foo3_c ASSIGN (_foo3_c PLUS _tmp5)
+    NODE STMT	_tmp6 ASSIGN (_foo3_c PLUS _foo5_d)
+    NODE EXIT	return _tmp6
 
 
 get_bool:
@@ -97,10 +97,10 @@ BLOCK foo1
     NODE ENTRY
     NODE STMT	_tmp7 ASSIGN get_int(7)
     NODE STMT	_foo1_a ASSIGN _tmp7
-    NODE STMT	_tmp3 ASSIGN get_int(2)
-    NODE STMT	_tmp2 ASSIGN get_bool(true)
+    NODE STMT	_tmp9 ASSIGN get_int(2)
+    NODE STMT	_tmp8 ASSIGN get_bool(true)
     NODE STMT	_foo3_c ASSIGN 0
-    NODE STMT	_foo5_d ASSIGN (_tmp7 PLUS _tmp3)
+    NODE STMT	_foo5_d ASSIGN (_tmp7 PLUS _tmp9)
     NODE STMT	_foo7_i ASSIGN 1
 		GOTO   --> foo2
 
@@ -110,20 +110,20 @@ BLOCK foo2
 		COND F --> foo4
 
 BLOCK foo3    
-    NODE STMT	_tmp4 ASSIGN (_foo7_i TIMES _foo7_i)
-    NODE STMT	_tmp5 ASSIGN (_foo1_a PLUS _tmp3)
-    NODE STMT	_tmp6 ASSIGN (_tmp4 TIMES _tmp5)
-    NODE STMT	_foo3_c ASSIGN (_foo3_c PLUS _tmp6)
+    NODE STMT	_tmp1 ASSIGN (_foo7_i TIMES _foo7_i)
+    NODE STMT	_tmp2 ASSIGN (_foo1_a PLUS _tmp9)
+    NODE STMT	_tmp3 ASSIGN (_tmp1 TIMES _tmp2)
+    NODE STMT	_foo3_c ASSIGN (_foo3_c PLUS _tmp3)
     NODE STMT	_foo1_a ASSIGN 3
     NODE STMT	_foo7_i ASSIGN (_foo7_i PLUS 1)
 		GOTO   --> foo2
 
 BLOCK foo4    
-    NODE STMT	_tmp8 ASSIGN (_foo1_a PLUS _tmp3)
-    NODE STMT	_tmp9 ASSIGN (10 TIMES _tmp8)
-    NODE STMT	_foo3_c ASSIGN (_foo3_c PLUS _tmp9)
-    NODE STMT	_tmp1 ASSIGN (_foo3_c PLUS _foo5_d)
-    NODE EXIT	return _tmp1
+    NODE STMT	_tmp4 ASSIGN (_foo1_a PLUS _tmp9)
+    NODE STMT	_tmp5 ASSIGN (10 TIMES _tmp4)
+    NODE STMT	_foo3_c ASSIGN (_foo3_c PLUS _tmp5)
+    NODE STMT	_tmp6 ASSIGN (_foo3_c PLUS _foo5_d)
+    NODE EXIT	return _tmp6
 
 
 get_bool:

@@ -23,10 +23,10 @@ METHOD (VOID) main()
 main:
 BLOCK main1    
     NODE ENTRY
-    NODE STMT	_tmp1 ASSIGN get_int(2)
-    NODE STMT	_glb4_a ASSIGN _tmp1
-    NODE STMT	_tmp2 ASSIGN get_int(3)
-    NODE STMT	_glb3_b ASSIGN _tmp2
+    NODE STMT	_tmp2 ASSIGN get_int(2)
+    NODE STMT	_glb4_a ASSIGN _tmp2
+    NODE STMT	_tmp1 ASSIGN get_int(3)
+    NODE STMT	_glb3_b ASSIGN _tmp1
     NODE STMT	_glb2_c ASSIGN 0
     NODE STMT	_glb1_d ASSIGN 0
     NODE STMT	_glb2_c ASSIGN (_glb4_a PLUS _glb3_b)
@@ -47,10 +47,10 @@ BLOCK get_int1
 main:
 BLOCK main1    
     NODE ENTRY
-    NODE STMT	_tmp1 ASSIGN get_int(2)
-    NODE STMT	_glb4_a ASSIGN _tmp1
-    NODE STMT	_tmp2 ASSIGN get_int(3)
-    NODE STMT	_glb3_b ASSIGN _tmp2
+    NODE STMT	_tmp2 ASSIGN get_int(2)
+    NODE STMT	_glb4_a ASSIGN _tmp2
+    NODE STMT	_tmp1 ASSIGN get_int(3)
+    NODE STMT	_glb3_b ASSIGN _tmp1
     NODE STMT	_glb2_c ASSIGN 0
     NODE STMT	_glb1_d ASSIGN 0
     NODE STMT	_tmp3 ASSIGN (_glb4_a PLUS _glb3_b)
