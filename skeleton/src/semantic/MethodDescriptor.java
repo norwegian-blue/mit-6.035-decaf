@@ -24,6 +24,7 @@ public class MethodDescriptor extends Descriptor {
     private Set<Web> webs;
     
     private int stackTop = 0;
+    private StackTight stack = new StackTight();
     
     public MethodDescriptor(String name, TypeDescriptor returnType, List<ParameterDescriptor> parameters) {
         super(name, returnType);
@@ -194,10 +195,9 @@ public class MethodDescriptor extends Descriptor {
                     
                     if (par.getIrId().equals(id)) {
                         if (i < 6) {
-                            stackTop += par.getSize();
-                            web.setOffset(-stackTop);           // Push parameter on stack                       
+                            web.setOffset(-stack.allocate(web, par));    // Push parameter on stack                       
                         } else {
-                            web.setOffset(parOffset-parSize);   // Parameter already on stack (call convention)
+                            web.setOffset(parOffset-parSize);            // Parameter already on stack (call convention)
                         }
                         found = true;
                     }
@@ -205,8 +205,7 @@ public class MethodDescriptor extends Descriptor {
                 
                 for (LocalDescriptor loc : locals) {
                     if (loc.getIrId().equals(id)) {
-                        stackTop += loc.getSize();
-                        web.setOffset(-stackTop);                   // Push local on stack 
+                        web.setOffset(-stack.allocate(web, loc));        // Push local on stack 
                         found = true;
                     }
                 }
@@ -248,7 +247,11 @@ public class MethodDescriptor extends Descriptor {
     }
     
     public int getStackTop() {
-        return stackTop;
+        if (webs == null) {
+            return stackTop;
+        } else {
+            return stack.getTop();
+        }
     }
     
     public void updateLocations(Node node) {
@@ -309,5 +312,93 @@ public class MethodDescriptor extends Descriptor {
         
         throw new Error("cannot find id");
         
+    }
+    
+    private class StackTight {
+        
+        private List<ByteSpace> stackSpace;
+        
+        public StackTight() {
+            this.stackSpace = new ArrayList<ByteSpace>();
+        }
+        
+        public int getTop() {
+            return this.stackSpace.size();
+        }
+        
+        public int allocate(Web web, Descriptor par) {
+            
+            // Try to allocate in available space if no conflicts found
+            for (int i = 0; i < getTop(); i++) {
+                if (canFit(web, par, i)) {
+                    addToStack(web, par, i);
+                    return i+1;
+                }
+            }
+            
+            // Allocate new space on top of stack
+            for (int i = 0; i < par.getSize(); i++) {
+                stackSpace.add(new ByteSpace(web));
+            }
+            return getTop();
+        }
+        
+        private boolean canFit(Web web, Descriptor par, int pos) {
+            int ind;
+            for (int i = 0; i < par.getSize(); i++) {
+                ind = pos-i;
+                if (ind < 0) return false;
+                if (stackSpace.get(ind).interfere(web)) return false;
+            }
+            return true;
+        }
+        
+        private void addToStack(Web web, Descriptor par, int pos) {
+            for (int i = 0; i < par.getSize(); i++) {
+                stackSpace.get(pos-i).addWeb(web);
+            }
+        }
+        
+        @Override 
+        public String toString() {
+            String str = "";
+            int ind = 0;
+            for (ByteSpace byteSpace : stackSpace) {
+                str += ++ind + "\t\t" + byteSpace.toString() + "\n";
+            }
+            return str;
+        }
+        
+        private class ByteSpace {
+            private List<Web> boundWebs;
+            
+            public ByteSpace(Web web) {
+                this.boundWebs = new ArrayList<Web>();
+                this.boundWebs.add(web);
+            }
+            
+            public void addWeb(Web web) {
+                this.boundWebs.add(web);
+            }
+            
+            public boolean interfere(Web web) {
+                for (Web byteWeb : boundWebs) {
+                    if (byteWeb.interfere(web)) {
+                        return true;
+                    }
+                }
+                return false;
+            }
+            
+            @Override 
+            public String toString() {
+                String str = "[";
+                for (Web web : boundWebs) {
+                    str += web.getId().getId() + ", ";
+                }
+                str = str.substring(0, str.length()-2);
+                return str + "]";
+            }
+        }
     }
 }
