@@ -133,22 +133,19 @@ public class CodeGenerator implements NodeVisitor<Void> {
         prog.addInstruction(new Enter(method.getStackTop()));
         
         // Push callee saved registers on stack
-        for (Register reg : method.getUsedRegs()) {
-            if (method.getId().equals("main")) continue;
-            reg = new Register(reg, 8);
-            if (reg.equals(Register.rbx())) {
-                prog.addInstruction(new Push(reg));
-            } else if (reg.equals(Register.r12())) {
-                prog.addInstruction(new Push(reg));
-            } else if (reg.equals(Register.r13())) {
-                prog.addInstruction(new Push(reg));
-            } else if (reg.equals(Register.r14())) {
-                prog.addInstruction(new Push(reg));
-            } else if (reg.equals(Register.r15())) {
-                prog.addInstruction(new Push(reg));
-            }            
+        if (!method.getId().equals("main")) {
+            int pushed = 0;
+            for (Register reg : Call.getCalleeSaved()) {
+                if (method.getUsedRegs().contains(reg)) {
+                    prog.addInstruction(new Push(reg));
+                    pushed++;
+                }
+            }
+            if ((pushed % 2) == 1) {
+                prog.addInstruction(new Push(Register.r10()));  // Keep stack 16 Bytes aligned
+            }
         }
-                
+                        
         // Move parameters onto local storage (or to registers if allocated)  
         for (ParameterDescriptor par : method.getPars()) {            
             // Skip unused parameters
@@ -211,24 +208,25 @@ public class CodeGenerator implements NodeVisitor<Void> {
         }
                 
         // Restore stack
-        List<Register> regs = method.getUsedRegs();
-        Collections.reverse(regs);
-        for (Register reg : regs) {
-            if (method.getId().equals("main")) continue;
-            reg = new Register(reg, 8);
-            if (reg.equals(Register.rbx())) {
-                prog.addInstruction(new Pop(reg));
-            } else if (reg.equals(Register.r12())) {
-                prog.addInstruction(new Pop(reg));
-            } else if (reg.equals(Register.r13())) {
-                prog.addInstruction(new Pop(reg));
-            } else if (reg.equals(Register.r14())) {
-                prog.addInstruction(new Pop(reg));
-            } else if (reg.equals(Register.r15())) {
-                prog.addInstruction(new Pop(reg));
+        if (!method.getId().contentEquals("main")) {
+            List<LIR> instrList = new ArrayList<LIR>();
+            int popped = 0;
+            for (Register reg : Call.getCalleeSaved()) {
+                if (method.getUsedRegs().contains(reg)) {
+                    instrList.add(new Pop(reg));
+                    popped++;
+                }
+            }
+            if ((popped % 2) == 1) {
+                instrList.add(new Pop(Register.r10()));
+            }
+            
+            Collections.reverse(instrList);
+            for (LIR instr : instrList) {
+                prog.addInstruction(instr);
             }
         }
-        
+                
         // Return to caller or throw runtime error
         if (falloff) {
             ErrorHandle fall = ErrorHandle.fallOver();

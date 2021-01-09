@@ -247,10 +247,18 @@ public class MethodDescriptor extends Descriptor {
     }
     
     public int getStackTop() {
+        int top = 0;
         if (webs == null) {
-            return stackTop;
+            top = stackTop;
         } else {
-            return stack.getTop();
+            top = stack.getTop();
+        }
+        
+        // Stack is 16 aligned
+        if ((top % 16) == 0) {
+            return top;
+        } else {
+            return 16*(top/16) + 16;
         }
     }
     

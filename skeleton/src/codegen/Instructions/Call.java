@@ -62,16 +62,30 @@ public class Call extends LIR {
         }
     }
     
+    public static List<Register> getCallerSaved() {
+        List<Register> callerSaved = new ArrayList<Register>();
+        callerSaved.add(Register.rax());
+        callerSaved.add(Register.rcx());
+        callerSaved.add(Register.rdx());
+        callerSaved.add(Register.rsi());
+        callerSaved.add(Register.rdi());
+        callerSaved.add(Register.r8());
+        callerSaved.add(Register.r9());
+        callerSaved.add(Register.r10());
+        callerSaved.add(Register.r11());
+        
+        return callerSaved;
+    }
+    
     public static List<Register> getCalleeSaved() {
         List<Register> calleeSaved = new ArrayList<Register>();
-        calleeSaved.add(Register.rax());
-        calleeSaved.add(Register.rcx());
-        calleeSaved.add(Register.rdx());
-        calleeSaved.add(Register.rsi());
-        calleeSaved.add(Register.rdi());
-        calleeSaved.add(Register.r8());
-        calleeSaved.add(Register.r9());
-        calleeSaved.add(Register.r11());
+        calleeSaved.add(Register.rbx());
+        calleeSaved.add(Register.r12());
+        calleeSaved.add(Register.r13());
+        calleeSaved.add(Register.r14());
+        calleeSaved.add(Register.r15());
+        calleeSaved.add(Register.rbp());
+        calleeSaved.add(Register.rsp());
         
         return calleeSaved;
     }

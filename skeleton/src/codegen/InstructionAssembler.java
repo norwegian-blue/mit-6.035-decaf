@@ -178,7 +178,7 @@ public class InstructionAssembler implements IrVisitor<List<LIR>> {
 
     private List<LIR> saveRegs(boolean skipRax) {
         List<LIR> instrList = new ArrayList<LIR>();
-        List<Register> calleeSaved = Call.getCalleeSaved();
+        List<Register> calleeSaved = Call.getCallerSaved();
         
         for (Register reg : calleeSaved) {
             // Do not save register if it is used to store result
@@ -193,7 +193,7 @@ public class InstructionAssembler implements IrVisitor<List<LIR>> {
 
     private List<LIR> restoreRegs(boolean skipRax) {
         List<LIR> instrList = new ArrayList<LIR>();
-        List<Register> calleeSaved = Call.getCalleeSaved();
+        List<Register> calleeSaved = Call.getCallerSaved();
         Collections.reverse(calleeSaved);
         
         for (Register reg : calleeSaved) {
